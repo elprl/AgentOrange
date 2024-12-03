@@ -10,6 +10,7 @@ import SwiftUI
 struct AIChatView: View {
     @Environment(AIChatViewModel.self) private var chatVM: AIChatViewModel
     @Environment(FileViewerViewModel.self) private var codeVM: FileViewerViewModel
+    @FocusState private var isFocused: Bool
 
     var body: some View {
         @Bindable var chatVM = chatVM
@@ -24,11 +25,17 @@ let _ = Self._printChanges()
             .listStyle(.insetGrouped)
             Spacer()
             HStack {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 8).foregroundStyle(.thinMaterial).frame(height: 40)
-                    TextField("Ask a question", text: $chatVM.question)
-                        .padding(8)
-                }
+                TextField("Ask a question", text: $chatVM.question, axis: .vertical)
+                    .textFieldStyle(.roundedBorder)
+                    .disableAutocorrection(true)
+                    .keyboardType(.asciiCapable)
+                    .focused($isFocused)
+                    .onSubmit {
+                        self.isFocused = true
+                    }
+                    .submitLabel(.return)
+                    .lineLimit(1...10)
+                    .padding(8)
                 Spacer()
                 Group {
                     if !chatVM.isGenerating {
@@ -45,8 +52,9 @@ let _ = Self._printChanges()
             }
             .transition(.opacity)
             .tint(.orange)
+            .padding(.horizontal)
         }
-        .padding()
+        .padding(.bottom)
         .navigationBarTitle("AI Chat")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)

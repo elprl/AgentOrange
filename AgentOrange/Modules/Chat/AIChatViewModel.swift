@@ -6,19 +6,22 @@
 //
 
 import SwiftUI
+import Factory
 
 @Observable
 final class AIChatViewModel {
+    @Injected(\.codeService) @ObservationIgnored private var codeService
     var chats: [UUID: ChatMessage] = [:]
     var isGenerating: Bool = false
     var question: String = ""
     @ObservationIgnored private var bot: LLM?
     
     init(fileName: String = "Meta-Llama-3.1-8B-Instruct-128k-Q4_0") {
+        let systemPrompt = "You are an experienced professional Swift iOS engineer. All your responses must contain swift code ONLY where comments or answers are in code comments (\\\\)."
         guard let bundleURL = Bundle.main.url(forResource: fileName, withExtension: "gguf") else {
             return
         }
-        bot = LLM(from: bundleURL, template: .chatML())
+        bot = LLM(from: bundleURL, template: .chatML(systemPrompt))
     }
 
     func streamResponse() {
@@ -75,7 +78,11 @@ final class AIChatViewModel {
     }
     
     private func generateHistory() -> [Chat] {
-        let history: [Chat] = chats.values.sorted(by: { $0.timestamp < $1.timestamp }).map { Chat(role: $0.role, content: $0.content) }
+        var history: [Chat] = []
+        if let code = codeService.code {
+            history.append(Chat(role: .user, content: code))
+        }
+        history.append(contentsOf: chats.values.sorted(by: { $0.timestamp < $1.timestamp }).map { Chat(role: $0.role, content: $0.content) })
         return history
     }
 }

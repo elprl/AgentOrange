@@ -9,6 +9,8 @@ import SwiftUI
 
 struct FileViewerSUI: View {
     @Environment(FileViewerViewModel.self) private var viewModel: FileViewerViewModel
+    @State private var isFilePickerPresented: Bool = false
+    @State private var fileContent: String = ""
 
     var body: some View {
 #if DEBUG
@@ -27,9 +29,27 @@ struct FileViewerSUI: View {
             .padding(.top)
             .padding(.bottom)
         }
+        .sheet(isPresented: $isFilePickerPresented) {
+            DocumentPickerView() { code in
+                viewModel.parseCode(code: code)
+            }
+        }
         .background(Color.black)
         .navigationTitle("Code")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                Button("", systemImage: "document.on.clipboard.fill") {
+                    let pasteboard = UIPasteboard.general
+                    if let code = pasteboard.string {
+                        viewModel.parseCode(code: code)
+                    }
+                }
+                Button("", systemImage: "folder.fill") {
+                    isFilePickerPresented = true
+                }
+            }
+        }
         .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbarBackground(.orange, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
@@ -38,13 +58,19 @@ struct FileViewerSUI: View {
     @ViewBuilder
     private var pasteBtn: some View {
         if viewModel.rows.isEmpty {
-            Button("Paste Code") {
-                let pasteboard = UIPasteboard.general
-                if let string = pasteboard.string {
-                    viewModel.parseCode(code: string)
+            HStack {
+                Button("Paste Code", systemImage: "document.on.clipboard.fill") {
+                    let pasteboard = UIPasteboard.general
+                    if let code = pasteboard.string {
+                        viewModel.parseCode(code: code)
+                    }
                 }
+                .buttonStyle(.borderedProminent)
+                Button("Browse...", systemImage: "folder.fill") {
+                    isFilePickerPresented = true
+                }
+                .buttonStyle(.borderedProminent)
             }
-            .buttonStyle(.borderedProminent)
             .tint(.orange)
         }
     }
