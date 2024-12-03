@@ -31,7 +31,7 @@ struct FileViewerSUI: View {
         }
         .sheet(isPresented: $isFilePickerPresented) {
             DocumentPickerView() { code in
-                viewModel.parseCode(code: code)
+                viewModel.displayCode(code: code)
             }
         }
         .background(Color.black)
@@ -42,7 +42,7 @@ struct FileViewerSUI: View {
                 Button("", systemImage: "document.on.clipboard.fill") {
                     let pasteboard = UIPasteboard.general
                     if let code = pasteboard.string {
-                        viewModel.parseCode(code: code)
+                        viewModel.displayCode(code: code)
                     }
                 }
                 Button("", systemImage: "folder.fill") {
@@ -62,7 +62,7 @@ struct FileViewerSUI: View {
                 Button("Paste Code", systemImage: "document.on.clipboard.fill") {
                     let pasteboard = UIPasteboard.general
                     if let code = pasteboard.string {
-                        viewModel.parseCode(code: code)
+                        viewModel.displayCode(code: code)
                     }
                 }
                 .buttonStyle(.borderedProminent)
@@ -104,7 +104,7 @@ struct FileViewerSUI: View {
 }
 """
     FileViewerSUI()
-        .environment(FileViewerViewModel(code: code))
+        .environment(FileViewerViewModel())
 }
 
 #Preview("No code") {

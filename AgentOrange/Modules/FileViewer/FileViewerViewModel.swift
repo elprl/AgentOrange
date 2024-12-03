@@ -7,23 +7,32 @@
 
 import SwiftUI
 import Factory
+import Combine
 
 @Observable
 final class FileViewerViewModel {
     @Injected(\.codeService) @ObservationIgnored private var codeService
     var rows: [AttributedString] = []
+    @ObservationIgnored private var cancellable: AnyCancellable?
     
-    init(code: String? = nil) {
-        if let code {
-            parseCode(code: code)
-        }
+    init(rows: [AttributedString] = []) {
+        self.rows = rows
+        cancellable = codeService.codePublisher
+            .dropFirst()
+            .receive(on: RunLoop.main)
+            .sink(receiveCompletion: { _ in
+                print("codePublisher receiveCompletion")
+            }, receiveValue: { [weak self] code in
+                print("codePublisher receiveValue \(code ?? "")")
+                if code != nil {
+                    self?.rows = self?.codeService.codeRows ?? []
+                }
+            })
     }
     
-    func parseCode(code: String) {
-        codeService.parseCode(code: code)
-        rows = codeService.codeRows
+    func displayCode(code: String) {
+        codeService.code = code
     }
-    
 }
 
 struct DocumentPickerView: UIViewControllerRepresentable {
@@ -57,6 +66,7 @@ struct DocumentPickerView: UIViewControllerRepresentable {
                 action(fileContent)
             } catch {
                 let fileContent = "Error reading file: \(error.localizedDescription)"
+                print(fileContent)
             }
         }
 

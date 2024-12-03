@@ -42,6 +42,7 @@ final class AIChatViewModel {
                 updateMessage(message: responseMessage, content: tempOutput)
             }
             print(tempOutput)
+            codeService.code = tempOutput
             stop()
         }
     }

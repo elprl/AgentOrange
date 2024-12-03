@@ -8,20 +8,25 @@ import Foundation
 import Splash
 
 protocol CodeServiceProtocol {
-    var code: String? { get }
+    var code: String? { get set }
+    var codePublisher: Published<String?>.Publisher { get }
+
     var paintedCode: AttributedString? { get }
     var codeRows: [AttributedString] { get }
-    func parseCode(code: String)
+    func parseCode()
     func getHighlighted(code: String) -> NSAttributedString
 }
 
-final class CodeService: CodeServiceProtocol {
-    var code: String?
-    var paintedCode: AttributedString?
-    var codeRows: [AttributedString] = []
+final class CodeService: CodeServiceProtocol, ObservableObject {
+    @Published var code: String? {
+        didSet { parseCode() }
+    }
+    @Published var paintedCode: AttributedString?
+    @Published var codeRows: [AttributedString] = []
+    var codePublisher: Published<String?>.Publisher { $code }
 
-    func parseCode(code: String) {
-        self.code = code
+    func parseCode() {
+        guard let code = self.code, !code.isEmpty else { return }
         
         let attString = getHighlighted(code: code)
         self.paintedCode = AttributedString(attString)
