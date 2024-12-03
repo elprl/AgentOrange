@@ -1,0 +1,637 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		E1A39E2F2CFFA2DE00A83ADF /* Factory in Frameworks */ = {isa = PBXBuildFile; productRef = E1A39E2E2CFFA2DE00A83ADF /* Factory */; };
+		E1A39E312CFFA2DE00A83ADF /* Splash in Frameworks */ = {isa = PBXBuildFile; productRef = E1A39E302CFFA2DE00A83ADF /* Splash */; };
+		E1A39E332CFFA2DE00A83ADF /* llama in Frameworks */ = {isa = PBXBuildFile; productRef = E1A39E322CFFA2DE00A83ADF /* llama */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		E10E1C172CFFA1C9006AE920 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E10E1BFC2CFFA1C7006AE920 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E10E1C032CFFA1C7006AE920;
+			remoteInfo = AgentOrange;
+		};
+		E10E1C212CFFA1C9006AE920 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E10E1BFC2CFFA1C7006AE920 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E10E1C032CFFA1C7006AE920;
+			remoteInfo = AgentOrange;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		E10E1C042CFFA1C7006AE920 /* AgentOrange.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AgentOrange.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E10E1C162CFFA1C9006AE920 /* AgentOrangeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AgentOrangeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E10E1C202CFFA1C9006AE920 /* AgentOrangeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AgentOrangeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		E10E1C062CFFA1C7006AE920 /* AgentOrange */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = AgentOrange;
+			sourceTree = "<group>";
+		};
+		E10E1C192CFFA1C9006AE920 /* AgentOrangeTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = AgentOrangeTests;
+			sourceTree = "<group>";
+		};
+		E10E1C232CFFA1C9006AE920 /* AgentOrangeUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = AgentOrangeUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		E10E1C012CFFA1C7006AE920 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E1A39E332CFFA2DE00A83ADF /* llama in Frameworks */,
+				E1A39E2F2CFFA2DE00A83ADF /* Factory in Frameworks */,
+				E1A39E312CFFA2DE00A83ADF /* Splash in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E10E1C132CFFA1C9006AE920 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E10E1C1D2CFFA1C9006AE920 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		E10E1BFB2CFFA1C7006AE920 = {
+			isa = PBXGroup;
+			children = (
+				E10E1C062CFFA1C7006AE920 /* AgentOrange */,
+				E10E1C192CFFA1C9006AE920 /* AgentOrangeTests */,
+				E10E1C232CFFA1C9006AE920 /* AgentOrangeUITests */,
+				E1A39E2D2CFFA2DE00A83ADF /* Frameworks */,
+				E10E1C052CFFA1C7006AE920 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		E10E1C052CFFA1C7006AE920 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E10E1C042CFFA1C7006AE920 /* AgentOrange.app */,
+				E10E1C162CFFA1C9006AE920 /* AgentOrangeTests.xctest */,
+				E10E1C202CFFA1C9006AE920 /* AgentOrangeUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E1A39E2D2CFFA2DE00A83ADF /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		E10E1C032CFFA1C7006AE920 /* AgentOrange */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E10E1C2A2CFFA1C9006AE920 /* Build configuration list for PBXNativeTarget "AgentOrange" */;
+			buildPhases = (
+				E10E1C002CFFA1C7006AE920 /* Sources */,
+				E10E1C012CFFA1C7006AE920 /* Frameworks */,
+				E10E1C022CFFA1C7006AE920 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				E10E1C062CFFA1C7006AE920 /* AgentOrange */,
+			);
+			name = AgentOrange;
+			packageProductDependencies = (
+				E1A39E2E2CFFA2DE00A83ADF /* Factory */,
+				E1A39E302CFFA2DE00A83ADF /* Splash */,
+				E1A39E322CFFA2DE00A83ADF /* llama */,
+			);
+			productName = AgentOrange;
+			productReference = E10E1C042CFFA1C7006AE920 /* AgentOrange.app */;
+			productType = "com.apple.product-type.application";
+		};
+		E10E1C152CFFA1C9006AE920 /* AgentOrangeTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E10E1C2D2CFFA1C9006AE920 /* Build configuration list for PBXNativeTarget "AgentOrangeTests" */;
+			buildPhases = (
+				E10E1C122CFFA1C9006AE920 /* Sources */,
+				E10E1C132CFFA1C9006AE920 /* Frameworks */,
+				E10E1C142CFFA1C9006AE920 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E10E1C182CFFA1C9006AE920 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				E10E1C192CFFA1C9006AE920 /* AgentOrangeTests */,
+			);
+			name = AgentOrangeTests;
+			packageProductDependencies = (
+			);
+			productName = AgentOrangeTests;
+			productReference = E10E1C162CFFA1C9006AE920 /* AgentOrangeTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		E10E1C1F2CFFA1C9006AE920 /* AgentOrangeUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E10E1C302CFFA1C9006AE920 /* Build configuration list for PBXNativeTarget "AgentOrangeUITests" */;
+			buildPhases = (
+				E10E1C1C2CFFA1C9006AE920 /* Sources */,
+				E10E1C1D2CFFA1C9006AE920 /* Frameworks */,
+				E10E1C1E2CFFA1C9006AE920 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E10E1C222CFFA1C9006AE920 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				E10E1C232CFFA1C9006AE920 /* AgentOrangeUITests */,
+			);
+			name = AgentOrangeUITests;
+			packageProductDependencies = (
+			);
+			productName = AgentOrangeUITests;
+			productReference = E10E1C202CFFA1C9006AE920 /* AgentOrangeUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E10E1BFC2CFFA1C7006AE920 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 1620;
+				TargetAttributes = {
+					E10E1C032CFFA1C7006AE920 = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					E10E1C152CFFA1C9006AE920 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = E10E1C032CFFA1C7006AE920;
+					};
+					E10E1C1F2CFFA1C9006AE920 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = E10E1C032CFFA1C7006AE920;
+					};
+				};
+			};
+			buildConfigurationList = E10E1BFF2CFFA1C7006AE920 /* Build configuration list for PBXProject "AgentOrange" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = E10E1BFB2CFFA1C7006AE920;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				E10E1C332CFFA223006AE920 /* XCRemoteSwiftPackageReference "Factory" */,
+				E10E1C342CFFA232006AE920 /* XCRemoteSwiftPackageReference "Splash" */,
+				E10E1C352CFFA243006AE920 /* XCRemoteSwiftPackageReference "llama" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = E10E1C052CFFA1C7006AE920 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E10E1C032CFFA1C7006AE920 /* AgentOrange */,
+				E10E1C152CFFA1C9006AE920 /* AgentOrangeTests */,
+				E10E1C1F2CFFA1C9006AE920 /* AgentOrangeUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		E10E1C022CFFA1C7006AE920 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E10E1C142CFFA1C9006AE920 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E10E1C1E2CFFA1C9006AE920 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E10E1C002CFFA1C7006AE920 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E10E1C122CFFA1C9006AE920 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E10E1C1C2CFFA1C9006AE920 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		E10E1C182CFFA1C9006AE920 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E10E1C032CFFA1C7006AE920 /* AgentOrange */;
+			targetProxy = E10E1C172CFFA1C9006AE920 /* PBXContainerItemProxy */;
+		};
+		E10E1C222CFFA1C9006AE920 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E10E1C032CFFA1C7006AE920 /* AgentOrange */;
+			targetProxy = E10E1C212CFFA1C9006AE920 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		E10E1C282CFFA1C9006AE920 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		E10E1C292CFFA1C9006AE920 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 6.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		E10E1C2B2CFFA1C9006AE920 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"AgentOrange/Preview Content\"";
+				DEVELOPMENT_TEAM = WY258SLJLV;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Agent Orange";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tapdigital.AgentOrange;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		E10E1C2C2CFFA1C9006AE920 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"AgentOrange/Preview Content\"";
+				DEVELOPMENT_TEAM = WY258SLJLV;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Agent Orange";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tapdigital.AgentOrange;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		E10E1C2E2CFFA1C9006AE920 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = WY258SLJLV;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tapdigital.AgentOrangeTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AgentOrange.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/AgentOrange";
+			};
+			name = Debug;
+		};
+		E10E1C2F2CFFA1C9006AE920 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = WY258SLJLV;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tapdigital.AgentOrangeTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AgentOrange.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/AgentOrange";
+			};
+			name = Release;
+		};
+		E10E1C312CFFA1C9006AE920 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = WY258SLJLV;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tapdigital.AgentOrangeUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = AgentOrange;
+			};
+			name = Debug;
+		};
+		E10E1C322CFFA1C9006AE920 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = WY258SLJLV;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tapdigital.AgentOrangeUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = AgentOrange;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		E10E1BFF2CFFA1C7006AE920 /* Build configuration list for PBXProject "AgentOrange" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E10E1C282CFFA1C9006AE920 /* Debug */,
+				E10E1C292CFFA1C9006AE920 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E10E1C2A2CFFA1C9006AE920 /* Build configuration list for PBXNativeTarget "AgentOrange" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E10E1C2B2CFFA1C9006AE920 /* Debug */,
+				E10E1C2C2CFFA1C9006AE920 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E10E1C2D2CFFA1C9006AE920 /* Build configuration list for PBXNativeTarget "AgentOrangeTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E10E1C2E2CFFA1C9006AE920 /* Debug */,
+				E10E1C2F2CFFA1C9006AE920 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E10E1C302CFFA1C9006AE920 /* Build configuration list for PBXNativeTarget "AgentOrangeUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E10E1C312CFFA1C9006AE920 /* Debug */,
+				E10E1C322CFFA1C9006AE920 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		E10E1C332CFFA223006AE920 /* XCRemoteSwiftPackageReference "Factory" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/hmlongco/Factory";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.4.3;
+			};
+		};
+		E10E1C342CFFA232006AE920 /* XCRemoteSwiftPackageReference "Splash" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/JohnSundell/Splash";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.16.0;
+			};
+		};
+		E10E1C352CFFA243006AE920 /* XCRemoteSwiftPackageReference "llama" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ggerganov/llama.cpp";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		E1A39E2E2CFFA2DE00A83ADF /* Factory */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E10E1C332CFFA223006AE920 /* XCRemoteSwiftPackageReference "Factory" */;
+			productName = Factory;
+		};
+		E1A39E302CFFA2DE00A83ADF /* Splash */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E10E1C342CFFA232006AE920 /* XCRemoteSwiftPackageReference "Splash" */;
+			productName = Splash;
+		};
+		E1A39E322CFFA2DE00A83ADF /* llama */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E10E1C352CFFA243006AE920 /* XCRemoteSwiftPackageReference "llama" */;
+			productName = llama;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = E10E1BFC2CFFA1C7006AE920 /* Project object */;
+}
