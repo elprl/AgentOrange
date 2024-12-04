@@ -19,8 +19,9 @@ struct FileViewerSUI: View {
         ScrollView {
             LazyVStack(spacing: 0) {
                 pasteBtn
-                ForEach(viewModel.rows.indices, id: \.self) { index in
-                    Text(viewModel.rows[index])
+                codeVersions
+                ForEach(viewModel.currentRows.indices, id: \.self) { index in
+                    Text(viewModel.currentRows[index])
                         .padding(.horizontal)
                         .id(index)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -73,6 +74,28 @@ struct FileViewerSUI: View {
             }
             .tint(.orange)
         }
+    }
+    
+    @ViewBuilder
+    private var codeVersions: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack {
+                ForEach(viewModel.versions, id: \.self) { version in
+                    Button(action: {
+                        print("Version \(version.versionString)")
+                        viewModel.selectedVersion = version.version
+                    }, label: {
+                        Text(version.versionString)
+                            .padding(8)
+                            .foregroundStyle(.white)
+                            .background(version.version == viewModel.selectedVersion ? .orange : .gray)
+                            .cornerRadius(8)
+                            .padding(4)
+                    })
+                }
+            }
+        }
+        .padding(.horizontal)
     }
 }
 

@@ -9,10 +9,27 @@ import SwiftUI
 import Factory
 import Combine
 
+struct CodeVersions: Identifiable, Hashable {
+    let version: Int
+    let code: String
+    let rows: [AttributedString]
+    var id: Int { version }
+    
+    var versionString: String {
+        if version == 0 {
+            return "Original"
+        }
+        return "Version \(version)"
+    }
+}
+
+
 @Observable
 final class FileViewerViewModel {
     @Injected(\.codeService) @ObservationIgnored private var codeService
     var rows: [AttributedString] = []
+    var versions: [CodeVersions] = []
+    var selectedVersion: Int = 0
     @ObservationIgnored private var cancellable: AnyCancellable?
     
     init(rows: [AttributedString] = []) {
@@ -24,14 +41,22 @@ final class FileViewerViewModel {
                 print("codePublisher receiveCompletion")
             }, receiveValue: { [weak self] code in
                 print("codePublisher receiveValue \(code ?? "")")
-                if code != nil {
-                    self?.rows = self?.codeService.codeRows ?? []
+                guard let self = self else { return }
+                if let code {
+                    let rows = self.codeService.codeRows
+                    let newVersion = self.versions.count
+                    self.versions.append(CodeVersions(version: newVersion, code: code, rows: rows))
                 }
             })
     }
     
     func displayCode(code: String) {
         codeService.code = code
+    }
+    
+    var currentRows: [AttributedString] {
+        guard let version = versions.first(where: { $0.version == selectedVersion }) else { return [] }
+        return version.rows
     }
 }
 

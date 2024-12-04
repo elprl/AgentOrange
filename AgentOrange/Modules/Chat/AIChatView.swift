@@ -35,7 +35,6 @@ let _ = Self._printChanges()
                     }
                     .submitLabel(.return)
                     .lineLimit(1...10)
-                    .padding(8)
                 Spacer()
                 Group {
                     if !chatVM.isGenerating {
@@ -52,7 +51,7 @@ let _ = Self._printChanges()
             }
             .transition(.opacity)
             .tint(.orange)
-            .padding(.horizontal)
+            .padding()
         }
         .padding(.bottom)
         .navigationBarTitle("AI Chat")
