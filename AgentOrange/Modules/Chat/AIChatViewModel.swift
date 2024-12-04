@@ -36,16 +36,20 @@ final class AIChatViewModel {
             let questionPr = bot.preprocess(questionCopy, generateHistory())
             addChatMessage(content: questionCopy)
             let response = bot.getResponse(from: questionPr)
-            let responseMessage = addChatMessage(role: .bot, content: "", tag: "Version \(self.sessionIndex)")
+            self.sessionIndex += 1
+            let tag = "Version \(self.sessionIndex)"
+            let responseMessage = addChatMessage(role: .bot, content: "", tag: tag)
             var tempOutput = ""
             for await responseDelta in response {
                 tempOutput += responseDelta
                 updateMessage(message: responseMessage, content: tempOutput)
             }
             print(tempOutput)
-            codeService.addCode(code: tempOutput, tag: "Version \(self.sessionIndex)")
+            if let id = codeService.addCode(code: tempOutput, tag: tag) {
+                codeService.selectedId = id
+                updateMessage(message: responseMessage, content: tempOutput, codeId: id)
+            }
             stop()
-            self.sessionIndex += 1
         }
     }
     
@@ -55,11 +59,17 @@ final class AIChatViewModel {
         return chatMessage
     }
     
-    private func updateMessage(message: ChatMessage, content: String) {
+    private func updateMessage(message: ChatMessage, content: String, tag: String? = nil, codeId: String? = nil) {
         guard var chat = chats[message.id] else {
             return
         }
         chat.content = content
+        if let tag {
+            chat.tag = tag
+        }
+        if let codeId {
+            chat.codeId = codeId
+        }
         chats[message.id] = chat
     }
 

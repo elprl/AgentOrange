@@ -9,23 +9,28 @@ import Splash
 
 protocol CodeServiceProtocol {
     var codeVersions: [CodeVersion] { get set }
+    var selectedId: String? { get set }
     var codePublisher: Published<[CodeVersion]>.Publisher { get }
-
-    func addCode(code: String, tag: String)
+    var selectorPublisher: Published<String?>.Publisher { get }
+    
+    @discardableResult func addCode(code: String, tag: String) -> String?
     func getHighlighted(code: String) -> NSAttributedString
     func splitAttributedStringByNewlines(input: NSAttributedString) -> [AttributedString]
 }
 
 final class CodeService: CodeServiceProtocol, ObservableObject {
     @Published var codeVersions: [CodeVersion] = []
+    @Published var selectedId: String?
     var codePublisher: Published<[CodeVersion]>.Publisher { $codeVersions }
+    var selectorPublisher: Published<String?>.Publisher { $selectedId }
 
-    func addCode(code: String, tag: String) {
-        if code.isEmpty { return }
+    @discardableResult func addCode(code: String, tag: String) -> String? {
+        if code.isEmpty { return nil }
         let attString = getHighlighted(code: code)        
         let attStrings: [AttributedString] = self.splitAttributedStringByNewlines(input: attString)
         let newCodeVersion = CodeVersion(code: code, rows: attStrings, tag: tag)
         self.codeVersions.append(newCodeVersion)
+        return newCodeVersion.id
     }
     
     func getHighlighted(code: String) -> NSAttributedString {

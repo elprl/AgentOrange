@@ -15,6 +15,7 @@ final class FileViewerViewModel {
     var versions: [CodeVersion] = []
     var selectedId: String?
     @ObservationIgnored private var cancellable: AnyCancellable?
+    @ObservationIgnored private var selectorCancellable: AnyCancellable?
     
     init() {
         cancellable = codeService.codePublisher
@@ -27,6 +28,17 @@ final class FileViewerViewModel {
                 guard let self = self else { return }
                 self.selectedId = code.last?.id
                 self.versions = code
+            })
+        
+        selectorCancellable = codeService.selectorPublisher
+            .dropFirst()
+            .receive(on: RunLoop.main)
+            .sink(receiveCompletion: { _ in
+                print("selectorPublisher receiveCompletion")
+            }, receiveValue: { [weak self] selectedId in
+                print("selectorPublisher receiveValue \(selectedId ?? "")")
+                guard let self = self else { return }
+                self.selectedId = selectedId
             })
     }
     

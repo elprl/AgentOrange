@@ -25,7 +25,7 @@ struct AIChatViewRow: View {
             }
             if !(chat.tag?.isEmpty ?? true) {
                 Button {
-                    // fileVM.selectedVersion = chat.tag ?? ""
+                    fileVM.selectedId = chat.codeId
                 } label: {
                     GroupBox {
                         HStack {
