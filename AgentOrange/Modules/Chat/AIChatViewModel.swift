@@ -15,9 +15,10 @@ final class AIChatViewModel {
     var isGenerating: Bool = false
     var question: String = ""
     @ObservationIgnored private var bot: LLM?
+    @ObservationIgnored private var sessionIndex: Int = 0
     
     init(fileName: String = "Meta-Llama-3.1-8B-Instruct-128k-Q4_0") {
-        let systemPrompt = "You are an experienced professional Swift iOS engineer. All your responses must contain swift code ONLY where comments or answers are in code comments (\\\\)."
+        let systemPrompt = "You are an experienced professional Swift iOS engineer. All your responses must contain swift code ONLY where comments or answers are in code comments."
         guard let bundleURL = Bundle.main.url(forResource: fileName, withExtension: "gguf") else {
             return
         }
@@ -35,7 +36,7 @@ final class AIChatViewModel {
             let questionPr = bot.preprocess(questionCopy, generateHistory())
             addChatMessage(content: questionCopy)
             let response = bot.getResponse(from: questionPr)
-            let responseMessage = addChatMessage(role: .bot, content: "")
+            let responseMessage = addChatMessage(role: .bot, content: "", tag: "CodeGen\(self.sessionIndex)")
             var tempOutput = ""
             for await responseDelta in response {
                 tempOutput += responseDelta
@@ -47,8 +48,8 @@ final class AIChatViewModel {
         }
     }
     
-    @discardableResult private func addChatMessage(role: Role = .user, content: String) -> ChatMessage {
-        let chatMessage = ChatMessage(role: role, content: content)
+    @discardableResult private func addChatMessage(role: Role = .user, content: String, type: MessageType = .message, tag: String? = nil) -> ChatMessage {
+        let chatMessage = ChatMessage(role: role, type: type, content: content, tag: tag)
         chats[chatMessage.id] = chatMessage
         return chatMessage
     }
@@ -70,14 +71,6 @@ final class AIChatViewModel {
         isGenerating = false
     }
     
-    func markdown(from response: String) -> AttributedString {
-        do {
-            return try AttributedString(markdown: response, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))
-        } catch {
-            return AttributedString("Error parsing markdown: \(error)")
-        }
-    }
-    
     private func generateHistory() -> [Chat] {
         var history: [Chat] = []
         if let code = codeService.code {
@@ -85,5 +78,16 @@ final class AIChatViewModel {
         }
         history.append(contentsOf: chats.values.sorted(by: { $0.timestamp < $1.timestamp }).map { Chat(role: $0.role, content: $0.content) })
         return history
+    }
+}
+
+extension AIChatViewModel {
+    static func mock() -> AIChatViewModel {
+        let vm = AIChatViewModel()
+        vm.chats[UUID()] = ChatMessage(role: .user, content: "Give me an attribute string from plain string")
+        vm.chats[UUID()] = ChatMessage(role: .bot, content: "return try AttributedString(markdown: response, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))", tag: "CodeGen1")
+        vm.chats[UUID()] = ChatMessage(role: .user, content: "blah blah")
+        vm.chats[UUID()] = ChatMessage(role: .bot, content: "return try AttributedString(markdown: response, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))", tag: "CodeGen1")
+        return vm
     }
 }

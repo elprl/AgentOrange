@@ -13,45 +13,13 @@ struct AIChatView: View {
     @FocusState private var isFocused: Bool
 
     var body: some View {
-        @Bindable var chatVM = chatVM
-
         VStack {
 #if DEBUG
 let _ = Self._printChanges()
 #endif
-            List(chatVM.chats.values.sorted { $0.timestamp < $1.timestamp }, id: \.self) { chat in
-                Text(chatVM.markdown(from: chat.content))
-            }
-            .listStyle(.insetGrouped)
+            messages
             Spacer()
-            HStack {
-                TextField("Ask a question", text: $chatVM.question, axis: .vertical)
-                    .textFieldStyle(.roundedBorder)
-                    .disableAutocorrection(true)
-                    .keyboardType(.asciiCapable)
-                    .focused($isFocused)
-                    .onSubmit {
-                        self.isFocused = true
-                    }
-                    .submitLabel(.return)
-                    .lineLimit(1...10)
-                Spacer()
-                Group {
-                    if !chatVM.isGenerating {
-                        Button("", systemImage: "paperplane.fill") {
-                            chatVM.streamResponse()
-                        }
-                    } else {
-                        Button("", systemImage: "stop.circle") {
-                            chatVM.stop()
-                        }
-                    }
-                }
-                .padding(.leading, 8)
-            }
-            .transition(.opacity)
-            .tint(.orange)
-            .padding()
+            input
         }
         .padding(.bottom)
         .navigationBarTitle("AI Chat")
@@ -60,11 +28,77 @@ let _ = Self._printChanges()
         .toolbarBackground(.orange, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
     }
+    
+    @ViewBuilder
+    private var messages: some View {
+        List(chatVM.chats.values.sorted { $0.timestamp < $1.timestamp }, id: \.self) { chat in
+            AIChatViewRow(chat: chat)
+        }
+        .listStyle(.plain)
+        .tint(.orange)
+    }
+    
+    @ViewBuilder
+    private var input: some View {
+        @Bindable var chatVMBindable = chatVM
+        HStack {
+            Menu {
+                Button {
+
+                } label: {
+                    Text("Command: Make Better")
+                }
+            } label: {
+                Image(systemName: "ellipsis.circle")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 28, height: 28, alignment: .center)
+            }
+            .menuOrder(.fixed)
+            .highPriorityGesture(TapGesture())
+            
+            TextField("Ask a question", text: $chatVMBindable.question, axis: .vertical)
+                .textFieldStyle(.roundedBorder)
+                .disableAutocorrection(true)
+                .keyboardType(.asciiCapable)
+                .focused($isFocused)
+                .onSubmit {
+                    self.isFocused = true
+                }
+                .submitLabel(.return)
+                .lineLimit(1...10)
+            Spacer()
+            Group {
+                if !chatVM.isGenerating {
+                    Button {
+                        chatVM.streamResponse()
+                    } label: {
+                        Image(systemName: "paperplane.fill")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 28, height: 28, alignment: .center)
+                    }
+                } else {
+                    Button {
+                        chatVM.stop()
+                    } label: {
+                        Image(systemName: "stop.circle")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 28, height: 28, alignment: .center)
+                    }
+                }
+            }
+        }
+        .transition(.opacity)
+        .tint(.orange)
+        .padding()
+    }
 }
 
 #Preview("Empty") {
     AIChatView()
-        .environment(AIChatViewModel())
+        .environment(AIChatViewModel.mock())
         .environment(FileViewerViewModel())
 }
 

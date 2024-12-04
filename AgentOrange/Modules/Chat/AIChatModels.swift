@@ -6,9 +6,17 @@
 //
 import Foundation
 
+enum MessageType: String, Codable {
+    case message
+    case command
+    case file
+}
+
 struct ChatMessage: Identifiable, Hashable {
     let id = UUID()
     let timestamp = Date.now
     let role: Role
+    var type: MessageType = .message
     var content: String
+    var tag: String? = nil
 }

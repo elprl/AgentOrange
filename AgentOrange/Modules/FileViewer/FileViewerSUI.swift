@@ -107,30 +107,30 @@ struct FileViewerSUI: View {
 #if DEBUG
 
 #Preview("Code Viewer") {
-    let code = """
-struct FileViewerSUI: View {
-    @State var viewModel: FileViewerViewModel = FileViewerViewModel()
-
-    var body: some View {
-#if DEBUG
-        let _ = Self._printChanges()
-#endif
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                ForEach(viewModel.rows.indices, id: \\.self) { index in
-                    Text(viewModel.rows[index])
-                        .padding(.horizontal)
-                        .id(index)
-                }
-            }
-            .padding(.top)
-            .padding(.bottom, 100)
-        }
-        .navigationTitle("Code")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-}
-"""
+//    let code = """
+//struct FileViewerSUI: View {
+//    @State var viewModel: FileViewerViewModel = FileViewerViewModel()
+//
+//    var body: some View {
+//#if DEBUG
+//        let _ = Self._printChanges()
+//#endif
+//        ScrollView {
+//            LazyVStack(spacing: 0) {
+//                ForEach(viewModel.rows.indices, id: \\.self) { index in
+//                    Text(viewModel.rows[index])
+//                        .padding(.horizontal)
+//                        .id(index)
+//                }
+//            }
+//            .padding(.top)
+//            .padding(.bottom, 100)
+//        }
+//        .navigationTitle("Code")
+//        .navigationBarTitleDisplayMode(.inline)
+//    }
+//}
+//"""
     FileViewerSUI()
         .environment(FileViewerViewModel())
 }
