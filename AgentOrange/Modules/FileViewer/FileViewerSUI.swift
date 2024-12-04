@@ -16,19 +16,22 @@ struct FileViewerSUI: View {
 #if DEBUG
         let _ = Self._printChanges()
 #endif
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                pasteBtn
-                codeVersions
-                ForEach(viewModel.currentRows.indices, id: \.self) { index in
-                    Text(viewModel.currentRows[index])
-                        .padding(.horizontal)
-                        .id(index)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+        VStack {
+            pasteBtn
+            codeVersions
+            Divider()
+            ScrollView {
+                LazyVStack(spacing: 0) {
+                    ForEach(viewModel.currentRows.indices, id: \.self) { index in
+                        Text(viewModel.currentRows[index])
+                            .padding(.horizontal)
+                            .id(index)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 }
+                .padding(.top)
+                .padding(.bottom)
             }
-            .padding(.top)
-            .padding(.bottom)
         }
         .sheet(isPresented: $isFilePickerPresented) {
             DocumentPickerView() { code in
@@ -58,7 +61,7 @@ struct FileViewerSUI: View {
     
     @ViewBuilder
     private var pasteBtn: some View {
-        if viewModel.rows.isEmpty {
+        if viewModel.currentRows.isEmpty {
             HStack {
                 Button("Paste Code", systemImage: "document.on.clipboard.fill") {
                     let pasteboard = UIPasteboard.general
@@ -73,6 +76,7 @@ struct FileViewerSUI: View {
                 .buttonStyle(.borderedProminent)
             }
             .tint(.orange)
+            .padding(.top)
         }
     }
     
@@ -95,6 +99,7 @@ struct FileViewerSUI: View {
                 }
             }
         }
+        .padding(.top)
         .padding(.horizontal)
     }
 }
