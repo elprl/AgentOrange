@@ -3,13 +3,14 @@
 //  AgentOrange
 //
 //  Created by Paul Leo on 04/12/2024.
-//
+//  Copyright © 2024 tapdigital Ltd. All rights reserved.
 
 import SwiftUI
 
 struct AIChatViewRow: View {
     let chat: ChatMessage
     @State private var isExpanded: Bool = true
+    @Environment(FileViewerViewModel.self) private var fileVM: FileViewerViewModel
 
     var body: some View {
         GroupBox {
@@ -23,19 +24,32 @@ struct AIChatViewRow: View {
                     .foregroundStyle(.white)
             }
             if !(chat.tag?.isEmpty ?? true) {
-                GroupBox {
-                    VStack(alignment: .trailing) {
+                Button {
+                    // fileVM.selectedVersion = chat.tag ?? ""
+                } label: {
+                    GroupBox {
                         HStack {
                             Image(systemName: "text.page")
-                            Text(chat.tag ?? "")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 32, height: 32)
+                            Divider().frame(height: 32)
+                            VStack(alignment: .leading) {
+                                Text(chat.tag ?? "")
+                                Text("Click to view code")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
-                        Text("Click to view code").font(.caption).foregroundStyle(.secondary)
+                        .padding(-6)
                     }
+                    .backgroundStyle(.ultraThinMaterial)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
                 }
-                .backgroundStyle(.ultraThinMaterial)
-                .frame(maxWidth: .infinity, alignment: .trailing)
+                .tint(.orange)
             }
         }
+        .transition(.slide)
         .backgroundStyle(chat.role == .bot ? Color.black.opacity(0.6) : Color.orange)
         .listRowSeparator(.hidden)
         .frame(maxWidth: .infinity, alignment: .trailing)
@@ -51,6 +65,10 @@ struct AIChatViewRow: View {
 }
 
 #Preview {
-    AIChatViewRow(chat: ChatMessage(role: .user, content: "blah blah"))
-    AIChatViewRow(chat: ChatMessage(role: .bot, content: "blah blah"))
+    List {
+        AIChatViewRow(chat: ChatMessage(role: .user, content: "blah blah"))
+        AIChatViewRow(chat: ChatMessage(role: .bot, content: "blah blah", tag: "CodeGen1"))
+    }
+    .listStyle(.plain)
+    .environment(FileViewerViewModel())
 }

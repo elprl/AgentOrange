@@ -1,9 +1,9 @@
 //
 //  AppInjection.swift
-//  LLMJsonTestHarness
+//  AgentOrange
 //
 //  Created by Paul Leo on 03/12/2024.
-//
+//  Copyright © 2024 tapdigital Ltd. All rights reserved.
 
 import Foundation
 import Factory

@@ -1,9 +1,9 @@
 //
-//  ViewModel.swift
-//  LLMJsonTestHarness
+//  AIChatViewModel.swift
+//  AgentOrange
 //
 //  Created by Paul Leo on 03/12/2024.
-//
+//  Copyright © 2024 tapdigital Ltd. All rights reserved.
 
 import SwiftUI
 import Factory
@@ -36,15 +36,16 @@ final class AIChatViewModel {
             let questionPr = bot.preprocess(questionCopy, generateHistory())
             addChatMessage(content: questionCopy)
             let response = bot.getResponse(from: questionPr)
-            let responseMessage = addChatMessage(role: .bot, content: "", tag: "CodeGen\(self.sessionIndex)")
+            let responseMessage = addChatMessage(role: .bot, content: "", tag: "Version \(self.sessionIndex)")
             var tempOutput = ""
             for await responseDelta in response {
                 tempOutput += responseDelta
                 updateMessage(message: responseMessage, content: tempOutput)
             }
             print(tempOutput)
-            codeService.code = tempOutput
+            codeService.addCode(code: tempOutput, tag: "Version \(self.sessionIndex)")
             stop()
+            self.sessionIndex += 1
         }
     }
     
@@ -73,8 +74,8 @@ final class AIChatViewModel {
     
     private func generateHistory() -> [Chat] {
         var history: [Chat] = []
-        if let code = codeService.code {
-            history.append(Chat(role: .user, content: code))
+        if let codeVersion = codeService.codeVersions.last {
+            history.append(Chat(role: .user, content: codeVersion.code))
         }
         history.append(contentsOf: chats.values.sorted(by: { $0.timestamp < $1.timestamp }).map { Chat(role: $0.role, content: $0.content) })
         return history

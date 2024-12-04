@@ -1,6 +1,6 @@
 //
 //  CodeService.swift
-//  LLMJsonTestHarness
+//  AgentOrange
 //
 //  Created by Paul Leo on 03/12/2024.
 //
@@ -8,31 +8,24 @@ import Foundation
 import Splash
 
 protocol CodeServiceProtocol {
-    var code: String? { get set }
-    var codePublisher: Published<String?>.Publisher { get }
+    var codeVersions: [CodeVersion] { get set }
+    var codePublisher: Published<[CodeVersion]>.Publisher { get }
 
-    var paintedCode: AttributedString? { get }
-    var codeRows: [AttributedString] { get }
-    func parseCode()
+    func addCode(code: String, tag: String)
     func getHighlighted(code: String) -> NSAttributedString
+    func splitAttributedStringByNewlines(input: NSAttributedString) -> [AttributedString]
 }
 
 final class CodeService: CodeServiceProtocol, ObservableObject {
-    @Published var code: String? {
-        didSet { parseCode() }
-    }
-    @Published var paintedCode: AttributedString?
-    @Published var codeRows: [AttributedString] = []
-    var codePublisher: Published<String?>.Publisher { $code }
+    @Published var codeVersions: [CodeVersion] = []
+    var codePublisher: Published<[CodeVersion]>.Publisher { $codeVersions }
 
-    func parseCode() {
-        guard let code = self.code, !code.isEmpty else { return }
-        
-        let attString = getHighlighted(code: code)
-        self.paintedCode = AttributedString(attString)
-        
+    func addCode(code: String, tag: String) {
+        if code.isEmpty { return }
+        let attString = getHighlighted(code: code)        
         let attStrings: [AttributedString] = self.splitAttributedStringByNewlines(input: attString)
-        self.codeRows = attStrings
+        let newCodeVersion = CodeVersion(code: code, rows: attStrings, tag: tag)
+        self.codeVersions.append(newCodeVersion)
     }
     
     func getHighlighted(code: String) -> NSAttributedString {
@@ -41,7 +34,7 @@ final class CodeService: CodeServiceProtocol, ObservableObject {
         return attString
     }
     
-    private func splitAttributedStringByNewlines(input: NSAttributedString) -> [AttributedString] {
+    func splitAttributedStringByNewlines(input: NSAttributedString) -> [AttributedString] {
         let plainString = input.string
         let stringComponents = plainString.components(separatedBy: "\n")
         var attributedComponents: [AttributedString] = []

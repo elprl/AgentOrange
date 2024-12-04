@@ -1,9 +1,9 @@
 //
-//  ContentView.swift
-//  TDCodeReview
+//  FileViewerSUI.swift
+//  AgentOrange
 //
 //  Created by Paul Leo on 12/12/2021.
-//
+//  Copyright © 2024 tapdigital Ltd. All rights reserved.
 
 import SwiftUI
 
@@ -34,8 +34,8 @@ struct FileViewerSUI: View {
             }
         }
         .sheet(isPresented: $isFilePickerPresented) {
-            DocumentPickerView() { code in
-                viewModel.displayCode(code: code)
+            DocumentPickerView() { filename, code in
+                viewModel.addCode(code: code, tag: filename)
             }
         }
         .background(Color.black)
@@ -46,7 +46,7 @@ struct FileViewerSUI: View {
                 Button("", systemImage: "document.on.clipboard.fill") {
                     let pasteboard = UIPasteboard.general
                     if let code = pasteboard.string {
-                        viewModel.displayCode(code: code)
+                        viewModel.addCode(code: code, tag: "PastedCode")
                     }
                 }
                 Button("", systemImage: "folder.fill") {
@@ -66,7 +66,7 @@ struct FileViewerSUI: View {
                 Button("Paste Code", systemImage: "document.on.clipboard.fill") {
                     let pasteboard = UIPasteboard.general
                     if let code = pasteboard.string {
-                        viewModel.displayCode(code: code)
+                        viewModel.addCode(code: code, tag: "PastedCode")
                     }
                 }
                 .buttonStyle(.borderedProminent)
@@ -86,13 +86,13 @@ struct FileViewerSUI: View {
             HStack {
                 ForEach(viewModel.versions, id: \.self) { version in
                     Button(action: {
-                        print("Version \(version.versionString)")
-                        viewModel.selectedVersion = version.version
+                        print("Version \(version.tag)")
+                        viewModel.selectedId = version.id
                     }, label: {
-                        Text(version.versionString)
+                        Text(version.tag)
                             .padding(8)
                             .foregroundStyle(.white)
-                            .background(version.version == viewModel.selectedVersion ? .orange : .gray)
+                            .background(version.id == viewModel.selectedId ? .orange : .gray)
                             .cornerRadius(8)
                             .padding(4)
                     })

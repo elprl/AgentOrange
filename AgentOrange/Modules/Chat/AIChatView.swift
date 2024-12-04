@@ -1,9 +1,9 @@
 //
-//  ContentView.swift
-//  LLMJsonTestHarness
+//  AIChatView.swift
+//  AgentOrange
 //
 //  Created by Paul Leo on 02/12/2024.
-//
+//  Copyright © 2024 tapdigital Ltd. All rights reserved.
 
 import SwiftUI
 

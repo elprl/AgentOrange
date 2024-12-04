@@ -1,9 +1,9 @@
 //
 //  SideBarSUI.swift
-//  TDCodeReview
+//  AgentOrange
 //
 //  Created by Paul Leo on 17/03/2022.
-//  Copyright © 2022 tapdigital Ltd. All rights reserved.
+//  Copyright © 2024 tapdigital Ltd. All rights reserved.
 //
 
 import SwiftUI
