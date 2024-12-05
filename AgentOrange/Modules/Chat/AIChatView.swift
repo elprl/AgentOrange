@@ -22,6 +22,23 @@ let _ = Self._printChanges()
             input
         }
         .padding(.bottom)
+        .toolbar {
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                Menu {
+                    Button(action: {
+                        chatVM.deleteAll()
+                    }, label: {
+                        Label("Delete All", systemImage: "trash")
+                            .foregroundStyle(.white)
+                    })
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .foregroundStyle(.white)
+                }
+                .menuOrder(.fixed)
+                .highPriorityGesture(TapGesture())                
+            }
+        }
         .navigationBarTitle("AI Chat")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
@@ -32,7 +49,9 @@ let _ = Self._printChanges()
     @ViewBuilder
     private var messages: some View {
         List(chatVM.chats.values.sorted { $0.timestamp < $1.timestamp }, id: \.self) { chat in
-            AIChatViewRow(chat: chat)
+            AIChatViewRow(chat: chat) {
+                chatVM.delete(message: chat)
+            }
         }
         .listStyle(.plain)
         .tint(.orange)

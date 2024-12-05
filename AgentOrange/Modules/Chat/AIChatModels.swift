@@ -27,4 +27,5 @@ enum Scope: String {
     case role
     case history
     case code
+    case genCode
 }

@@ -306,4 +306,40 @@ extension UserDefaults {
             setValue(newValue, forKey: Keys.hasLoadedTags)
         }
     }
+    
+    var scopeHistory: Bool {
+        get {
+            return bool(forKey: Scope.history.rawValue)
+        }
+        set {
+            setValue(newValue, forKey: Scope.history.rawValue)
+        }
+    }
+    
+    var scopeCode: Bool {
+        get {
+            return bool(forKey: Scope.code.rawValue)
+        }
+        set {
+            setValue(newValue, forKey: Scope.code.rawValue)
+        }
+    }
+    
+    var scopeGenCode: Bool {
+        get {
+            return bool(forKey: Scope.genCode.rawValue)
+        }
+        set {
+            setValue(newValue, forKey: Scope.genCode.rawValue)
+        }
+    }
+    
+    var scopeRole: Bool {
+        get {
+            return bool(forKey: Scope.role.rawValue)
+        }
+        set {
+            setValue(newValue, forKey: Scope.role.rawValue)
+        }
+    }
 }

@@ -11,6 +11,7 @@ struct FileViewerSUI: View {
     @Environment(FileViewerViewModel.self) private var viewModel: FileViewerViewModel
     @State private var isFilePickerPresented: Bool = false
     @State private var fileContent: String = ""
+    @AppStorage(UserDefaults.Keys.wrapText) var isWrapText: Bool = false
 
     var body: some View {
 #if DEBUG
@@ -20,12 +21,22 @@ struct FileViewerSUI: View {
             if viewModel.hasCode {
                 codeVersions
                 ScrollView {
-                    LazyVStack(spacing: 0) {
+                    LazyVStack(alignment: .leading, spacing: 0) {
                         ForEach(viewModel.currentRows.indices, id: \.self) { index in
-                            Text(viewModel.currentRows[index])
-                                .padding(.horizontal)
-                                .id(index)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                            if isWrapText {
+                                Text(viewModel.currentRows[index])
+                                    .padding(.horizontal)
+                                    .id(index)
+                                    .lineLimit(nil)
+                                    .textSelection(.enabled)
+                                    .multilineTextAlignment(.leading)
+                            } else {
+                                Text(viewModel.currentRows[index])
+                                    .padding(.horizontal)
+                                    .id(index)
+                                    .lineLimit(1)
+                                    .textSelection(.enabled)
+                            }
                         }
                     }
                     .padding(.top)
@@ -61,6 +72,11 @@ struct FileViewerSUI: View {
                         Label("Browse Files", systemImage: "folder.fill")
                             .foregroundStyle(.white)
                     })
+                    Button {
+                        isWrapText.toggle()
+                    } label: {
+                        Label("Wrap Text", systemImage: isWrapText ? "checkmark" : "xmark")
+                    }
                 } label: {
                     Image(systemName: "ellipsis.circle")
                         .foregroundStyle(.white)

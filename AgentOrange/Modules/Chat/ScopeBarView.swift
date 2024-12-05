@@ -12,6 +12,7 @@ struct ScopeBarView: View {
     @AppStorage(Scope.role.rawValue) private var systemScope: Bool = true
     @AppStorage(Scope.code.rawValue) private var codeScope: Bool = true
     @AppStorage(Scope.history.rawValue) private var historyScope: Bool = true
+    @AppStorage(Scope.genCode.rawValue) private var genCodeScope: Bool = true
 
     var body: some View {
 #if DEBUG
@@ -21,10 +22,11 @@ let _ = Self._printChanges()
             HStack {
                 Text("Scopes: ")
                 ToggleButton(title: Scope.role.rawValue, isOn: $systemScope, onColor: .orange) {}
+                ToggleButton(title: Scope.history.rawValue, isOn: $historyScope, onColor: .orange) {}
                 if let tag = codeVM.selectedVersion?.tag {
                     ToggleButton(title: "\(Scope.code.rawValue): \(tag)", isOn: $codeScope, onColor: .orange) {}
                 }
-                ToggleButton(title: Scope.history.rawValue, isOn: $historyScope, onColor: .orange) {}
+                ToggleButton(title: Scope.genCode.rawValue, isOn: $genCodeScope, onColor: .orange) {}
                 Spacer()
             }
         }
