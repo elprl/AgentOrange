@@ -10,49 +10,46 @@ import Factory
 
 @Observable
 final class AIChatViewModel {
+    @Injected(\.agiService) @ObservationIgnored private var agiService
     @Injected(\.codeService) @ObservationIgnored private var codeService
     var chats: [UUID: ChatMessage] = [:]
     var isGenerating: Bool = false
     var question: String = ""
-    @ObservationIgnored private var bot: LLM?
     @ObservationIgnored private var sessionIndex: Int = 0
-    
-    init(fileName: String = "Meta-Llama-3.1-8B-Instruct-128k-Q4_0") {
-        guard let bundleURL = Bundle.main.url(forResource: fileName, withExtension: "gguf") else {
-            return
-        }
-        bot = LLM(from: bundleURL, template: .chatML(""))
-    }
 
     func streamResponse() {
         Task { @MainActor in
-            guard let bot = self.bot else {
-                return
-            }
             let questionCopy = String(self.question.trimmingCharacters(in: .whitespacesAndNewlines))
             self.question = ""
             start()
-            let questionPr = bot.preprocess(questionCopy, generateHistory())
+//            let questionPr = bot.preprocess(questionCopy, generateHistory())
             addChatMessage(content: questionCopy)
-            let response = bot.getResponse(from: questionPr)
+//            let response = bot.getResponse(from: questionPr)
             self.sessionIndex += 1
             let tag = "Version \(self.sessionIndex)"
-            let responseMessage = addChatMessage(role: .bot, content: "", tag: tag)
+            let responseMessage = addChatMessage(role: .assistant, content: "", tag: tag)
             var tempOutput = ""
-            for await responseDelta in response {
-                tempOutput += responseDelta
+            do {
+                agiService.setHistory(messages: generateHistory())
+                let stream = try await agiService.sendMessageStream(text: questionCopy, needsJSONResponse: false)
+                for try await responseDelta in stream {
+                    tempOutput += responseDelta
+                    updateMessage(message: responseMessage, content: tempOutput)
+                }
+                print(tempOutput)
+                if let id = codeService.addCode(code: tempOutput, tag: tag) {
+                    codeService.selectedId = id
+                    updateMessage(message: responseMessage, content: tempOutput, codeId: id)
+                }
+            } catch {
+                tempOutput += "\n\(error.localizedDescription)"
                 updateMessage(message: responseMessage, content: tempOutput)
-            }
-            print(tempOutput)
-            if let id = codeService.addCode(code: tempOutput, tag: tag) {
-                codeService.selectedId = id
-                updateMessage(message: responseMessage, content: tempOutput, codeId: id)
             }
             stop()
         }
     }
     
-    @discardableResult private func addChatMessage(role: Role = .user, content: String, type: MessageType = .message, tag: String? = nil) -> ChatMessage {
+    @discardableResult private func addChatMessage(role: GPTRole = .user, content: String, type: MessageType = .message, tag: String? = nil) -> ChatMessage {
         let chatMessage = ChatMessage(role: role, type: type, content: content, tag: tag)
         chats[chatMessage.id] = chatMessage
         return chatMessage
@@ -77,24 +74,23 @@ final class AIChatViewModel {
     }
     
     func stop() {
-        bot?.stop()
         isGenerating = false
     }
     
-    private func generateHistory() -> [Chat] {
-        var history: [Chat] = []
+    private func generateHistory() -> [ChatMessage] {
+        var history: [ChatMessage] = []
         setScopeDefaults()
         let defaults = UserDefaults.standard
         if defaults.bool(forKey: Scope.role.rawValue) {
             let systemPrompt = "You are an experienced professional Swift iOS engineer. All your responses must contain swift code ONLY where comments or answers are in code comments."
-            history.append(Chat(role: .user, content: systemPrompt))
+            history.append(ChatMessage(role: .system, content: systemPrompt))
         }
         if defaults.bool(forKey: Scope.history.rawValue) {
-            history.append(contentsOf: chats.values.sorted(by: { $0.timestamp < $1.timestamp }).map { Chat(role: $0.role, content: $0.content) })
+            history.append(contentsOf: chats.values.sorted(by: { $0.timestamp < $1.timestamp }).map { ChatMessage(role: $0.role, content: $0.content) })
         }
         if defaults.bool(forKey: Scope.code.rawValue) {
             if let code = codeService.currentSelectedCode {
-                history.append(Chat(role: .user, content: code))
+                history.append(ChatMessage(role: .user, content: code))
             }
         }
         return history
@@ -120,9 +116,9 @@ extension AIChatViewModel {
     static func mock() -> AIChatViewModel {
         let vm = AIChatViewModel()
         vm.chats[UUID()] = ChatMessage(role: .user, content: "Give me an attribute string from plain string")
-        vm.chats[UUID()] = ChatMessage(role: .bot, content: "return try AttributedString(markdown: response, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))", tag: "CodeGen1")
+        vm.chats[UUID()] = ChatMessage(role: .assistant, content: "return try AttributedString(markdown: response, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))", tag: "CodeGen1")
         vm.chats[UUID()] = ChatMessage(role: .user, content: "blah blah")
-        vm.chats[UUID()] = ChatMessage(role: .bot, content: "return try AttributedString(markdown: response, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))", tag: "CodeGen1")
+        vm.chats[UUID()] = ChatMessage(role: .assistant, content: "return try AttributedString(markdown: response, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))", tag: "CodeGen1")
         return vm
     }
 }

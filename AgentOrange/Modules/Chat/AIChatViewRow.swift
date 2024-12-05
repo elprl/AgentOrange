@@ -14,7 +14,7 @@ struct AIChatViewRow: View {
 
     var body: some View {
         GroupBox {
-            if chat.role == .bot {
+            if chat.role == .assistant {
                 DisclosureGroup("AI Response", isExpanded: $isExpanded) {
                     Text(markdown(from: chat.content))
                         .foregroundStyle(.white)
@@ -50,7 +50,7 @@ struct AIChatViewRow: View {
             }
         }
         .transition(.slide)
-        .backgroundStyle(chat.role == .bot ? Color.black.opacity(0.6) : Color.orange)
+        .backgroundStyle(chat.role == .assistant ? Color.black.opacity(0.6) : Color.orange)
         .listRowSeparator(.hidden)
         .frame(maxWidth: .infinity, alignment: .trailing)
     }
@@ -67,7 +67,7 @@ struct AIChatViewRow: View {
 #Preview {
     List {
         AIChatViewRow(chat: ChatMessage(role: .user, content: "blah blah"))
-        AIChatViewRow(chat: ChatMessage(role: .bot, content: "blah blah", tag: "CodeGen1"))
+        AIChatViewRow(chat: ChatMessage(role: .assistant, content: "blah blah", tag: "CodeGen1"))
     }
     .listStyle(.plain)
     .environment(FileViewerViewModel())

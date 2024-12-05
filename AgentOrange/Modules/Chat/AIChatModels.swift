@@ -16,7 +16,7 @@ enum MessageType: String, Codable {
 struct ChatMessage: Identifiable, Hashable {
     let id = UUID()
     let timestamp = Date.now
-    let role: Role
+    let role: GPTRole
     var type: MessageType = .message
     var content: String
     var tag: String? = nil

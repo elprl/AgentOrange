@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		E1A39E2F2CFFA2DE00A83ADF /* Factory in Frameworks */ = {isa = PBXBuildFile; productRef = E1A39E2E2CFFA2DE00A83ADF /* Factory */; };
 		E1A39E312CFFA2DE00A83ADF /* Splash in Frameworks */ = {isa = PBXBuildFile; productRef = E1A39E302CFFA2DE00A83ADF /* Splash */; };
-		E1A39E332CFFA2DE00A83ADF /* llama in Frameworks */ = {isa = PBXBuildFile; productRef = E1A39E322CFFA2DE00A83ADF /* llama */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -58,7 +57,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E1A39E332CFFA2DE00A83ADF /* llama in Frameworks */,
 				E1A39E2F2CFFA2DE00A83ADF /* Factory in Frameworks */,
 				E1A39E312CFFA2DE00A83ADF /* Splash in Frameworks */,
 			);
@@ -131,7 +129,6 @@
 			packageProductDependencies = (
 				E1A39E2E2CFFA2DE00A83ADF /* Factory */,
 				E1A39E302CFFA2DE00A83ADF /* Splash */,
-				E1A39E322CFFA2DE00A83ADF /* llama */,
 			);
 			productName = AgentOrange;
 			productReference = E10E1C042CFFA1C7006AE920 /* AgentOrange.app */;
@@ -218,7 +215,6 @@
 			packageReferences = (
 				E10E1C332CFFA223006AE920 /* XCRemoteSwiftPackageReference "Factory" */,
 				E10E1C342CFFA232006AE920 /* XCRemoteSwiftPackageReference "Splash" */,
-				E10E1C352CFFA243006AE920 /* XCRemoteSwiftPackageReference "llama" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E10E1C052CFFA1C7006AE920 /* Products */;
@@ -607,14 +603,6 @@
 				minimumVersion = 0.16.0;
 			};
 		};
-		E10E1C352CFFA243006AE920 /* XCRemoteSwiftPackageReference "llama" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/ggerganov/llama.cpp";
-			requirement = {
-				branch = master;
-				kind = branch;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -627,11 +615,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E10E1C342CFFA232006AE920 /* XCRemoteSwiftPackageReference "Splash" */;
 			productName = Splash;
-		};
-		E1A39E322CFFA2DE00A83ADF /* llama */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = E10E1C352CFFA243006AE920 /* XCRemoteSwiftPackageReference "llama" */;
-			productName = llama;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
