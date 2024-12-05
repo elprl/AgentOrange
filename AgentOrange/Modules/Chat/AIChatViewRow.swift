@@ -81,6 +81,7 @@ struct AIChatViewRow: View {
             }
             .menuOrder(.fixed)
             .highPriorityGesture(TapGesture())
+            .offset(x: 4)
         }
     }
 }

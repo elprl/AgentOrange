@@ -68,7 +68,6 @@ struct SideBarSUI: View {
                 .shadow(color: .gray, radius: 2)
         }
     }
-
     
     @ViewBuilder
     private var header: some View {
@@ -104,7 +103,6 @@ struct SideBarSUI: View {
         .listRowSeparator(.hidden)
         .padding(.top, 30)
     }
-
     
     @ViewBuilder
     private var dashboard: some View {
@@ -127,4 +125,5 @@ struct SideBarSUI: View {
 #Preview {
     SideBarSUI(selection: .constant("code"))
 }
+
 #endif
