@@ -19,6 +19,7 @@ let _ = Self._printChanges()
 #endif
             messages
             Spacer()
+            scope
             input
         }
         .padding(.bottom)
@@ -76,7 +77,7 @@ let _ = Self._printChanges()
                         Image(systemName: "paperplane.fill")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(width: 28, height: 28, alignment: .center)
+                            .frame(width: 26, height: 26, alignment: .center)
                     }
                 } else {
                     Button {
@@ -85,14 +86,34 @@ let _ = Self._printChanges()
                         Image(systemName: "stop.circle")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(width: 28, height: 28, alignment: .center)
+                            .frame(width: 26, height: 26, alignment: .center)
                     }
                 }
             }
         }
         .transition(.opacity)
         .tint(.orange)
-        .padding()
+        .padding([.horizontal])
+    }
+    
+    @AppStorage(Scope.role.rawValue) private var systemScope: Bool = true
+    @AppStorage(Scope.code.rawValue) private var codeScope: Bool = true
+    @AppStorage(Scope.history.rawValue) private var historyScope: Bool = true
+    
+    @ViewBuilder
+    private var scope: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack {
+                Text("Scopes: ")
+                ToggleButton(title: Scope.role.rawValue, isOn: $systemScope, onColor: .orange) {}
+                ToggleButton(title: Scope.code.rawValue, isOn: $codeScope, onColor: .orange) {}
+                ToggleButton(title: Scope.history.rawValue, isOn: $historyScope, onColor: .orange) {}
+                Spacer()
+            }
+        }
+        .transition(.opacity)
+        .padding(.vertical, 4)
+        .padding(.horizontal)
     }
 }
 

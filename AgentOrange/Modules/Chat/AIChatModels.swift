@@ -22,3 +22,9 @@ struct ChatMessage: Identifiable, Hashable {
     var tag: String? = nil
     var codeId: String? = nil
 }
+
+enum Scope: String {
+    case role
+    case history
+    case code
+}

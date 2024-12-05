@@ -17,20 +17,22 @@ struct FileViewerSUI: View {
         let _ = Self._printChanges()
 #endif
         VStack {
-            pasteBtn
-            codeVersions
-            Divider()
-            ScrollView {
-                LazyVStack(spacing: 0) {
-                    ForEach(viewModel.currentRows.indices, id: \.self) { index in
-                        Text(viewModel.currentRows[index])
-                            .padding(.horizontal)
-                            .id(index)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+            if viewModel.hasCode {
+                codeVersions
+                ScrollView {
+                    LazyVStack(spacing: 0) {
+                        ForEach(viewModel.currentRows.indices, id: \.self) { index in
+                            Text(viewModel.currentRows[index])
+                                .padding(.horizontal)
+                                .id(index)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
                     }
+                    .padding(.top)
+                    .padding(.bottom)
                 }
-                .padding(.top)
-                .padding(.bottom)
+            } else {
+                pasteBtn
             }
         }
         .sheet(isPresented: $isFilePickerPresented) {
@@ -38,45 +40,81 @@ struct FileViewerSUI: View {
                 viewModel.addCode(code: code, tag: filename)
             }
         }
-        .background(Color.black)
-        .navigationTitle("Code")
+//        .background(Color.black)
+        .navigationTitle("Code Viewer")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
-                Button("", systemImage: "document.on.clipboard.fill") {
-                    let pasteboard = UIPasteboard.general
-                    if let code = pasteboard.string {
-                        viewModel.addCode(code: code, tag: "PastedCode")
-                    }
+                Menu {
+                    Button(action: {
+                        let pasteboard = UIPasteboard.general
+                        if let code = pasteboard.string {
+                            viewModel.addCode(code: code, tag: "PastedCode")
+                        }
+                    }, label: {
+                        Label("Paste Code", systemImage: "document.on.clipboard.fill")
+                            .foregroundStyle(.white)
+                    })
+                    Button(action: {
+                        isFilePickerPresented = true
+                    }, label: {
+                        Label("Browse Files", systemImage: "folder.fill")
+                            .foregroundStyle(.white)
+                    })
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .foregroundStyle(.white)
                 }
-                Button("", systemImage: "folder.fill") {
-                    isFilePickerPresented = true
+                .menuOrder(.fixed)
+                .highPriorityGesture(TapGesture())
+                
+
+            }
+            if viewModel.hasCode {
+                ToolbarItemGroup(placement: .bottomBar) {
+                    if let time = viewModel.currentTimestamp {
+                        Text("Added: \(time)")
+                    }
+                    Spacer()
+                    Button(action: {
+                        viewModel.copyToClipboard()
+                    }, label: {
+                        Image(systemName: "document.on.document.fill")
+                            .foregroundStyle(.white)
+                    })
                 }
             }
         }
-        .toolbarColorScheme(.dark, for: .navigationBar)
-        .toolbarBackground(.orange, for: .navigationBar)
-        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar, .bottomBar)
+        .toolbarBackground(.orange, for: .navigationBar, .bottomBar)
+        .toolbarBackground(.visible, for: .navigationBar, .bottomBar)
     }
     
     @ViewBuilder
     private var pasteBtn: some View {
         if viewModel.currentRows.isEmpty {
-            HStack {
-                Button("Paste Code", systemImage: "document.on.clipboard.fill") {
+            VStack {
+                Button(action: {
                     let pasteboard = UIPasteboard.general
                     if let code = pasteboard.string {
                         viewModel.addCode(code: code, tag: "PastedCode")
                     }
-                }
+                }, label: {
+                    Label("Paste Code", systemImage: "document.on.clipboard.fill")
+                        .foregroundStyle(.white)
+                        .frame(width: 200, height: 30)
+               })
                 .buttonStyle(.borderedProminent)
-                Button("Browse...", systemImage: "folder.fill") {
+                Button(action: {
                     isFilePickerPresented = true
-                }
+                }, label: {
+                    Label("Browse Files", systemImage: "folder.fill")
+                        .foregroundStyle(.white)
+                        .frame(width: 200, height: 30)
+                })
                 .buttonStyle(.borderedProminent)
             }
             .tint(.orange)
-            .padding(.top)
         }
     }
     
@@ -87,58 +125,48 @@ struct FileViewerSUI: View {
                 ForEach(viewModel.versions, id: \.self) { version in
                     Button(action: {
                         print("Version \(version.tag)")
-                        viewModel.selectedId = version.id
+                        viewModel.selectTab(id: version.id)
                     }, label: {
-                        Text(version.tag)
-                            .padding(8)
-                            .foregroundStyle(.white)
-                            .background(version.id == viewModel.selectedId ? .orange : .gray)
-                            .cornerRadius(8)
-                            .padding(4)
+                        HStack {
+                            Text(version.tag)
+                                .padding(8)
+                                .foregroundStyle(.white)
+                            Button(action: {
+                                
+                            }, label: {
+                                Image(systemName: "xmark")
+                                    .foregroundStyle(.white)
+                            })
+                            .padding(.trailing, 8)
+                        }
+                        .background(version.id == viewModel.selectedId ? Color(uiColor: UIColor.systemBackground) : .gray.opacity(0.7))
+                        .clipShape(.rect(topLeadingRadius: 8, topTrailingRadius: 8))
+                        .padding(.horizontal, 4)
                     })
                 }
             }
         }
         .padding(.top)
         .padding(.horizontal)
+        .background(Color.orange)
+        .padding(.bottom, -8)
     }
 }
 
 #if DEBUG
 
 #Preview("Code Viewer") {
-//    let code = """
-//struct FileViewerSUI: View {
-//    @State var viewModel: FileViewerViewModel = FileViewerViewModel()
-//
-//    var body: some View {
-//#if DEBUG
-//        let _ = Self._printChanges()
-//#endif
-//        ScrollView {
-//            LazyVStack(spacing: 0) {
-//                ForEach(viewModel.rows.indices, id: \\.self) { index in
-//                    Text(viewModel.rows[index])
-//                        .padding(.horizontal)
-//                        .id(index)
-//                }
-//            }
-//            .padding(.top)
-//            .padding(.bottom, 100)
-//        }
-//        .navigationTitle("Code")
-//        .navigationBarTitleDisplayMode(.inline)
-//    }
-//}
-//"""
-    FileViewerSUI()
-        .environment(FileViewerViewModel())
+    NavigationStack {
+        FileViewerSUI()
+            .environment(FileViewerViewModel.mock())
+    }
 }
 
 #Preview("No code") {
-    FileViewerSUI()
-        .environment(FileViewerViewModel())
+    NavigationStack {
+        FileViewerSUI()
+            .environment(FileViewerViewModel())
+    }
 }
-
 
 #endif

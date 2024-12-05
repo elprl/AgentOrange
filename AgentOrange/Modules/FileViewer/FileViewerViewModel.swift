@@ -32,6 +32,7 @@ final class FileViewerViewModel {
         
         selectorCancellable = codeService.selectorPublisher
             .dropFirst()
+            .removeDuplicates()
             .receive(on: RunLoop.main)
             .sink(receiveCompletion: { _ in
                 print("selectorPublisher receiveCompletion")
@@ -50,4 +51,37 @@ final class FileViewerViewModel {
         guard let version = versions.first(where: { $0.id == selectedId }) else { return [] }
         return version.rows
     }
+    
+    func copyToClipboard() {
+        guard let version = versions.first(where: { $0.id == selectedId }) else { return }
+        UIPasteboard.general.string = version.code
+    }
+    
+    var currentTimestamp: String? {
+        guard let version = versions.first(where: { $0.id == selectedId }) else { return "" }
+        return version.timestamp.formatted()
+    }
+    
+    func selectTab(id: String) {
+        codeService.selectedId = id
+    }
+    
+    var hasCode: Bool {
+        return selectedId != nil
+    }
 }
+
+#if DEBUG
+
+extension FileViewerViewModel {
+    static func mock() -> FileViewerViewModel {
+        let vm = FileViewerViewModel()
+        vm.versions = [CodeVersion.mock(), CodeVersion.mock()]
+        vm.selectedId = vm.versions.first?.id
+        return vm
+    }
+}
+
+#endif
+
+

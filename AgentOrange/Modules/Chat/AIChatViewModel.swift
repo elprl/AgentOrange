@@ -18,11 +18,10 @@ final class AIChatViewModel {
     @ObservationIgnored private var sessionIndex: Int = 0
     
     init(fileName: String = "Meta-Llama-3.1-8B-Instruct-128k-Q4_0") {
-        let systemPrompt = "You are an experienced professional Swift iOS engineer. All your responses must contain swift code ONLY where comments or answers are in code comments."
         guard let bundleURL = Bundle.main.url(forResource: fileName, withExtension: "gguf") else {
             return
         }
-        bot = LLM(from: bundleURL, template: .chatML(systemPrompt))
+        bot = LLM(from: bundleURL, template: .chatML(""))
     }
 
     func streamResponse() {
@@ -84,11 +83,34 @@ final class AIChatViewModel {
     
     private func generateHistory() -> [Chat] {
         var history: [Chat] = []
-        if let codeVersion = codeService.codeVersions.last {
-            history.append(Chat(role: .user, content: codeVersion.code))
+        setScopeDefaults()
+        let defaults = UserDefaults.standard
+        if defaults.bool(forKey: Scope.role.rawValue) {
+            let systemPrompt = "You are an experienced professional Swift iOS engineer. All your responses must contain swift code ONLY where comments or answers are in code comments."
+            history.append(Chat(role: .user, content: systemPrompt))
         }
-        history.append(contentsOf: chats.values.sorted(by: { $0.timestamp < $1.timestamp }).map { Chat(role: $0.role, content: $0.content) })
+        if defaults.bool(forKey: Scope.history.rawValue) {
+            history.append(contentsOf: chats.values.sorted(by: { $0.timestamp < $1.timestamp }).map { Chat(role: $0.role, content: $0.content) })
+        }
+        if defaults.bool(forKey: Scope.code.rawValue) {
+            if let code = codeService.currentSelectedCode {
+                history.append(Chat(role: .user, content: code))
+            }
+        }
         return history
+    }
+    
+    private func setScopeDefaults() {
+        let defaults = UserDefaults.standard
+        if defaults.object(forKey: Scope.role.rawValue) == nil {
+            defaults.set(true, forKey: Scope.role.rawValue)
+        }
+        if defaults.object(forKey: Scope.history.rawValue) == nil {
+            defaults.set(true, forKey: Scope.history.rawValue)
+        }
+        if defaults.object(forKey: Scope.code.rawValue) == nil {
+            defaults.set(true, forKey: Scope.code.rawValue)
+        }
     }
 }
 

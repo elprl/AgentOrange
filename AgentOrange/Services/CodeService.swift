@@ -12,6 +12,7 @@ protocol CodeServiceProtocol {
     var selectedId: String? { get set }
     var codePublisher: Published<[CodeVersion]>.Publisher { get }
     var selectorPublisher: Published<String?>.Publisher { get }
+    var currentSelectedCode: String? { get }
     
     @discardableResult func addCode(code: String, tag: String) -> String?
     func getHighlighted(code: String) -> NSAttributedString
@@ -51,5 +52,13 @@ final class CodeService: CodeServiceProtocol, ObservableObject {
             currentLocation += component.count + 1 // Add 1 for the newline character
         }
         return attributedComponents
+    }
+    
+    var currentSelectedCode: String? {
+        if let selectedId {
+            return codeVersions.first(where: { $0.id == selectedId })?.code
+        } else {
+            return codeVersions.last?.code
+        }
     }
 }
