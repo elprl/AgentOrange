@@ -48,18 +48,15 @@ final class FileViewerViewModel {
     }
     
     var currentRows: [AttributedString] {
-        guard let version = versions.first(where: { $0.id == selectedId }) else { return [] }
-        return version.rows
+        return selectedVersion?.rows ?? []
     }
     
     func copyToClipboard() {
-        guard let version = versions.first(where: { $0.id == selectedId }) else { return }
-        UIPasteboard.general.string = version.code
+        UIPasteboard.general.string = selectedVersion?.code
     }
     
     var currentTimestamp: String? {
-        guard let version = versions.first(where: { $0.id == selectedId }) else { return "" }
-        return version.timestamp.formatted()
+        return selectedVersion?.timestamp.formatted() ?? ""
     }
     
     func selectTab(id: String) {
@@ -68,6 +65,15 @@ final class FileViewerViewModel {
     
     var hasCode: Bool {
         return selectedId != nil
+    }
+    
+    var selectedVersion: CodeVersion? {
+        guard let selectedId else { return nil }
+        return version(from: selectedId)
+    }
+    
+    func version(from id: String) -> CodeVersion? {
+        return versions.first(where: { $0.id == id })
     }
 }
 

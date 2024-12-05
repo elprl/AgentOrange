@@ -114,6 +114,8 @@ final class AIChatViewModel {
     }
 }
 
+#if DEBUG
+
 extension AIChatViewModel {
     static func mock() -> AIChatViewModel {
         let vm = AIChatViewModel()
@@ -124,3 +126,5 @@ extension AIChatViewModel {
         return vm
     }
 }
+
+#endif

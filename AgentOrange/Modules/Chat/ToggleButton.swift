@@ -9,12 +9,12 @@
 import SwiftUI
 
 struct ToggleButton: View {
-    @State var title: String
+    var title: String
     @Binding var isOn: Bool
-    @State var onColor: Color = .black
-    @State var offColor: Color = .gray.opacity(0.5)
-    @State var onTextColor: Color = .white
-    @State var offTextColor: Color = .white
+    var onColor: Color = .black
+    var offColor: Color = .gray.opacity(0.5)
+    var onTextColor: Color = .white
+    var offTextColor: Color = .white
     let action: () -> Void
 
     var body: some View {

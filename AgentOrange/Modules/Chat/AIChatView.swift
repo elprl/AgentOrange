@@ -9,7 +9,6 @@ import SwiftUI
 
 struct AIChatView: View {
     @Environment(AIChatViewModel.self) private var chatVM: AIChatViewModel
-    @Environment(FileViewerViewModel.self) private var codeVM: FileViewerViewModel
     @FocusState private var isFocused: Bool
 
     var body: some View {
@@ -19,7 +18,7 @@ let _ = Self._printChanges()
 #endif
             messages
             Spacer()
-            scope
+            ScopeBarView()
             input
         }
         .padding(.bottom)
@@ -94,26 +93,6 @@ let _ = Self._printChanges()
         .transition(.opacity)
         .tint(.orange)
         .padding([.horizontal])
-    }
-    
-    @AppStorage(Scope.role.rawValue) private var systemScope: Bool = true
-    @AppStorage(Scope.code.rawValue) private var codeScope: Bool = true
-    @AppStorage(Scope.history.rawValue) private var historyScope: Bool = true
-    
-    @ViewBuilder
-    private var scope: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack {
-                Text("Scopes: ")
-                ToggleButton(title: Scope.role.rawValue, isOn: $systemScope, onColor: .orange) {}
-                ToggleButton(title: Scope.code.rawValue, isOn: $codeScope, onColor: .orange) {}
-                ToggleButton(title: Scope.history.rawValue, isOn: $historyScope, onColor: .orange) {}
-                Spacer()
-            }
-        }
-        .transition(.opacity)
-        .padding(.vertical, 4)
-        .padding(.horizontal)
     }
 }
 
