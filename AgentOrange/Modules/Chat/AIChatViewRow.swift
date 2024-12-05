@@ -42,11 +42,11 @@ struct AIChatViewRow: View {
                     .backgroundStyle(.ultraThinMaterial)
                     .frame(maxWidth: .infinity, alignment: .trailing)
                 }
-                .tint(.orange)
+                .tint(.accent)
             }
         }
         .transition(.slide)
-        .backgroundStyle(chat.role == .assistant ? Color.black.opacity(0.6) : Color.orange)
+        .backgroundStyle(chat.role == .assistant ? Color.black.opacity(0.6) : Color.accent)
         .listRowSeparator(.hidden)
         .frame(maxWidth: .infinity, alignment: .trailing)
     }

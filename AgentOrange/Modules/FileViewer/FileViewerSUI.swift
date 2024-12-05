@@ -102,7 +102,7 @@ struct FileViewerSUI: View {
             }
         }
         .toolbarColorScheme(.dark, for: .navigationBar, .bottomBar)
-        .toolbarBackground(.orange, for: .navigationBar, .bottomBar)
+        .toolbarBackground(.accent, for: .navigationBar, .bottomBar)
         .toolbarBackground(.visible, for: .navigationBar, .bottomBar)
     }
     
@@ -130,7 +130,7 @@ struct FileViewerSUI: View {
                 })
                 .buttonStyle(.borderedProminent)
             }
-            .tint(.orange)
+            .tint(.accent)
         }
     }
     
@@ -164,7 +164,7 @@ struct FileViewerSUI: View {
         }
         .padding(.top)
         .padding(.horizontal)
-        .background(Color.orange)
+        .background(Color.accent)
         .padding(.bottom, -8)
     }
 }

@@ -42,7 +42,7 @@ let _ = Self._printChanges()
         .navigationBarTitle("AI Chat")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
-        .toolbarBackground(.orange, for: .navigationBar)
+        .toolbarBackground(.accent, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
     }
     
@@ -54,7 +54,7 @@ let _ = Self._printChanges()
             }
         }
         .listStyle(.plain)
-        .tint(.orange)
+        .tint(.accent)
     }
     
     @ViewBuilder
@@ -110,7 +110,7 @@ let _ = Self._printChanges()
             }
         }
         .transition(.opacity)
-        .tint(.orange)
+        .tint(.accent)
         .padding([.horizontal])
     }
 }

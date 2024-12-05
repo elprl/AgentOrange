@@ -21,7 +21,7 @@ struct SideBarSUI: View {
             dashboard
         }
         .listStyle(.sidebar)
-        .tint(.orange)
+        .tint(.accent)
         .navigationBarTitle("Dashboard")
         .navigationBarTitleDisplayMode(.inline)
 //        .sheet(isPresented: $showSheet, content: {
@@ -46,8 +46,8 @@ struct SideBarSUI: View {
             }
         }
         .toolbarColorScheme(.dark, for: .navigationBar, .bottomBar)
-        .toolbarBackground(.orange, for: .navigationBar)
-        .toolbarBackground(.orange, for: .bottomBar)
+        .toolbarBackground(.accent, for: .navigationBar)
+        .toolbarBackground(.accent, for: .bottomBar)
         .toolbarBackground(.visible, for: .navigationBar, .bottomBar)
     }
     
@@ -55,7 +55,7 @@ struct SideBarSUI: View {
     private var logo: some View {
         ZStack {
             Circle()
-                .fill(.orange)
+                .fill(.accent)
                 .frame(width: 60, height: 60)
             Image("skull")
                 .resizable()
@@ -99,7 +99,7 @@ struct SideBarSUI: View {
                 .shadow(radius: 1)
             }
         }
-        .foregroundColor(.orange)
+        .foregroundColor(.accent)
         .listRowBackground(Color.clear)
         .listRowSeparator(.hidden)
         .padding(.top, 30)
@@ -108,7 +108,7 @@ struct SideBarSUI: View {
     
     @ViewBuilder
     private var dashboard: some View {
-        Section(header: Text("DASHBOARD").font(.title3).foregroundColor(.orange)) {
+        Section(header: Text("DASHBOARD").font(.title3).foregroundColor(.accent)) {
             NavigationLink(value: "code") {
                 Label {
                     Text("AI Chat")
@@ -116,7 +116,7 @@ struct SideBarSUI: View {
                 } icon: {
                     Image(systemName: "bubble.fill")
                 }
-                .tint(.orange)
+                .tint(.accent)
             }
         }
     }
