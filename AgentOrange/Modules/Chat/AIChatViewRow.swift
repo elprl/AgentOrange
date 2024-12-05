@@ -16,33 +16,40 @@ struct AIChatViewRow: View {
     var body: some View {
         GroupBox {
             header
-            Text(markdown(from: chat.content))
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity, alignment: chat.role == .user ? .trailing : .leading)
             if let tag = chat.tag {
-                Button {
-                    fileVM.selectedId = chat.codeId
+                DisclosureGroup {
+                    Text(markdown(from: chat.content))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity, alignment: chat.role == .user ? .trailing : .leading)
                 } label: {
-                    GroupBox {
-                        HStack {
-                            Image(systemName: "text.page")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 32, height: 32)
-                            Divider().frame(height: 32)
-                            VStack(alignment: .leading) {
-                                Text(tag)
-                                Text("Click to view code")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                    Button {
+                        fileVM.selectedId = chat.codeId
+                    } label: {
+                        GroupBox {
+                            HStack {
+                                Image(systemName: "text.page")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 32, height: 32)
+                                Divider().frame(height: 32)
+                                VStack(alignment: .leading) {
+                                    Text(tag)
+                                    Text("Click to view code")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
                             }
+                            .padding(-6)
                         }
-                        .padding(-6)
+                        .backgroundStyle(.ultraThinMaterial)
                     }
-                    .backgroundStyle(.ultraThinMaterial)
-                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .tint(.accent)
                 }
-                .tint(.accent)
+            } else {
+                Text(markdown(from: chat.content))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity, alignment: chat.role == .user ? .trailing : .leading)
             }
         }
         .transition(.slide)

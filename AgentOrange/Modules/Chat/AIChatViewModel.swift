@@ -12,6 +12,7 @@ import Factory
 final class AIChatViewModel {
     @Injected(\.agiService) @ObservationIgnored private var agiService
     @Injected(\.codeService) @ObservationIgnored private var codeService
+    @Injected(\.cacheService) @ObservationIgnored private var cacheService
     var chats: [UUID: ChatMessage] = [:]
     var isGenerating: Bool = false
     var question: String = ""
@@ -39,6 +40,7 @@ final class AIChatViewModel {
                     if let id = codeService.addCode(code: tempOutput, tag: tag) {
                         codeService.selectedId = id
                         updateMessage(message: responseMessage, content: tempOutput, tag: tag, codeId: id)
+                        cacheService.saveFileContent(for: id, fileContent: tempOutput)
                     }
                 }
             } catch {
@@ -85,7 +87,7 @@ final class AIChatViewModel {
         if defaults.scopeRole {
             var systemPrompt = "You are an experienced professional Swift iOS engineer."
             if defaults.scopeGenCode {
-                systemPrompt += " All your responses must contain swift code ONLY where comments or answers are in code comments."
+                systemPrompt += " All your responses must contain swift code ONLY where comments or answers are in code comments. No markdown."
             }
             history.append(ChatMessage(role: .system, content: systemPrompt))
         }

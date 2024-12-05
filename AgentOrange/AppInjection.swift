@@ -13,4 +13,5 @@ import Factory
 extension Container {
     var codeService: Factory<CodeServiceProtocol> { self { CodeService() }.shared }
     var agiService: Factory<AGIServiceProtocol> { self { OpenSourceLLMAPIService() } }
+    var cacheService: Factory<FileCachingServiceProtocol> { self { CachingService() } }
 }
