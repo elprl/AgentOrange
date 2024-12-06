@@ -18,7 +18,7 @@ protocol TokenServiceProtocol {
 }
 
 protocol AGIServiceProtocol: TokenServiceProtocol {
-    func sendMessageStream(text: String, needsJSONResponse: Bool) async throws -> AsyncThrowingStream<String, Error>
+    func sendMessageStream(text: String, needsJSONResponse: Bool, cancellationHandler: ((Task<Void, Never>?) -> Void)?) async throws -> AsyncThrowingStream<String, Error>
     func sendMessage(_ text: String) async throws -> String
     func generateMessages(from text: String) -> [GPTMessage]
     func setHistory(messages: [ChatMessage])

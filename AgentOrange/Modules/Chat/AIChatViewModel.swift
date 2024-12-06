@@ -13,10 +13,11 @@ final class AIChatViewModel {
     @Injected(\.agiService) @ObservationIgnored private var agiService
     @Injected(\.codeService) @ObservationIgnored private var codeService
     @Injected(\.cacheService) @ObservationIgnored private var cacheService
+    @ObservationIgnored private var sessionIndex: Int = 0
+    @ObservationIgnored private var cancellationTask: Task<Void, Never>?
     var chats: [UUID: ChatMessage] = [:]
     var isGenerating: Bool = false
     var question: String = ""
-    @ObservationIgnored private var sessionIndex: Int = 0
     var commands: [ChatCommand] = [
         ChatCommand(name: "//comments", prompt: "Add professional inline code comments while avoiding DocC documentation outside of functions.", shortDescription: "Adds code comments"),
         ChatCommand(name: "//docC", prompt: "Add professional DocC documentation to the code", shortDescription: "Adds code documentation"),
@@ -45,7 +46,9 @@ final class AIChatViewModel {
         var tempOutput = ""
         do {
             agiService.setHistory(messages: generateHistory())
-            let stream = try await agiService.sendMessageStream(text: prompt, needsJSONResponse: false)
+            let stream = try await agiService.sendMessageStream(text: prompt, needsJSONResponse: false) { [weak self] task in
+                self?.cancellationTask = task
+            }
             for try await responseDelta in stream {
                 tempOutput += responseDelta
                 updateMessage(message: responseMessage, content: tempOutput)
@@ -70,7 +73,9 @@ final class AIChatViewModel {
         Task { @MainActor in
             start()
             for command in commands {
-                await respondToPrompt(prompt: command.prompt, tag: command.name, isCmd: true)
+                if isGenerating {
+                    await respondToPrompt(prompt: command.prompt, tag: command.name, isCmd: true)
+                }
             }
             stop()
         }
@@ -102,6 +107,7 @@ final class AIChatViewModel {
     
     func stop() {
         isGenerating = false
+        cancellationTask?.cancel()
     }
     
     private func generateHistory() -> [ChatMessage] {

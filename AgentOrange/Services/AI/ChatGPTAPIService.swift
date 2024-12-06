@@ -147,7 +147,7 @@ class ChatGPTAPIService: @unchecked Sendable, AGIServiceProtocol {
         self.historyList.append(GPTMessage(role: GPTRole.assistant.rawValue, content: responseText))
     }
     
-    func sendMessageStream(text: String, needsJSONResponse: Bool = false) async throws -> AsyncThrowingStream<String, Error> {
+    func sendMessageStream(text: String, needsJSONResponse: Bool = false, cancellationHandler: ((Task<Void, Never>?) -> Void)? = nil) async throws -> AsyncThrowingStream<String, Error> {
         var urlRequest = self.urlRequest
         do {
             let httpBody = try jsonBody(text: text, needsJSONResponse: needsJSONResponse)
@@ -182,11 +182,14 @@ class ChatGPTAPIService: @unchecked Sendable, AGIServiceProtocol {
             }
             
             return AsyncThrowingStream<String, Error> { continuation in
-                Task(priority: .userInitiated) { [weak self] in
+                let task = Task(priority: .userInitiated) { [weak self] in
                     guard let self else { return }
                     do {
                         var responseText = ""
                         for try await line in result.lines {
+                            // Check for task cancellation
+                            try Task.checkCancellation()
+                            
                             if line.hasPrefix("data: "),
                                let data = line.dropFirst(6).data(using: .utf8),
                                let response = try? self.jsonDecoder.decode(StreamCompletionResponse.self, from: data),
@@ -197,11 +200,16 @@ class ChatGPTAPIService: @unchecked Sendable, AGIServiceProtocol {
                         }
                         self.appendToHistoryList(userText: text, responseText: responseText)
                         continuation.finish()
+                    } catch is CancellationError {
+                        continuation.finish(throwing: CancellationError())
                     } catch {
                         Log.agi.error("AGI stream error: \(error.localizedDescription)")
                         continuation.finish(throwing: error)
                     }
                 }
+                
+                // Call cancellation handler if provided
+                cancellationHandler?(task)
             }
         } catch {
             throw error

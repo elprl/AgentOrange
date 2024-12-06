@@ -29,6 +29,14 @@ struct SideBarSUI: View {
 //                .environmentObject(settingsVM)
 //        })
         .toolbar {
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                Button(action: {
+//                    self.showSheet = true
+                }, label: {
+                    Image(systemName: "plus.bubble")
+                        .foregroundColor(.white)
+                })
+            }
             ToolbarItemGroup(placement: .bottomBar) {
                 Button(action: {
 //                    self.showSheet = true
@@ -109,10 +117,10 @@ struct SideBarSUI: View {
         Section(header: Text("DASHBOARD").font(.title3).foregroundColor(.accent)) {
             NavigationLink(value: "code") {
                 Label {
-                    Text("AI Chat")
+                    Text("New Chat")
                         .font(.headline)
                 } icon: {
-                    Image(systemName: "bubble.fill")
+                    Image(systemName: "text.bubble")
                 }
                 .tint(.accent)
             }
