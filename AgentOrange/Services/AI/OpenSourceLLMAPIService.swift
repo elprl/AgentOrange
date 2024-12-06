@@ -24,7 +24,7 @@ final class OpenSourceLLMAPIService: ChatGPTAPIService, @unchecked Sendable {
     }
     
     override var model: String {
-        let modelString = UserDefaults.standard.customAIModel ?? "Hermes"
+        let modelString = UserDefaults.standard.customAIModel ?? "llama-3.2-3b-instruct"
         return modelString
     }
     

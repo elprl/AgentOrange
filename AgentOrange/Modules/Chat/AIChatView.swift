@@ -63,9 +63,9 @@ let _ = Self._printChanges()
         HStack {
             Menu {
                 Button {
-
+                    chatVM.runCommands()
                 } label: {
-                    Text("Command: Make Better")
+                    Text("Run all commands")
                 }
             } label: {
                 Image(systemName: "ellipsis.circle")

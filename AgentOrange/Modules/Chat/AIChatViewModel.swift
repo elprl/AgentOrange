@@ -17,36 +17,60 @@ final class AIChatViewModel {
     var isGenerating: Bool = false
     var question: String = ""
     @ObservationIgnored private var sessionIndex: Int = 0
+    var commands: [ChatCommand] = [
+        ChatCommand(name: "//comments", prompt: "Add professional inline code comments while avoiding DocC documentation outside of functions.", shortDescription: "Adds code comments"),
+        ChatCommand(name: "//docC", prompt: "Add professional DocC documentation to the code", shortDescription: "Adds code documentation"),
+        ChatCommand(name: "//refactor", prompt: "Refactor the code", shortDescription: "Refactors the code"),
+    ]
 
     func streamResponse() {
         Task { @MainActor in
             let questionCopy = String(self.question.trimmingCharacters(in: .whitespacesAndNewlines))
             self.question = ""
             start()
-            addChatMessage(content: questionCopy)
             self.sessionIndex += 1
             let tag = "Version \(self.sessionIndex)"
-            let responseMessage = addChatMessage(role: .assistant, content: "")
-            var tempOutput = ""
-            do {
-                agiService.setHistory(messages: generateHistory())
-                let stream = try await agiService.sendMessageStream(text: questionCopy, needsJSONResponse: false)
-                for try await responseDelta in stream {
-                    tempOutput += responseDelta
-                    updateMessage(message: responseMessage, content: tempOutput)
-                }
-                Log.pres.debug("AI Generated: \(tempOutput)")
-                if UserDefaults.standard.scopeGenCode {
-                    if let id = codeService.addCode(code: tempOutput, tag: tag) {
-                        codeService.selectedId = id
-                        updateMessage(message: responseMessage, content: tempOutput, tag: tag, codeId: id)
-                        cacheService.saveFileContent(for: id, fileContent: tempOutput)
-                    }
-                }
-            } catch {
-                Log.pres.error("Error: \(error.localizedDescription)")
-                tempOutput += "\n\(error.localizedDescription)"
+            await respondToPrompt(prompt: questionCopy, tag: tag)
+            stop()
+        }
+    }
+    
+    private func respondToPrompt(prompt: String, tag: String, isCmd: Bool = false) async {
+        if isCmd {
+            addChatMessage(content: "**Command**: " + tag + "\n**Prompt**: " + prompt)
+        } else {
+            addChatMessage(content: prompt)
+        }
+        let responseMessage = addChatMessage(role: .assistant, content: "")
+        var tempOutput = ""
+        do {
+            agiService.setHistory(messages: generateHistory())
+            let stream = try await agiService.sendMessageStream(text: prompt, needsJSONResponse: false)
+            for try await responseDelta in stream {
+                tempOutput += responseDelta
                 updateMessage(message: responseMessage, content: tempOutput)
+            }
+            Log.pres.debug("AI Generated: \(tempOutput)")
+            if UserDefaults.standard.scopeGenCode {
+                if let id = codeService.addCode(code: tempOutput, tag: tag) {
+                    codeService.selectedId = id
+                    updateMessage(message: responseMessage, content: tempOutput, tag: tag, codeId: id)
+                    cacheService.saveFileContent(for: id, fileContent: tempOutput)
+                }
+            }
+        } catch {
+            Log.pres.error("Error: \(error.localizedDescription)")
+            tempOutput += "\n\(error.localizedDescription)"
+            updateMessage(message: responseMessage, content: tempOutput)
+        }
+    }
+    
+    // the following function loops over the commands array and calls one at a time to the respondToPrompt function
+    func runCommands() {
+        Task { @MainActor in
+            start()
+            for command in commands {
+                await respondToPrompt(prompt: command.prompt, tag: command.name, isCmd: true)
             }
             stop()
         }
@@ -87,7 +111,7 @@ final class AIChatViewModel {
         if defaults.scopeRole {
             var systemPrompt = "You are an experienced professional Swift iOS engineer."
             if defaults.scopeGenCode {
-                systemPrompt += " All your responses must contain swift code ONLY where comments or answers are in code comments. No markdown."
+                systemPrompt += " All your responses must contain swift code ONLY without Markdown."
             }
             history.append(ChatMessage(role: .system, content: systemPrompt))
         }

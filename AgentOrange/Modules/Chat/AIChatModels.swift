@@ -29,3 +29,10 @@ enum Scope: String {
     case code
     case genCode
 }
+
+struct ChatCommand: Identifiable, Hashable {
+    var name: String
+    var prompt: String
+    var shortDescription: String
+    var id: String { name }
+}

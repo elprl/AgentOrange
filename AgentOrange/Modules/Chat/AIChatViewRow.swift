@@ -15,41 +15,12 @@ struct AIChatViewRow: View {
 
     var body: some View {
         GroupBox {
-            header
-            if let tag = chat.tag {
-                DisclosureGroup {
-                    Text(markdown(from: chat.content))
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity, alignment: chat.role == .user ? .trailing : .leading)
-                } label: {
-                    Button {
-                        fileVM.selectedId = chat.codeId
-                    } label: {
-                        GroupBox {
-                            HStack {
-                                Image(systemName: "text.page")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 32, height: 32)
-                                Divider().frame(height: 32)
-                                VStack(alignment: .leading) {
-                                    Text(tag)
-                                    Text("Click to view code")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                            .padding(-6)
-                        }
-                        .backgroundStyle(.ultraThinMaterial)
-                    }
-                    .tint(.accent)
-                }
+            if chat.role == .user {
+                userMessage
+            } else if chat.tag != nil {
+                botCodeMessage
             } else {
-                Text(markdown(from: chat.content))
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity, alignment: chat.role == .user ? .trailing : .leading)
+                botSimpleMessage
             }
         }
         .transition(.slide)
@@ -58,23 +29,78 @@ struct AIChatViewRow: View {
         .frame(maxWidth: .infinity, alignment: .trailing)
     }
     
-    private func markdown(from response: String) -> AttributedString {
-        do {
-            return try AttributedString(markdown: response, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))
-        } catch {
-            return AttributedString("Error parsing markdown: \(error)")
+    @ViewBuilder
+    private var userMessage: some View {
+        HStack {
+            Text(markdown(from: chat.content))
+                .foregroundStyle(.white)
+                .padding(.trailing)
+            Menu {
+                Button {
+                    deleteAction()
+                } label: {
+                    Label("Delete", systemImage: "trash")
+                }
+            } label: {
+                Image(systemName: "ellipsis.circle")
+                    .foregroundStyle(chat.role == .assistant ? .accent : .white)
+            }
+            .menuOrder(.fixed)
+            .highPriorityGesture(TapGesture())
+            .offset(x: 4)
         }
+    }
+    
+    @ViewBuilder
+    private var botCodeMessage: some View {
+        header
+        if let tag = chat.tag {
+            DisclosureGroup {
+                Text(markdown(from: chat.content))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            } label: {
+                Button {
+                    fileVM.selectedId = chat.codeId
+                } label: {
+                    GroupBox {
+                        HStack {
+                            Image(systemName: "text.page")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 32, height: 32)
+                            Divider().frame(height: 32)
+                            VStack(alignment: .leading) {
+                                Text(tag)
+                                Text("Click to view code")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .padding(-6)
+                    }
+                    .backgroundStyle(.ultraThinMaterial)
+                }
+                .tint(.accent)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var botSimpleMessage: some View {
+        header
+        Text(markdown(from: chat.content))
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
     
     @ViewBuilder
     private var header: some View {
         HStack {
-            if chat.role == .assistant {
-                Image(systemName: "brain")
-                Text(UserDefaults.standard.customAIModel ?? "Assistent")
-                    .bold()
-                    .foregroundStyle(chat.role == .assistant ? .purple : .black)
-            }
+            Text("\(Text("Agent").bold().underline().foregroundStyle(.white)) Orange")
+                .bold()
+                .foregroundStyle(.accent)
             Spacer()
             Menu {
                 Button {
@@ -84,11 +110,37 @@ struct AIChatViewRow: View {
                 }
             } label: {
                 Image(systemName: "ellipsis.circle")
-                    .foregroundStyle(.white)
+                    .foregroundStyle(chat.role == .assistant ? .accent : .white)
             }
             .menuOrder(.fixed)
             .highPriorityGesture(TapGesture())
             .offset(x: 4)
+        }
+    }
+    
+    @ViewBuilder
+    private var logo: some View {
+        ZStack {
+            Circle()
+                .fill(.accent)
+                .frame(width: 20, height: 20)
+            Image("skull")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 14, height: 14)
+                .foregroundColor(.black)
+            Circle()
+                .stroke(.white, lineWidth: 2)
+                .frame(width: 20, height: 20)
+                .shadow(color: .gray, radius: 2)
+        }
+    }
+    
+    private func markdown(from response: String) -> AttributedString {
+        do {
+            return try AttributedString(markdown: response, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))
+        } catch {
+            return AttributedString("Error parsing markdown: \(error)")
         }
     }
 }
