@@ -9,19 +9,20 @@ import SwiftUI
 import Factory
 
 @Observable
+@MainActor
 final class AIChatViewModel {
     @Injected(\.agiService) @ObservationIgnored private var agiService
     @Injected(\.codeService) @ObservationIgnored private var codeService
     @Injected(\.cacheService) @ObservationIgnored private var cacheService
     @ObservationIgnored private var sessionIndex: Int = 0
     @ObservationIgnored private var cancellationTask: Task<Void, Never>?
-    var chats: [UUID: ChatMessage] = [:]
+    @MainActor var chats: [UUID: ChatMessage] = [:]
     var isGenerating: Bool = false
     var question: String = ""
     var commands: [ChatCommand] = [
+        ChatCommand(name: "//refactor", prompt: "Refactor the code", shortDescription: "Refactors the code"),
         ChatCommand(name: "//comments", prompt: "Add professional inline code comments while avoiding DocC documentation outside of functions.", shortDescription: "Adds code comments"),
         ChatCommand(name: "//docC", prompt: "Add professional DocC documentation to the code", shortDescription: "Adds code documentation"),
-        ChatCommand(name: "//refactor", prompt: "Refactor the code", shortDescription: "Refactors the code"),
     ]
 
     func streamResponse() {
@@ -47,25 +48,51 @@ final class AIChatViewModel {
         do {
             agiService.setHistory(messages: generateHistory())
             let stream = try await agiService.sendMessageStream(text: prompt, needsJSONResponse: false) { [weak self] task in
-                self?.cancellationTask = task
+                Task { @MainActor in
+                    self?.cancellationTask = task
+                }
             }
             for try await responseDelta in stream {
                 tempOutput += responseDelta
-                updateMessage(message: responseMessage, content: tempOutput)
+                Task { @MainActor in
+                    updateMessage(message: responseMessage, content: tempOutput)
+                }
             }
+            tempOutput = removeMarkdown(from: tempOutput)
             Log.pres.debug("AI Generated: \(tempOutput)")
             if UserDefaults.standard.scopeGenCode {
                 if let id = codeService.addCode(code: tempOutput, tag: tag) {
                     codeService.selectedId = id
-                    updateMessage(message: responseMessage, content: tempOutput, tag: tag, codeId: id)
                     cacheService.saveFileContent(for: id, fileContent: tempOutput)
+                    Task { @MainActor in
+                        updateMessage(message: responseMessage, content: tempOutput, tag: tag, codeId: id)
+                    }
                 }
             }
         } catch {
             Log.pres.error("Error: \(error.localizedDescription)")
-            tempOutput += "\n\(error.localizedDescription)"
-            updateMessage(message: responseMessage, content: tempOutput)
+            Task { @MainActor in
+                
+                tempOutput += "\n\(error.localizedDescription)"
+                updateMessage(message: responseMessage, content: tempOutput)
+            }
         }
+    }
+    
+    private func removeMarkdown(from content: String) -> String {
+        let header1 = "```swift\n"
+        let header2 = "```\n"
+        let footer = "\n```"
+        var output = content
+        if content.hasPrefix(header1) {
+            output = content.replacingOccurrences(of: header1, with: "")
+        } else if content.hasPrefix(header2) {
+            output = content.replacingOccurrences(of: header2, with: "")
+        }
+        if content.hasSuffix(footer) {
+            output = output.replacingOccurrences(of: footer, with: "")
+        }
+        return output
     }
     
     // the following function loops over the commands array and calls one at a time to the respondToPrompt function
@@ -81,12 +108,14 @@ final class AIChatViewModel {
         }
     }
     
+    @MainActor
     @discardableResult private func addChatMessage(role: GPTRole = .user, content: String, type: MessageType = .message, tag: String? = nil) -> ChatMessage {
         let chatMessage = ChatMessage(role: role, type: type, content: content, tag: tag)
         chats[chatMessage.id] = chatMessage
         return chatMessage
     }
     
+    @MainActor
     private func updateMessage(message: ChatMessage, content: String, tag: String? = nil, codeId: String? = nil) {
         guard var chat = chats[message.id] else {
             return
@@ -110,6 +139,7 @@ final class AIChatViewModel {
         cancellationTask?.cancel()
     }
     
+    @MainActor
     private func generateHistory() -> [ChatMessage] {
         var history: [ChatMessage] = []
         setScopeDefaults()
@@ -148,10 +178,12 @@ final class AIChatViewModel {
         }
     }
     
+    @MainActor
     func deleteAll() {
         chats.removeAll()
     }
     
+    @MainActor
     func delete(message: ChatMessage) {
         if let _ = chats[message.id] {
             chats[message.id] = nil
@@ -162,7 +194,7 @@ final class AIChatViewModel {
 #if DEBUG
 
 extension AIChatViewModel {
-    static func mock() -> AIChatViewModel {
+    @MainActor static func mock() -> AIChatViewModel {
         let vm = AIChatViewModel()
         vm.chats[UUID()] = ChatMessage(role: .user, content: "Give me an attribute string from plain string")
         vm.chats[UUID()] = ChatMessage(role: .assistant, content: "return try AttributedString(markdown: response, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))", tag: "CodeGen1")

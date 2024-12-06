@@ -65,7 +65,7 @@ let _ = Self._printChanges()
                 Button {
                     chatVM.runCommands()
                 } label: {
-                    Text("Run all commands")
+                    Text("Run all tasks")
                 }
             } label: {
                 Image(systemName: "ellipsis.circle")

@@ -24,12 +24,12 @@ final class OpenSourceLLMAPIService: ChatGPTAPIService, @unchecked Sendable {
     }
     
     override var model: String {
-        let modelString = UserDefaults.standard.customAIModel ?? "llama-3.2-3b-instruct"
+        let modelString = UserDefaults.standard.customAIModel ?? "qwen2.5-coder-7b-instruct" // "llama-3.2-3b-instruct"
         return modelString
     }
     
     var host: String {
-        let myHost = UserDefaults.standard.customAIHost ?? "http://localhost:1234"
+        let myHost = UserDefaults.standard.customAIHost ?? "http://localhost:1234" // "http://169.254.5.254:1234" // "http://localhost:1234"
         return myHost
     }
 
