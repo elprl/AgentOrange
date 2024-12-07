@@ -1,9 +1,9 @@
 //
 //  FileCachingService.swift
-//  TDCodeReview
+//  AgentOrange
 //
-//  Created by Paul Leo on 26/04/2023.
-//  Copyright © 2023 tapdigital Ltd. All rights reserved.
+//  Created by Paul Leo on 30/09/2024.
+//  Copyright © 2024 tapdigital Ltd. All rights reserved.
 //
 
 import Foundation
@@ -33,7 +33,7 @@ struct CachingService {
     var cache: DiskCache?
     
     init(folderName: String = Bundle.main.bundleIdentifier ?? "com.tapdigital.agentorange") {
-        if let cachePath = cachePath(folderName: folderName) {
+        if let _ = cachePath(folderName: folderName) {
             self.cache = try? DiskCache(storageType: .temporary(nil))
         }
     }

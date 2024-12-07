@@ -1,9 +1,9 @@
 //
 //  ChatGPTAPIService.swift
-//  TDCodeReview
+//  AgentOrange
 //
-//  Created by Paul Leo on 30/03/2023.
-//  Copyright © 2023 tapdigital Ltd. All rights reserved.
+//  Created by Paul Leo on 30/09/2024.
+//  Copyright © 2024 tapdigital Ltd. All rights reserved.
 //
 
 import Foundation

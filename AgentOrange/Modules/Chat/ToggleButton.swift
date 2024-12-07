@@ -1,9 +1,9 @@
 //
 //  ToggleButton.swift
-//  TDCodeReview
+//  AgentOrange
 //
-//  Created by Paul Leo on 23/11/2023.
-//  Copyright © 2023 tapdigital Ltd. All rights reserved.
+//  Created by Paul Leo on 23/11/2024.
+//  Copyright © 2024 tapdigital Ltd. All rights reserved.
 //
 
 import SwiftUI

@@ -1,8 +1,9 @@
 //
 //  ChatGPTAPIModels.swift
-//  XCAChatGPT
+//  AgentOrange
 //
-//  Created by Alfian Losari on 03/03/23.
+//  Created by Paul Leo on 30/09/2024.
+//  Copyright © 2024 tapdigital Ltd. All rights reserved.
 //
 
 import Foundation

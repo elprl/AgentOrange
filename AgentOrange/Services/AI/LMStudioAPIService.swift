@@ -1,9 +1,9 @@
 //
 //  OpenSourceLLMAPIService.swift
-//  TDCodeReview
+//  AgentOrange
 //
-//  Created by Paul Leo on 23/05/2023.
-//  Copyright © 2023 tapdigital Ltd. All rights reserved.
+//  Created by Paul Leo on 30/09/2024.
+//  Copyright © 2024 tapdigital Ltd. All rights reserved.
 //
 
 import Foundation
@@ -34,7 +34,7 @@ actor LMStudioAPIService {
     }
     
     private var host: String {
-        let myHost = UserDefaults.standard.customAIHost ?? "http://localhost:1234" // "http://169.254.5.254:1234" // "http://localhost:1234"
+        let myHost = UserDefaults.standard.customAIHost ?? "http://localhost:1234"
         return myHost
     }
 
