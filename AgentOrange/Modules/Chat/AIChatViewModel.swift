@@ -11,7 +11,7 @@ import Factory
 @Observable
 @MainActor
 final class AIChatViewModel {
-    @ObservationIgnored private let agiService = LMStudioAPIService()
+    @Injected(\.agiService) @ObservationIgnored private var agiService
     @Injected(\.codeService) @ObservationIgnored private var codeService
     @Injected(\.cacheService) @ObservationIgnored private var cacheService
     @ObservationIgnored private var sessionIndex: Int = 0

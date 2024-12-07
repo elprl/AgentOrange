@@ -12,25 +12,25 @@ import Factory
 //import GPT3_Tokenizer
 import SwiftUI
 
-protocol TokenServiceProtocol {
-    func resetAccessToken(apiKey: String?) async
-    var hasSetToken: Bool { get async }
+protocol TokenServiceProtocol: Actor {
+    func resetAccessToken(apiKey: String?)
+    var hasSetToken: Bool { get }
 }
 
-protocol AGIStreamingServiceProtocol {
+protocol AGIStreamingServiceProtocol: Actor {
     func sendMessageStream(text: String, needsJSONResponse: Bool) async throws -> AsyncThrowingStream<String, Error>
-    func cancelStream() async
+    func cancelStream()
 }
 
-protocol AGIHistoryServiceProtocol {
-    func setHistory(messages: [ChatMessage]) async
-    func setupHistory(for fileContent: String, selectedRows: Set<Int>, scopes: HistoryOptions, messages: [ChatMessage], systemRole: String?) async
-    func processSelection(for fileContent: String, selectedRows: Set<Int>) async -> GPTMessage
-    func getHistory() async -> [GPTMessage]
-    func addHistoryItem(message: ChatMessage) async
-    func removeHistoryItem(message: ChatMessage) async
-    func deleteHistoryList() async
-    func appendToHistoryList(userText: String, responseText: String) async
+protocol AGIHistoryServiceProtocol: Actor {
+    func setHistory(messages: [ChatMessage])
+    func setupHistory(for fileContent: String, selectedRows: Set<Int>, scopes: HistoryOptions, messages: [ChatMessage], systemRole: String?)
+    func processSelection(for fileContent: String, selectedRows: Set<Int>)  -> GPTMessage
+    func getHistory() -> [GPTMessage]
+    func addHistoryItem(message: ChatMessage)
+    func removeHistoryItem(message: ChatMessage)
+    func deleteHistoryList()
+    func appendToHistoryList(userText: String, responseText: String)
 }
 
 
