@@ -1,20 +1,19 @@
 //
-//  ChatGPTAPIService.swift
+//  OpenSourceLLMAPIService.swift
 //  TDCodeReview
 //
-//  Created by Paul Leo on 30/03/2023.
+//  Created by Paul Leo on 23/05/2023.
 //  Copyright © 2023 tapdigital Ltd. All rights reserved.
 //
 
 import Foundation
 
-actor ChatGPTAPIService {
+actor LMStudioAPIService {
     private var historyList = [GPTMessage]()
     private var hasCancelledStream: Bool = false
-    internal var apiKey: String?
     private var urlSession = URLSession.shared
     private var urlRequest: URLRequest {
-        let url = URL(string: "https://api.openai.com/v1/chat/completions")!
+        let url = URL(string: "\(host)/v1/chat/completions")!
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "POST"
         headers.forEach {  urlRequest.setValue($1, forHTTPHeaderField: $0) }
@@ -26,35 +25,23 @@ actor ChatGPTAPIService {
         return jsonDecoder
     }()
     private var headers: [String: String] {
-        [
-            "Content-Type": "application/json",
-            "Authorization": "Bearer \(apiKey ?? "")"
-        ]
+        ["Content-Type": "application/json"]
     }
+    
     var model: String {
-        let modelString = UserDefaults.standard.openAiModel ?? "gpt-3.5-turbo"
+        let modelString = UserDefaults.standard.customAIModel ?? "qwen2.5-coder-7b-instruct" // "llama-3.2-3b-instruct"
         return modelString
     }
+    
+    private var host: String {
+        let myHost = UserDefaults.standard.customAIHost ?? "http://localhost:1234" // "http://169.254.5.254:1234" // "http://localhost:1234"
+        return myHost
+    }
 
-    init(apiKey: String? = nil) {
-        Log.agi.debug("ChatGPTAPIService init")
-        var prepToken: String? = apiKey?.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        
-        #if DEBUG
-        if prepToken == nil {
-            if let mockToken = Bundle.main.infoDictionary?["MOCK_OPENAI_TOKEN"] as? String {
-                prepToken = mockToken
-            }
-        }
-        #endif
-        self.apiKey = prepToken
+    init() {
+        Log.agi.debug("CustomAIAPIService init")
     }
-    
-    deinit {
-        Log.agi.debug("deinit \(String(describing: type(of: self)))")
-    }
-    
+
     private func generateMessages(from text: String) -> [GPTMessage] {
         var messages = historyList + [GPTMessage(role: GPTRole.user.rawValue, content: text)]
         
@@ -75,22 +62,10 @@ actor ChatGPTAPIService {
     }
 }
 
-extension ChatGPTAPIService: TokenServiceProtocol {
-    var hasSetToken: Bool {
-        if let token = apiKey {
-            return !token.isEmpty
-        }
-        return false
-    }
-    
-    func resetAccessToken(apiKey: String? = nil) {
-        self.apiKey = apiKey
-    }
-}
-
-extension ChatGPTAPIService: AGIStreamingServiceProtocol {
+extension LMStudioAPIService: AGIStreamingServiceProtocol {
     
     func sendMessageStream(text: String, needsJSONResponse: Bool) async throws -> AsyncThrowingStream<String, Error> {
+        self.hasCancelledStream = false
         var urlRequest = self.urlRequest
         do {
             let httpBody = try jsonBody(text: text, needsJSONResponse: needsJSONResponse)
@@ -163,7 +138,7 @@ extension ChatGPTAPIService: AGIStreamingServiceProtocol {
     }
 }
 
-extension ChatGPTAPIService: AGIHistoryServiceProtocol {
+extension LMStudioAPIService: AGIHistoryServiceProtocol {
     func setHistory(messages: [ChatMessage]) {
         deleteHistoryList()
         let oldMessages = messages.compactMap { message -> GPTMessage? in
@@ -231,3 +206,4 @@ extension ChatGPTAPIService: AGIHistoryServiceProtocol {
         self.historyList.append(GPTMessage(role: GPTRole.assistant.rawValue, content: responseText))
     }
 }
+

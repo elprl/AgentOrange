@@ -13,21 +13,26 @@ import Factory
 import SwiftUI
 
 protocol TokenServiceProtocol {
-    func resetAccessToken(apiKey: String?)
-    var hasSetToken: Bool { get }
+    func resetAccessToken(apiKey: String?) async
+    var hasSetToken: Bool { get async }
 }
 
-protocol AGIServiceProtocol: TokenServiceProtocol {
-    func sendMessageStream(text: String, needsJSONResponse: Bool, cancellationHandler: ((Task<Void, Never>?) -> Void)?) async throws -> AsyncThrowingStream<String, Error>
-    func sendMessage(_ text: String) async throws -> String
-    func generateMessages(from text: String) -> [GPTMessage]
-    func setHistory(messages: [ChatMessage])
-    func setupHistory(for fileContent: String, selectedRows: Set<Int>, scopes: HistoryOptions, messages: [ChatMessage])
-    func getHistory() -> [GPTMessage]
-    func addHistoryItem(message: ChatMessage)
-    func removeHistoryItem(message: ChatMessage)
-    func deleteHistoryList()
+protocol AGIStreamingServiceProtocol {
+    func sendMessageStream(text: String, needsJSONResponse: Bool) async throws -> AsyncThrowingStream<String, Error>
+    func cancelStream() async
 }
+
+protocol AGIHistoryServiceProtocol {
+    func setHistory(messages: [ChatMessage]) async
+    func setupHistory(for fileContent: String, selectedRows: Set<Int>, scopes: HistoryOptions, messages: [ChatMessage], systemRole: String?) async
+    func processSelection(for fileContent: String, selectedRows: Set<Int>) async -> GPTMessage
+    func getHistory() async -> [GPTMessage]
+    func addHistoryItem(message: ChatMessage) async
+    func removeHistoryItem(message: ChatMessage) async
+    func deleteHistoryList() async
+    func appendToHistoryList(userText: String, responseText: String) async
+}
+
 
 //extension AGIServiceProtocol {
 //    func numTokensFromMessages(messages: [ChatMessageVM]) -> Int {
@@ -103,33 +108,7 @@ struct AGIServiceConstants {
 """
 }
 
-struct HistoryOptions: OptionSet {
-    let rawValue: Int
-    
-    static let none = HistoryOptions(rawValue: 1 << 0)
-    static let role = HistoryOptions(rawValue: 1 << 1)
-    static let selection = HistoryOptions(rawValue: 1 << 2)
-    static let code = HistoryOptions(rawValue: 1 << 3)
-    static let messages = HistoryOptions(rawValue: 1 << 4)
-    static let all: HistoryOptions = [.role, .selection, .code, .messages] // Combines all options
-    
-    static func modeFrom(hasRole: Bool, hasCode: Bool, hasHistory: Bool, hasSelection: Bool) -> Self {
-        var scopes: HistoryOptions = []
-        if hasRole {
-            scopes.insert(HistoryOptions.role)
-        }
-        if hasCode {
-            scopes.insert(HistoryOptions.code)
-        }
-        if hasHistory {
-            scopes.insert(HistoryOptions.messages)
-        }
-        if hasSelection {
-            scopes.insert(HistoryOptions.selection)
-        }
-        return scopes
-    }
-}
+
 
 enum AGIServiceChoice: String {
     case openai = "0"

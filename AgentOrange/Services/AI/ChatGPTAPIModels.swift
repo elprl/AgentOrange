@@ -152,3 +152,31 @@ struct StreamMessage: Decodable {
     let role: String?
     let content: String?
 }
+
+struct HistoryOptions: OptionSet {
+    let rawValue: Int
+    
+    static let none = HistoryOptions(rawValue: 1 << 0)
+    static let role = HistoryOptions(rawValue: 1 << 1)
+    static let selection = HistoryOptions(rawValue: 1 << 2)
+    static let code = HistoryOptions(rawValue: 1 << 3)
+    static let messages = HistoryOptions(rawValue: 1 << 4)
+    static let all: HistoryOptions = [.role, .selection, .code, .messages] // Combines all options
+    
+    static func modeFrom(hasRole: Bool, hasCode: Bool, hasHistory: Bool, hasSelection: Bool) -> Self {
+        var scopes: HistoryOptions = []
+        if hasRole {
+            scopes.insert(HistoryOptions.role)
+        }
+        if hasCode {
+            scopes.insert(HistoryOptions.code)
+        }
+        if hasHistory {
+            scopes.insert(HistoryOptions.messages)
+        }
+        if hasSelection {
+            scopes.insert(HistoryOptions.selection)
+        }
+        return scopes
+    }
+}

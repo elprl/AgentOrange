@@ -32,12 +32,11 @@ final class AIChatViewModel {
             start()
             self.sessionIndex += 1
             let tag = "Version \(self.sessionIndex)"
-            await respondToPrompt(prompt: questionCopy, tag: tag)
-            stop()
+            respondToPrompt(prompt: questionCopy, tag: tag)
         }
     }
     
-    private func respondToPrompt(prompt: String, tag: String, isCmd: Bool = false) async {
+    private func respondToPrompt(prompt: String, tag: String, isCmd: Bool = false) {
         if isCmd {
             addChatMessage(content: "**Command**: " + tag + "\n**Prompt**: " + prompt)
         } else {
@@ -45,36 +44,37 @@ final class AIChatViewModel {
         }
         let responseMessage = addChatMessage(role: .assistant, content: "")
         var tempOutput = ""
-        do {
-            agiService.setHistory(messages: generateHistory())
-            let stream = try await agiService.sendMessageStream(text: prompt, needsJSONResponse: false) { [weak self] task in
-                Task { @MainActor in
-                    self?.cancellationTask = task
-                }
-            }
-            for try await responseDelta in stream {
-                tempOutput += responseDelta
-                Task { @MainActor in
-                    updateMessage(message: responseMessage, content: tempOutput)
-                }
-            }
-            tempOutput = removeMarkdown(from: tempOutput)
-            Log.pres.debug("AI Generated: \(tempOutput)")
-            if UserDefaults.standard.scopeGenCode {
-                if let id = codeService.addCode(code: tempOutput, tag: tag) {
-                    codeService.selectedId = id
-                    cacheService.saveFileContent(for: id, fileContent: tempOutput)
-                    Task { @MainActor in
-                        updateMessage(message: responseMessage, content: tempOutput, tag: tag, codeId: id)
+        Task.detached { [weak self] in
+            do {
+                guard let self else { return }
+                await self.agiService.setHistory(messages: generateHistory())
+                let stream = try await self.agiService.sendMessageStream(text: prompt, needsJSONResponse: false)
+                for try await responseDelta in stream {
+                    tempOutput += responseDelta
+                    let readonlyOutput = tempOutput
+                    DispatchQueue.main.async { [weak self] in
+                        self?.updateMessage(message: responseMessage, content: readonlyOutput)
                     }
                 }
-            }
-        } catch {
-            Log.pres.error("Error: \(error.localizedDescription)")
-            Task { @MainActor in
-                
+                tempOutput = await removeMarkdown(from: tempOutput)
+                Log.pres.debug("AI Generated: \(tempOutput)")
+                DispatchQueue.main.async { [weak self] in
+                    self?.stop()
+                    if UserDefaults.standard.scopeGenCode {
+                        if let id = self?.codeService.addCode(code: tempOutput, tag: tag) {
+                            self?.codeService.selectedId = id
+                            self?.cacheService.saveFileContent(for: id, fileContent: tempOutput)
+                            self?.updateMessage(message: responseMessage, content: tempOutput, tag: tag, codeId: id)
+                        }
+                    }
+                }
+            } catch {
+                Log.pres.error("Error: \(error.localizedDescription)")
                 tempOutput += "\n\(error.localizedDescription)"
-                updateMessage(message: responseMessage, content: tempOutput)
+                let readonlyOutput = tempOutput
+                DispatchQueue.main.async { [weak self] in
+                    self?.updateMessage(message: responseMessage, content: readonlyOutput)
+                }
             }
         }
     }
