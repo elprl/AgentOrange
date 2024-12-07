@@ -11,7 +11,7 @@ import Factory
 @Observable
 @MainActor
 final class AIChatViewModel {
-    @Injected(\.agiService) @ObservationIgnored private var agiService
+    @ObservationIgnored private let agiService = LMStudioAPIService()
     @Injected(\.codeService) @ObservationIgnored private var codeService
     @Injected(\.cacheService) @ObservationIgnored private var cacheService
     @ObservationIgnored private var sessionIndex: Int = 0
@@ -32,11 +32,12 @@ final class AIChatViewModel {
             start()
             self.sessionIndex += 1
             let tag = "Version \(self.sessionIndex)"
-            respondToPrompt(prompt: questionCopy, tag: tag)
+            await respondToPrompt(prompt: questionCopy, tag: tag)
+            stop()
         }
     }
     
-    private func respondToPrompt(prompt: String, tag: String, isCmd: Bool = false) {
+    private func respondToPrompt(prompt: String, tag: String, isCmd: Bool = false) async {
         if isCmd {
             addChatMessage(content: "**Command**: " + tag + "\n**Prompt**: " + prompt)
         } else {
@@ -44,7 +45,7 @@ final class AIChatViewModel {
         }
         let responseMessage = addChatMessage(role: .assistant, content: "")
         var tempOutput = ""
-        Task.detached { [weak self] in
+        await Task.detached { [weak self] in
             do {
                 guard let self else { return }
                 await self.agiService.setHistory(messages: generateHistory())
@@ -56,15 +57,14 @@ final class AIChatViewModel {
                         self?.updateMessage(message: responseMessage, content: readonlyOutput)
                     }
                 }
-                tempOutput = await removeMarkdown(from: tempOutput)
+                let finalOutput = await removeMarkdown(from: tempOutput)
                 Log.pres.debug("AI Generated: \(tempOutput)")
                 DispatchQueue.main.async { [weak self] in
-                    self?.stop()
                     if UserDefaults.standard.scopeGenCode {
-                        if let id = self?.codeService.addCode(code: tempOutput, tag: tag) {
+                        if let id = self?.codeService.addCode(code: finalOutput, tag: tag) {
                             self?.codeService.selectedId = id
-                            self?.cacheService.saveFileContent(for: id, fileContent: tempOutput)
-                            self?.updateMessage(message: responseMessage, content: tempOutput, tag: tag, codeId: id)
+                            self?.cacheService.saveFileContent(for: id, fileContent: finalOutput)
+                            self?.updateMessage(message: responseMessage, content: finalOutput, tag: tag, codeId: id)
                         }
                     }
                 }
@@ -76,7 +76,7 @@ final class AIChatViewModel {
                     self?.updateMessage(message: responseMessage, content: readonlyOutput)
                 }
             }
-        }
+        }.value
     }
     
     private func removeMarkdown(from content: String) -> String {
