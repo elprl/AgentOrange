@@ -16,9 +16,10 @@ final class AIChatViewModel {
     @Injected(\.cacheService) @ObservationIgnored private var cacheService
     @ObservationIgnored private var sessionIndex: Int = 0
     @ObservationIgnored private var cancellationTask: Task<Void, Never>?
-    @MainActor var chats: [UUID: ChatMessage] = [:]
+    @MainActor var chats: [String: ChatMessage] = [:]
     var isGenerating: Bool = false
     var question: String = ""
+    var hasScrolledOffBottom: Bool = false
     var commands: [ChatCommand] = [
         ChatCommand(name: "//refactor", prompt: "Refactor the code", shortDescription: "Refactors the code"),
         ChatCommand(name: "//comments", prompt: "Add professional inline code comments while avoiding DocC documentation outside of functions.", shortDescription: "Adds code comments"),
@@ -196,10 +197,10 @@ final class AIChatViewModel {
 extension AIChatViewModel {
     @MainActor static func mock() -> AIChatViewModel {
         let vm = AIChatViewModel()
-        vm.chats[UUID()] = ChatMessage(role: .user, content: "Give me an attribute string from plain string")
-        vm.chats[UUID()] = ChatMessage(role: .assistant, content: "return try AttributedString(markdown: response, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))", tag: "CodeGen1")
-        vm.chats[UUID()] = ChatMessage(role: .user, content: "blah blah")
-        vm.chats[UUID()] = ChatMessage(role: .assistant, content: "return try AttributedString(markdown: response, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))", tag: "CodeGen1")
+        vm.chats[UUID().uuidString] = ChatMessage(role: .user, content: "Give me an attribute string from plain string")
+        vm.chats[UUID().uuidString] = ChatMessage(role: .assistant, content: "return try AttributedString(markdown: response, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))", tag: "CodeGen1")
+        vm.chats[UUID().uuidString] = ChatMessage(role: .user, content: "blah blah")
+        vm.chats[UUID().uuidString] = ChatMessage(role: .assistant, content: "return try AttributedString(markdown: response, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))", tag: "CodeGen1")
         return vm
     }
 }

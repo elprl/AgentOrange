@@ -10,6 +10,7 @@ import SwiftUI
 struct AIChatView: View {
     @Environment(AIChatViewModel.self) private var chatVM: AIChatViewModel
     @FocusState private var isFocused: Bool
+    @State private var position = ScrollPosition(edge: .top)
 
     var body: some View {
         VStack {
@@ -48,13 +49,45 @@ let _ = Self._printChanges()
     
     @ViewBuilder
     private var messages: some View {
-        List(chatVM.chats.values.sorted { $0.timestamp < $1.timestamp }, id: \.self) { chat in
-            AIChatViewRow(chat: chat) {
-                chatVM.delete(message: chat)
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 0) {
+                ForEach(chatVM.chats.values.sorted { $0.timestamp < $1.timestamp }, id: \.self) { chat in
+                    AIChatViewRow(chat: chat) {
+                        chatVM.delete(message: chat)
+                    }
+                    .transition(.slide)
+                    .padding(.horizontal)
+                    .padding(.vertical, 6)
+                }
+                scrollToBottomDetector
             }
         }
-        .listStyle(.plain)
+        .scrollPosition($position)
         .tint(.accent)
+        .onChange(of: self.chatVM.chats) {
+            withAnimation {
+                if self.chatVM.hasScrolledOffBottom {
+                    Log.view.debug("Scrolling to bottom from \(position.point?.y ?? 0)")
+                    position.scrollTo(edge: .bottom)
+                }
+            }
+        }
+        .onChange(of: self.chatVM.isGenerating) {
+            withAnimation {
+                if self.chatVM.hasScrolledOffBottom {
+                    Log.view.debug("Scrolling to bottom from \(position.point?.y ?? 0)")
+                    position.scrollTo(edge: .bottom)
+                }
+            }
+        }
+        .onChange(of: self.chatVM.isGenerating) {
+            withAnimation {
+                if self.chatVM.hasScrolledOffBottom {
+                    Log.view.debug("Scrolling to bottom from \(position.point?.y ?? 0)")
+                    position.scrollTo(edge: .bottom)
+                }
+            }
+        }
     }
     
     @ViewBuilder
@@ -111,7 +144,20 @@ let _ = Self._printChanges()
         }
         .transition(.opacity)
         .tint(.accent)
-        .padding([.horizontal])
+        .padding(.horizontal)
+    }
+    
+    @ViewBuilder
+    private var scrollToBottomDetector: some View {
+        Color.clear
+            .frame(width: 0, height: 30, alignment: .bottom)
+            .onAppear {
+                chatVM.hasScrolledOffBottom = false
+            }
+            .onDisappear {
+                chatVM.hasScrolledOffBottom = true
+            }
+            .id(Int.max)
     }
 }
 

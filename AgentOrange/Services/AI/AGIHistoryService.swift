@@ -22,7 +22,7 @@ extension AGIHistoryServiceProtocol {
     func setHistory(messages: [ChatMessage]) {
         deleteHistoryList()
         let oldMessages = messages.compactMap { message -> GPTMessage? in
-            return GPTMessage(id: message.id.uuidString, role: message.role.rawValue, content: message.content)
+            return GPTMessage(id: message.id, role: message.role.rawValue, content: message.content)
         }
         historyList.append(contentsOf: oldMessages)
     }
@@ -44,7 +44,7 @@ extension AGIHistoryServiceProtocol {
         }
         if scopes.contains(.messages) {
             let oldMessages = messages.compactMap { message -> GPTMessage? in
-                return GPTMessage(id: message.id.uuidString, role: message.type.rawValue.hasPrefix("ai") ? GPTRole.assistant.rawValue : GPTRole.user.rawValue, content: message.content)
+                return GPTMessage(id: message.id, role: message.type.rawValue.hasPrefix("ai") ? GPTRole.assistant.rawValue : GPTRole.user.rawValue, content: message.content)
             }
             historyList.append(contentsOf: oldMessages)
         }
@@ -65,13 +65,13 @@ extension AGIHistoryServiceProtocol {
     }
     
     func addHistoryItem(message: ChatMessage) {
-        let mess = GPTMessage(id: message.id.uuidString, role: message.role.rawValue, content: message.content)
+        let mess = GPTMessage(id: message.id, role: message.role.rawValue, content: message.content)
         historyList.append(mess)
     }
     
     func removeHistoryItem(message: ChatMessage) {
         if let index = historyList.firstIndex(where: { mess in
-            mess.id == message.id.uuidString
+            mess.id == message.id
         }) {
             historyList.remove(at: index)
         }

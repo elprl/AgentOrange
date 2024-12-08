@@ -14,13 +14,19 @@ enum MessageType: String, Codable {
 }
 
 struct ChatMessage: Identifiable, Hashable {
-    let id = UUID()
-    let timestamp = Date.now
-    let role: GPTRole
+    var id = UUID().uuidString
+    var timestamp = Date.now
+    var role: GPTRole
     var type: MessageType = .message
     var content: String
     var tag: String? = nil
     var codeId: String? = nil
+}
+
+extension ChatMessage: SendableModelProtocol {
+    var persistentModel: CDChatMessage {
+        return CDChatMessage(messageId: id, timestamp: timestamp, role: role, type: type, content: content, tag: tag)
+    }
 }
 
 enum Scope: String {
