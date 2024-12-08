@@ -8,6 +8,7 @@
 import SwiftUI
 import Factory
 import Combine
+import SwiftData
 
 @Observable
 final class FileViewerViewModel {
@@ -16,8 +17,11 @@ final class FileViewerViewModel {
     var selectedId: String?
     @ObservationIgnored private var cancellable: AnyCancellable?
     @ObservationIgnored private var selectorCancellable: AnyCancellable?
-    
-    init() {
+    @ObservationIgnored private let modelContext: ModelContext?
+
+    /// pass nil for previews or unit testing
+    init(modelContext: ModelContext? = nil) {
+        self.modelContext = modelContext
         cancellable = codeService.codePublisher
             .dropFirst()
             .receive(on: RunLoop.main)

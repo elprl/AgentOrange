@@ -10,14 +10,33 @@ import SwiftData
 
 @main
 struct AgentOrangeApp: App {
-    @State private var codeVM: FileViewerViewModel = FileViewerViewModel()
-    @State private var aiVM: AIChatViewModel = AIChatViewModel()
+    var sharedModelContainer: ModelContainer = {
+        let schema = Schema([
+            CDChatMessage.self, CDMessageGroup.self, CDCodeSnippet.self
+        ])
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+
+        do {
+            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+        } catch {
+            fatalError("Could not create ModelContainer: \(error)")
+        }
+    }()
+    @State private var codeVM: FileViewerViewModel
+    @State private var aiVM: AIChatViewModel
+    
+    init() {
+        let modelContext = sharedModelContainer.mainContext
+        _codeVM = State(initialValue: FileViewerViewModel(modelContext: modelContext))
+        _aiVM = State(initialValue: AIChatViewModel(modelContext: modelContext))
+    }
     
     var body: some Scene {
         WindowGroup {
             TDSplitView()
                 .environment(codeVM)
                 .environment(aiVM)
+                .modelContainer(sharedModelContainer)
         }
     }
 }

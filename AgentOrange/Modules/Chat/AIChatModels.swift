@@ -21,11 +21,12 @@ struct ChatMessage: Identifiable, Hashable {
     var content: String
     var tag: String? = nil
     var codeId: String? = nil
+    var groupId: String? = nil
 }
 
 extension ChatMessage: SendableModelProtocol {
     var persistentModel: CDChatMessage {
-        return CDChatMessage(messageId: id, timestamp: timestamp, role: role, type: type, content: content, tag: tag)
+        return CDChatMessage(messageId: id, timestamp: timestamp, role: role, type: type, content: content, tag: tag, codeId: codeId, groupId: groupId)
     }
 }
 

@@ -7,6 +7,8 @@
 
 import SwiftUI
 import Factory
+import SwiftData
+import Combine
 
 @Observable
 @MainActor
@@ -16,7 +18,7 @@ final class AIChatViewModel {
     @Injected(\.cacheService) @ObservationIgnored private var cacheService
     @ObservationIgnored private var sessionIndex: Int = 0
     @ObservationIgnored private var cancellationTask: Task<Void, Never>?
-    @MainActor var chats: [String: ChatMessage] = [:]
+    @MainActor var chats: [ChatMessage] = []
     var isGenerating: Bool = false
     var question: String = ""
     var hasScrolledOffBottom: Bool = false
@@ -25,7 +27,23 @@ final class AIChatViewModel {
         ChatCommand(name: "//comments", prompt: "Add professional inline code comments while avoiding DocC documentation outside of functions.", shortDescription: "Adds code comments"),
         ChatCommand(name: "//docC", prompt: "Add professional DocC documentation to the code", shortDescription: "Adds code documentation"),
     ]
+    
+    private let chatService: ChatMessagesDataService
+    private var cancellable: AnyCancellable?
+    @ObservationIgnored private let modelContext: ModelContext?
 
+    /// pass nil for previews or unit testing
+    init(modelContext: ModelContext? = nil) {
+        self.modelContext = modelContext
+        self.chatService = ChatMessagesDataService(modelContext: modelContext)
+    }
+    
+    func loadMessages() {
+        Task { @MainActor in
+            self.chats = await chatService.fetchData()
+        }
+    }
+    
     func streamResponse() {
         Task { @MainActor in
             let questionCopy = String(self.question.trimmingCharacters(in: .whitespacesAndNewlines))
@@ -112,13 +130,14 @@ final class AIChatViewModel {
     @MainActor
     @discardableResult private func addChatMessage(role: GPTRole = .user, content: String, type: MessageType = .message, tag: String? = nil) -> ChatMessage {
         let chatMessage = ChatMessage(role: role, type: type, content: content, tag: tag)
-        chats[chatMessage.id] = chatMessage
+        chats.safeReplace(chatMessage)
+        persistChat(message: chatMessage)
         return chatMessage
     }
     
     @MainActor
     private func updateMessage(message: ChatMessage, content: String, tag: String? = nil, codeId: String? = nil) {
-        guard var chat = chats[message.id] else {
+        guard var chat = chats.first(where: { $0.id == message.id } ) else {
             return
         }
         chat.content = content
@@ -128,9 +147,16 @@ final class AIChatViewModel {
         if let codeId {
             chat.codeId = codeId
         }
-        chats[message.id] = chat
+        chats.safeReplace(chat) // replace the chat message with the updated one
+        persistChat(message: chat)
     }
-
+    
+    func persistChat(message: ChatMessage) {
+        Task {
+            await chatService.add(message: message)
+        }
+    }
+    
     func start() {
         isGenerating = true
     }
@@ -153,7 +179,7 @@ final class AIChatViewModel {
             history.append(ChatMessage(role: .system, content: systemPrompt))
         }
         if defaults.scopeHistory {
-            history.append(contentsOf: chats.values.sorted(by: { $0.timestamp < $1.timestamp }).map { ChatMessage(role: $0.role, content: $0.content) })
+            history.append(contentsOf: chats)
         }
         if defaults.scopeCode {
             if let code = codeService.currentSelectedCode {
@@ -181,13 +207,19 @@ final class AIChatViewModel {
     
     @MainActor
     func deleteAll() {
+        Task {
+            await chatService.delete(messages: chats)
+        }
         chats.removeAll()
     }
     
     @MainActor
     func delete(message: ChatMessage) {
-        if let _ = chats[message.id] {
-            chats[message.id] = nil
+        Task {
+            await chatService.delete(message: message)
+        }
+        if let index = chats.firstIndex(where: { $0.id == message.id }) {
+            chats.remove(at: index)
         }
     }
 }
@@ -197,12 +229,22 @@ final class AIChatViewModel {
 extension AIChatViewModel {
     @MainActor static func mock() -> AIChatViewModel {
         let vm = AIChatViewModel()
-        vm.chats[UUID().uuidString] = ChatMessage(role: .user, content: "Give me an attribute string from plain string")
-        vm.chats[UUID().uuidString] = ChatMessage(role: .assistant, content: "return try AttributedString(markdown: response, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))", tag: "CodeGen1")
-        vm.chats[UUID().uuidString] = ChatMessage(role: .user, content: "blah blah")
-        vm.chats[UUID().uuidString] = ChatMessage(role: .assistant, content: "return try AttributedString(markdown: response, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))", tag: "CodeGen1")
+        vm.chats = [
+            ChatMessage(role: .user, content: "Give me an attribute string from plain string"),
+            ChatMessage(role: .assistant, content: "return try AttributedString(markdown: response, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))", tag: "CodeGen1"),
+            ChatMessage(role: .user, content: "blah blah"),
+            ChatMessage(role: .assistant, content: "return try AttributedString(markdown: response, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))", tag: "CodeGen1")
+        ]
         return vm
     }
 }
 
 #endif
+
+extension Array where Iterator.Element == ChatMessage {
+    mutating func safeReplace(_ newElement: Element)  {
+        if let index = self.firstIndex(where: { $0.id == newElement.id }) {
+            self[index] = newElement
+        }
+    }
+}

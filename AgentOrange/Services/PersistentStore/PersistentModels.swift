@@ -15,14 +15,10 @@ final class CDMessageGroup {
     var timestamp: Date
     var title: String
     
-    @Relationship(deleteRule: .cascade, inverse: \CDChatMessage.group)
-    var messages: [CDChatMessage]
-    
-    init(id: String = UUID().uuidString, timestamp: Date = Date.now, title: String, messages: [CDChatMessage] = []) {
+    init(id: String = UUID().uuidString, timestamp: Date = Date.now, title: String) {
         self.groupId = id
         self.timestamp = timestamp
         self.title = title
-        self.messages = messages
     }
 }
 
@@ -40,23 +36,24 @@ final class CDChatMessage {
     var type: MessageType
     var content: String
     var tag: String?
-    var code: CDCodeSnippet?
-    var group: CDMessageGroup?
+    var codeId: String?
+    var groupId: String?
     
-    init(messageId: String = UUID().uuidString, timestamp: Date = Date.now, role: GPTRole = .user, type: MessageType = .message, content: String, tag: String? = nil, code: CDCodeSnippet? = nil) {
+    init(messageId: String = UUID().uuidString, timestamp: Date = Date.now, role: GPTRole = .user, type: MessageType = .message, content: String, tag: String? = nil, codeId: String? = nil, groupId: String? = nil) {
         self.messageId = messageId
         self.timestamp = timestamp
         self.role = role
         self.type = type
         self.content = content
         self.tag = tag
-        self.code = code
+        self.codeId = codeId
+        self.groupId = groupId
     }
 }
 
 extension CDChatMessage: PersistentModelProtocol {
     var sendableModel: ChatMessage {
-        return ChatMessage(id: messageId, timestamp: timestamp, role: role, type: type, content: content, tag: tag, codeId: code?.codeId)
+        return ChatMessage(id: messageId, timestamp: timestamp, role: role, type: type, content: content, tag: tag, codeId: codeId, groupId: groupId)
     }
 }
 
@@ -66,13 +63,14 @@ final class CDCodeSnippet {
     var timestamp: Date
     var title: String
     var code: String
-    var message: CDChatMessage?
+    var messageId: String?
     
-    init(codeId: String = UUID().uuidString, timestamp: Date = Date.now, title: String, code: String) {
+    init(codeId: String = UUID().uuidString, timestamp: Date = Date.now, title: String, code: String, messageId: String? = nil) {
         self.codeId = codeId
         self.timestamp = timestamp
         self.title = title
         self.code = code
+        self.messageId = messageId
     }
 }
 
@@ -106,7 +104,7 @@ class PreviewController {
             let container = try ModelContainer(for: CDChatMessage.self, configurations: config)
             
             for i in 1..<100 {
-                let group = CDChatMessage(messageId: "\(i)", content: "Message \(i)")
+                let group = CDChatMessage(messageId: "\(i)", content: "Message \(i)", groupId: "1")
                 container.mainContext.insert(group)
             }
             try? container.mainContext.save()

@@ -45,13 +45,16 @@ let _ = Self._printChanges()
         .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbarBackground(.accent, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
+        .task {
+            chatVM.loadMessages()
+        }
     }
     
     @ViewBuilder
     private var messages: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
-                ForEach(chatVM.chats.values.sorted { $0.timestamp < $1.timestamp }, id: \.self) { chat in
+                ForEach(chatVM.chats, id: \.self) { chat in
                     AIChatViewRow(chat: chat) {
                         chatVM.delete(message: chat)
                     }

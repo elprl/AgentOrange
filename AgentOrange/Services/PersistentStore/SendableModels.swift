@@ -29,12 +29,14 @@ struct CodeSnippetSendable {
     let timestamp: Date
     let title: String
     let code: String
+    let messageId: String?
     
-    init(codeId: String = UUID().uuidString, timestamp: Date = Date.now, title: String, code: String) {
+    init(codeId: String = UUID().uuidString, timestamp: Date = Date.now, title: String, code: String, messageId: String? = nil) {
         self.codeId = codeId
         self.timestamp = timestamp
         self.title = title
         self.code = code
+        self.messageId = messageId
     }
 }
 
