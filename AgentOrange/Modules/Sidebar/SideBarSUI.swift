@@ -7,16 +7,18 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct SideBarSUI: View {
-    @Binding var selection: String?
-
+    @Environment(AIChatViewModel.self) private var chatVM: AIChatViewModel
+    @Query(sort: \CDMessageGroup.timestamp, order: .reverse) private var groups: [CDMessageGroup]
 
     var body: some View {
 #if DEBUG
         let _ = Self._printChanges()
 #endif
-        List(selection: $selection) {
+        @Bindable var chatVM = chatVM
+        List(selection: $chatVM.selectedGroup) {
             header
             dashboard
         }
@@ -31,7 +33,7 @@ struct SideBarSUI: View {
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Button(action: {
-//                    self.showSheet = true
+                    chatVM.addGroup()
                 }, label: {
                     Image(systemName: "plus.bubble")
                         .foregroundColor(.white)
@@ -114,15 +116,36 @@ struct SideBarSUI: View {
     
     @ViewBuilder
     private var dashboard: some View {
-        Section(header: Text("DASHBOARD").font(.title3).foregroundColor(.accent)) {
-            NavigationLink(value: "code") {
-                Label {
-                    Text("New Chat")
-                        .font(.headline)
-                } icon: {
-                    Image(systemName: "text.bubble")
+        @Bindable var chatVM = chatVM
+
+        Section(header: Text("Recent").font(.title3).foregroundColor(.accent)) {
+            ForEach(groups, id: \.groupId) { group in
+                NavigationLink(value: group.sendableModel) {
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text(group.title)
+                                .font(.headline)
+//                                .foregroundStyle(group.groupId == chatVM.selectedGroupId ? .accent : .primary)
+                            Text(group.timestamp.formatted(date: .abbreviated, time: .standard))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Menu {
+                            Button(action: {
+                                chatVM.delete(group: group)
+                            }, label: {
+                                Label("Delete", systemImage: "trash")
+                            })
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                                .foregroundStyle(.white)
+                        }
+                        .menuOrder(.fixed)
+                        .highPriorityGesture(TapGesture())
+                    }
+                    .tint(.accent)
                 }
-                .tint(.accent)
             }
         }
     }
@@ -131,7 +154,11 @@ struct SideBarSUI: View {
 #if DEBUG
 
 #Preview {
-    SideBarSUI(selection: .constant("code"))
+    NavigationStack {
+        SideBarSUI()
+            .environment(AIChatViewModel.mock())
+            .modelContext(PreviewController.messageGroupPreviewContainer.mainContext)
+    }
 }
 
 #endif

@@ -24,6 +24,12 @@ extension MessageGroupSendable: SendableModelProtocol {
     }
 }
 
+extension MessageGroupSendable: Identifiable, Hashable {
+    var id: String {
+        return groupId
+    }
+}
+
 struct CodeSnippetSendable {
     let codeId: String
     let timestamp: Date

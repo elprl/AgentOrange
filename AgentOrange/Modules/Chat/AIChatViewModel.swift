@@ -27,20 +27,32 @@ final class AIChatViewModel {
         ChatCommand(name: "//comments", prompt: "Add professional inline code comments while avoiding DocC documentation outside of functions.", shortDescription: "Adds code comments"),
         ChatCommand(name: "//docC", prompt: "Add professional DocC documentation to the code", shortDescription: "Adds code documentation"),
     ]
-    
-    private let chatService: ChatMessagesDataService
+    private let chatService: PersistentDataManager
     private var cancellable: AnyCancellable?
     @ObservationIgnored private let modelContext: ModelContext?
+    var selectedGroup: MessageGroupSendable? {
+        didSet {
+            loadMessages()
+        }
+    }
+    var selectedGroupId: String? {
+        return selectedGroup?.groupId
+    }
+    var navTitle: String? {
+        return selectedGroup?.title
+    }
 
     /// pass nil for previews or unit testing
     init(modelContext: ModelContext? = nil) {
         self.modelContext = modelContext
-        self.chatService = ChatMessagesDataService(modelContext: modelContext)
+        self.chatService = PersistentDataManager(modelContext: modelContext)
     }
     
     func loadMessages() {
         Task { @MainActor in
-            self.chats = await chatService.fetchData()
+            if let selectedGroupId = selectedGroupId {
+                self.chats = await chatService.fetchData(for: selectedGroupId)
+            }
         }
     }
     
@@ -129,8 +141,8 @@ final class AIChatViewModel {
     
     @MainActor
     @discardableResult private func addChatMessage(role: GPTRole = .user, content: String, type: MessageType = .message, tag: String? = nil) -> ChatMessage {
-        let chatMessage = ChatMessage(role: role, type: type, content: content, tag: tag)
-        chats.safeReplace(chatMessage)
+        let chatMessage = ChatMessage(role: role, type: type, content: content, tag: tag, groupId: selectedGroupId)
+        chats.append(chatMessage)
         persistChat(message: chatMessage)
         return chatMessage
     }
@@ -220,6 +232,26 @@ final class AIChatViewModel {
         }
         if let index = chats.firstIndex(where: { $0.id == message.id }) {
             chats.remove(at: index)
+        }
+    }
+    
+    @MainActor
+    func delete(group: CDMessageGroup) {
+        let groupSendable = group.sendableModel
+        Task {
+            await chatService.delete(group: groupSendable)
+        }
+        if groupSendable.groupId == selectedGroupId {
+            addGroup()
+        }
+    }
+    
+    @MainActor
+    func addGroup() {
+        let groupSendable = MessageGroupSendable(title: "Chat #\(UUID().uuidString.prefix(5))")
+        selectedGroup = groupSendable
+        Task {
+            await chatService.add(group: groupSendable)
         }
     }
 }

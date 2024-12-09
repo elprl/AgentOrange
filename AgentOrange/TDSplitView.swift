@@ -11,7 +11,7 @@ struct TDSplitView: View {
     var body: some View {
         NavigationSplitView {
             /* Column 1 */
-            SideBarSUI(selection: .constant("code"))
+            SideBarSUI()
                 .navigationSplitViewColumnWidth(240)
         } content: {
             /* Column 2 */

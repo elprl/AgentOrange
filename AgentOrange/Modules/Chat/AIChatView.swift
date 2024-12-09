@@ -40,7 +40,7 @@ let _ = Self._printChanges()
                 .highPriorityGesture(TapGesture())                
             }
         }
-        .navigationBarTitle("AI Chat")
+        .navigationBarTitle(chatVM.selectedGroup?.title ?? "AI Chat")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbarBackground(.accent, for: .navigationBar)
