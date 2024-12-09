@@ -16,9 +16,10 @@ final class AIChatViewModel {
     @Injected(\.agiService) @ObservationIgnored private var agiService
     @Injected(\.codeService) @ObservationIgnored private var codeService
     @Injected(\.cacheService) @ObservationIgnored private var cacheService
+    /* @Injected(\.chatService) */ @ObservationIgnored private var chatService: PersistentGroupDataManagerProtocol & PersistentChatDataManagerProtocol
     @ObservationIgnored private var sessionIndex: Int = 0
     @ObservationIgnored private var cancellationTask: Task<Void, Never>?
-    @MainActor var chats: [ChatMessage] = []
+    var chats: [ChatMessage] = []
     var isGenerating: Bool = false
     var question: String = ""
     var hasScrolledOffBottom: Bool = false
@@ -27,9 +28,8 @@ final class AIChatViewModel {
         ChatCommand(name: "//comments", prompt: "Add professional inline code comments while avoiding DocC documentation outside of functions.", shortDescription: "Adds code comments"),
         ChatCommand(name: "//docC", prompt: "Add professional DocC documentation to the code", shortDescription: "Adds code documentation"),
     ]
-    private let chatService: PersistentDataManager
+//    private let chatService: PersistentDataManager
     private var cancellable: AnyCancellable?
-    @ObservationIgnored private let modelContext: ModelContext?
     var selectedGroup: MessageGroupSendable? {
         didSet {
             loadMessages()
@@ -43,9 +43,8 @@ final class AIChatViewModel {
     }
 
     /// pass nil for previews or unit testing
-    init(modelContext: ModelContext? = nil) {
-        self.modelContext = modelContext
-        self.chatService = PersistentDataManager(modelContext: modelContext)
+    init(modelContext: ModelContext) {
+        self.chatService = Container.shared.chatService(modelContext.container) // Injected PersistentDataManager(container: modelContext.container)
     }
     
     func loadMessages() {
@@ -260,7 +259,7 @@ final class AIChatViewModel {
 
 extension AIChatViewModel {
     @MainActor static func mock() -> AIChatViewModel {
-        let vm = AIChatViewModel()
+        let vm = AIChatViewModel(modelContext: PreviewController.chatsPreviewContainer.mainContext)
         vm.chats = [
             ChatMessage(role: .user, content: "Give me an attribute string from plain string"),
             ChatMessage(role: .assistant, content: "return try AttributedString(markdown: response, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))", tag: "CodeGen1"),

@@ -8,31 +8,41 @@
 import SwiftData
 import SwiftUI
 
-final class PersistentDataManager {
-    private let modelContext: ModelContext?
+protocol PersistentGroupDataManagerProtocol: Actor {
+    func add(group: MessageGroupSendable)
+    func delete(group: MessageGroupSendable)
+}
+
+protocol PersistentChatDataManagerProtocol: Actor {
+    func add(message: ChatMessage)
+    func delete(messages: [ChatMessage])
+    func delete(message: ChatMessage)
+    func fetchData(for groupId: String) async -> [ChatMessage]
+}
+
+actor PersistentDataManager {
+    private let container: ModelContainer
     
     /// pass nil for previews or unit testing
-    init(modelContext: ModelContext? = nil) {
-        self.modelContext = modelContext
+    init(container: ModelContainer) {
+        self.container = container
     }
 }
 
 // MARK: - ChatMessage
-extension PersistentDataManager {
+extension PersistentDataManager: PersistentChatDataManagerProtocol {
     
-    @MainActor
-    func add(message: ChatMessage) async {
-        guard let container = modelContext?.container else { return }
-        Task.detached(priority: .userInitiated) {
+    func add(message: ChatMessage) {
+        Task.detached(priority: .userInitiated) { [weak self] in
+            guard let container = self?.container else { return }
             let dataService = DataService<CDChatMessage, ChatMessage>(modelContainer: container)
             await dataService.insert(data: message)
         }
     }
     
-    @MainActor
-    func delete(messages: [ChatMessage]) async {
-        guard let container = modelContext?.container else { return }
-        Task.detached(priority: .userInitiated) {
+    func delete(messages: [ChatMessage]) {
+        Task.detached(priority: .userInitiated) { [weak self] in
+            guard let container = self?.container else { return }
             let dataService = DataService<CDChatMessage, ChatMessage>(modelContainer: container)
             do {
                 for message in messages {
@@ -45,10 +55,9 @@ extension PersistentDataManager {
         }
     }
     
-    @MainActor
-    func delete(message: ChatMessage) async {
-        guard let container = modelContext?.container else { return }
-        Task.detached(priority: .userInitiated) {
+    func delete(message: ChatMessage) {
+        Task.detached(priority: .userInitiated) { [weak self] in
+            guard let container = self?.container else { return }
             let dataService = DataService<CDChatMessage, ChatMessage>(modelContainer: container)
             do {
                 let id: String = message.id
@@ -59,10 +68,9 @@ extension PersistentDataManager {
         }
     }
     
-    @MainActor
     func fetchData(for groupId: String) async -> [ChatMessage] {
-        guard let container = modelContext?.container else { return [] }
-        let vmItems: [ChatMessage] = await Task.detached(priority: .userInitiated) {
+        let vmItems: [ChatMessage] = await Task.detached(priority: .userInitiated) { [weak self] in
+            guard let container = self?.container else { return [] }
             let dataService = DataService<CDChatMessage, ChatMessage>(modelContainer: container)
             if let items: [ChatMessage] = try? await dataService.fetchDataVMs(predicate: #Predicate<CDChatMessage> { $0.groupId == groupId }, sortBy: [SortDescriptor(\.timestamp)]) {
                 return items
@@ -74,20 +82,18 @@ extension PersistentDataManager {
 }
 
 // MARK: - Message Groups
-extension PersistentDataManager {
-    @MainActor
-    func add(group: MessageGroupSendable) async {
-        guard let container = modelContext?.container else { return }
-        Task.detached(priority: .userInitiated) {
+extension PersistentDataManager: PersistentGroupDataManagerProtocol {
+    func add(group: MessageGroupSendable) {
+        Task.detached(priority: .userInitiated) { [weak self] in
+            guard let container = self?.container else { return }
             let dataService = DataService<CDMessageGroup, MessageGroupSendable>(modelContainer: container)
             await dataService.insert(data: group)
         }
     }
     
-    @MainActor
-    func delete(group: MessageGroupSendable) async {
-        guard let container = modelContext?.container else { return }
-        Task.detached(priority: .userInitiated) {
+    func delete(group: MessageGroupSendable) {
+        Task.detached(priority: .userInitiated) { [weak self] in
+            guard let container = self?.container else { return }
             let dataService = DataService<CDMessageGroup, MessageGroupSendable>(modelContainer: container)
             do {
                 let id: String = group.groupId
