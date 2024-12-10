@@ -41,6 +41,11 @@ struct AIChatViewRow: View {
                 } label: {
                     Label("Delete", systemImage: "trash")
                 }
+                Button {
+                    UIPasteboard.general.string = chat.content
+                } label: {
+                    Label("Copy", systemImage: "document.on.document.fill")
+                }
             } label: {
                 Image(systemName: "ellipsis.circle")
                     .foregroundStyle(chat.role == .assistant ? .accent : .white)

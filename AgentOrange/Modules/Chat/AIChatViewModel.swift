@@ -26,6 +26,7 @@ final class AIChatViewModel {
         ChatCommand(name: "//refactor", prompt: "Refactor the code", shortDescription: "Refactors the code"),
         ChatCommand(name: "//comments", prompt: "Add professional inline code comments while avoiding DocC documentation outside of functions.", shortDescription: "Adds code comments"),
         ChatCommand(name: "//docC", prompt: "Add professional DocC documentation to the code", shortDescription: "Adds code documentation"),
+        ChatCommand(name: "//unittests", prompt: "Create a suite of unit tests for this code", shortDescription: "Adds unit tests"),
     ]
 //    private let chatService: PersistentDataManager
     private var cancellable: AnyCancellable?

@@ -87,9 +87,8 @@ final class FileViewerViewModel {
     @MainActor
     func didSelectCode(id: String?) {
         Task { [weak self] in
-            guard let self, let groupId = self.selectedGroupId else { return }
-            let snippets = await self.dataService.fetchData(for: groupId)
-            if let snippet = snippets.first(where: { $0.codeId == id }) {
+            guard let self, let id else { return }
+            if let snippet = await self.dataService.fetchSnippet(for: id) {
                 self.selectTab(snippet: snippet)
                 if snippet.isVisible == false {
                     unhide(snippet: snippet)
@@ -104,7 +103,6 @@ final class FileViewerViewModel {
 extension FileViewerViewModel {
     @MainActor static func mock() -> FileViewerViewModel {
         let vm = FileViewerViewModel(modelContext: PreviewController.codeSnippetPreviewContainer.mainContext)
-
         return vm
     }
 }

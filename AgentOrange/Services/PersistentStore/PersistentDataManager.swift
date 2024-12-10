@@ -24,6 +24,7 @@ protocol PersistentCodeDataManagerProtocol: Actor {
     func add(code: CodeSnippetSendable)
     func delete(code: CodeSnippetSendable)
     func fetchData(for groupId: String) async -> [CodeSnippetSendable]
+    func fetchSnippet(for codeId: String) async -> CodeSnippetSendable?
 }
 
 protocol PersistentDataManagerProtocol: PersistentGroupDataManagerProtocol, PersistentChatDataManagerProtocol, PersistentCodeDataManagerProtocol {}
@@ -146,5 +147,17 @@ extension PersistentDataManager: PersistentCodeDataManagerProtocol {
             return []
         }.value
         return vmItems
+    }
+    
+    func fetchSnippet(for codeId: String) async -> CodeSnippetSendable? {
+        let vmItem: CodeSnippetSendable? = await Task.detached(priority: .userInitiated) { [weak self] in
+            guard let container = self?.container else { return nil }
+            let dataService = DataService<CDCodeSnippet, CodeSnippetSendable>(modelContainer: container)
+            if let items: [CodeSnippetSendable] = try? await dataService.fetchDataVMs(predicate: #Predicate<CDCodeSnippet> { $0.codeId == codeId }, sortBy: [SortDescriptor(\.timestamp)]) {
+                return items.first
+            }
+            return nil
+        }.value
+        return vmItem
     }
 }
