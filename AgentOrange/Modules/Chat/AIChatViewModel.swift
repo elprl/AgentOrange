@@ -15,7 +15,6 @@ import Combine
 final class AIChatViewModel {
     @Injected(\.agiService) @ObservationIgnored private var agiService
     @Injected(\.parserService) @ObservationIgnored private var parserService
-    @Injected(\.cacheService) @ObservationIgnored private var cacheService
     /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: PersistentDataManagerProtocol
     @ObservationIgnored private var sessionIndex: Int = 0
     @ObservationIgnored private var cancellationTask: Task<Void, Never>?

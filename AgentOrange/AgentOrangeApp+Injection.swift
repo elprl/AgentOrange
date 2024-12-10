@@ -14,7 +14,6 @@ import SwiftData
 extension Container {
     var parserService: Factory<CodeParserServiceProtocol> { self { CodeService() }.shared }
     var agiService: Factory<AGIStreamingServiceProtocol & AGIHistoryServiceProtocol> { self { LMStudioAPIService() }.shared }
-    var cacheService: Factory<FileCachingServiceProtocol> { self { CachingService() } }
     var dataService: ParameterFactory<ModelContainer, PersistentDataManagerProtocol> {
         self { PersistentDataManager(container: $0) }.shared
     }
