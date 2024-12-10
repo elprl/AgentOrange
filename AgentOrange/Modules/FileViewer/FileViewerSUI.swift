@@ -17,7 +17,7 @@ struct FileViewerSUI: View {
     
     init(groupId: String? = nil) {
         if let groupId {
-            _snippets = Query(filter: #Predicate<CDCodeSnippet> { $0.groupId == groupId && $0.isVisible == true }, sort: \CDCodeSnippet.timestamp, order: .reverse)
+            _snippets = Query(filter: #Predicate<CDCodeSnippet> { $0.groupId == groupId && $0.isVisible == true }, sort: \CDCodeSnippet.timestamp, order: .forward)
         }
     }
 
@@ -111,38 +111,38 @@ struct FileViewerSUI: View {
         .toolbarBackground(.accent, for: .navigationBar, .bottomBar)
         .toolbarBackground(.visible, for: .navigationBar, .bottomBar)
         .task {
-            if let snippet = snippets.first {
-                viewModel.selectTab(snippet: snippet.sendableModel)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                if let snippet = snippets.first {
+                    viewModel.selectTab(snippet: snippet.sendableModel)
+                }
             }
         }
     }
     
     @ViewBuilder
     private var pasteBtn: some View {
-        if viewModel.currentRows.isEmpty {
-            VStack {
-                Button(action: {
-                    let pasteboard = UIPasteboard.general
-                    if let code = pasteboard.string {
-                        viewModel.addCodeSnippet(code: code, tag: "PastedCode")
-                    }
-                }, label: {
-                    Label("Paste Code", systemImage: "document.on.clipboard.fill")
-                        .foregroundStyle(.white)
-                        .frame(width: 200, height: 30)
-               })
-                .buttonStyle(.borderedProminent)
-                Button(action: {
-                    isFilePickerPresented = true
-                }, label: {
-                    Label("Browse Files", systemImage: "folder.fill")
-                        .foregroundStyle(.white)
-                        .frame(width: 200, height: 30)
-                })
-                .buttonStyle(.borderedProminent)
-            }
-            .tint(.accent)
+        VStack {
+            Button(action: {
+                let pasteboard = UIPasteboard.general
+                if let code = pasteboard.string {
+                    viewModel.addCodeSnippet(code: code, tag: "PastedCode")
+                }
+            }, label: {
+                Label("Paste Code", systemImage: "document.on.clipboard.fill")
+                    .foregroundStyle(.white)
+                    .frame(width: 200, height: 30)
+            })
+            .buttonStyle(.borderedProminent)
+            Button(action: {
+                isFilePickerPresented = true
+            }, label: {
+                Label("Browse Files", systemImage: "folder.fill")
+                    .foregroundStyle(.white)
+                    .frame(width: 200, height: 30)
+            })
+            .buttonStyle(.borderedProminent)
         }
+        .tint(.accent)
     }
     
     @ViewBuilder
@@ -172,14 +172,23 @@ struct FileViewerSUI: View {
                                     .padding(8)
                             }
                             Button(action: {
-                                viewModel.hide(snippet: snippet)
+                                if let selectedSnippet = viewModel.selectedSnippet, selectedSnippet.id == snippet.codeId {
+                                    if let index = snippets.firstIndex(where: { $0.codeId == selectedSnippet.id }) {
+                                        if index > 0 {
+                                            viewModel.selectTab(snippet: snippets[index - 1].sendableModel)
+                                        } else if snippets.count > 1 {
+                                            viewModel.selectTab(snippet: snippets[1].sendableModel)
+                                        }
+                                    }
+                                }
+                                viewModel.hide(snippet: snippet.sendableModel)
                             }, label: {
                                 Image(systemName: "xmark")
                                     .foregroundStyle(.white)
                             })
                             .padding(.trailing, 8)
                         }
-                        .background(snippet.codeId == (viewModel.selectedSnippet?.id ?? "1") ? Color(uiColor: UIColor.systemBackground) : Color.gray.opacity(0.7))
+                        .background(snippet.codeId == (viewModel.selectedSnippet?.codeId ?? "1") ? Color(uiColor: UIColor.systemBackground) : Color.gray.opacity(0.7))
                         .clipShape(.rect(topLeadingRadius: 8, topTrailingRadius: 8))
                         .padding(.horizontal, 4)
                     })

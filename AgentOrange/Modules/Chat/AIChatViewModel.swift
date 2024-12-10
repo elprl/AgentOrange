@@ -91,7 +91,6 @@ final class AIChatViewModel {
                 DispatchQueue.main.async { [weak self] in
                     if UserDefaults.standard.scopeGenCode {
                         let codeSnippet = CodeSnippetSendable(title: tag, code: finalOutput, subTitle: "Code Gen", groupId: self?.selectedGroupId ?? "1")
-                        self?.parserService.cacheCode(code: finalOutput)
                         self?.updateMessage(message: responseMessage, content: finalOutput, tag: tag, codeId: codeSnippet.id)
                         Task {
                             await self?.dataService.add(code: codeSnippet)

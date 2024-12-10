@@ -67,6 +67,9 @@ struct SideBarSUI: View {
                 fileVM.selectedGroupId = group.groupId
             }
         }
+        .onChange(of: chatVM.selectedGroup) {
+            fileVM.selectedGroupId = chatVM.selectedGroup?.id
+        }
     }
     
     @ViewBuilder
@@ -78,7 +81,7 @@ struct SideBarSUI: View {
             Image("biohazard")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 40, height: 40)
+                .frame(width: 48, height: 48)
                 .foregroundColor(.black)
             Circle()
                 .stroke(.black, lineWidth: 2)

@@ -29,7 +29,6 @@ final class FileViewerViewModel {
     
     @MainActor
     func addCodeSnippet(code: String, tag: String) {
-//        codeService.addCode(code: code, tag: tag)
         Task { @MainActor [weak self] in
             guard let groupId = self?.selectedGroupId else { return }
             let snippet = CodeSnippetSendable(title: tag, code: code, subTitle: "Original", groupId: groupId)
@@ -55,12 +54,19 @@ final class FileViewerViewModel {
         selectedSnippet = snippet
     }
     
-    var hasCode: Bool {
-        return selectedSnippet != nil
-    }
-    
-    func hide(snippet: CDCodeSnippet) {
-        
+    @MainActor
+    func hide(snippet: CodeSnippetSendable) {
+        Task { [weak self] in
+            let newSnippet = CodeSnippetSendable(codeId: snippet.codeId,
+                                                 timestamp: snippet.timestamp,
+                                                 title: snippet.title,
+                                                 code: snippet.code,
+                                                 messageId: snippet.messageId,
+                                                 subTitle: snippet.subTitle,
+                                                 isVisible: false,
+                                                 groupId: snippet.groupId)
+            await self?.dataService.add(code: newSnippet)
+        }
     }
     
     func didSelectCode(id: String?) {
