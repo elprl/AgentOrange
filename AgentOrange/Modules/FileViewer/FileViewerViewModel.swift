@@ -12,82 +12,68 @@ import SwiftData
 
 @Observable
 final class FileViewerViewModel {
-    @Injected(\.codeService) @ObservationIgnored private var codeService
-    var versions: [CodeVersion] = []
-    var selectedId: String?
+    @Injected(\.parserService) @ObservationIgnored private var parserService
+    /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: PersistentCodeDataManagerProtocol
+    var selectedGroupId: String?
+    var selectedRows: [AttributedString] = []
+    var selectedSnippet: CodeSnippetSendable?
     @ObservationIgnored private var cancellable: AnyCancellable?
     @ObservationIgnored private var selectorCancellable: AnyCancellable?
-    @ObservationIgnored private let modelContext: ModelContext?
+    @ObservationIgnored private let modelContext: ModelContext
 
     /// pass nil for previews or unit testing
-    init(modelContext: ModelContext? = nil) {
+    init(modelContext: ModelContext) {
         self.modelContext = modelContext
-        cancellable = codeService.codePublisher
-            .dropFirst()
-            .receive(on: RunLoop.main)
-            .sink(receiveCompletion: { _ in
-                print("codePublisher receiveCompletion")
-            }, receiveValue: { [weak self] code in
-                print("codePublisher receiveValue \(code.count)")
-                guard let self = self else { return }
-                self.selectedId = code.last?.id
-                self.versions = code
-            })
-        
-        selectorCancellable = codeService.selectorPublisher
-            .dropFirst()
-            .removeDuplicates()
-            .receive(on: RunLoop.main)
-            .sink(receiveCompletion: { _ in
-                print("selectorPublisher receiveCompletion")
-            }, receiveValue: { [weak self] selectedId in
-                print("selectorPublisher receiveValue \(selectedId ?? "")")
-                guard let self = self else { return }
-                self.selectedId = selectedId
-            })
+        self.dataService = Container.shared.dataService(modelContext.container) // Injected PersistentDataManager(container: modelContext.container)
     }
     
-    func addCode(code: String, tag: String) {
-        codeService.addCode(code: code, tag: tag)
+    @MainActor
+    func addCodeSnippet(code: String, tag: String) {
+//        codeService.addCode(code: code, tag: tag)
+        Task { @MainActor [weak self] in
+            guard let groupId = self?.selectedGroupId else { return }
+            let snippet = CodeSnippetSendable(title: tag, code: code, subTitle: "Original", groupId: groupId)
+            await self?.dataService.add(code: snippet)
+            self?.selectTab(snippet: snippet)
+        }
     }
     
     var currentRows: [AttributedString] {
-        return selectedVersion?.rows ?? []
-    }
-    
-    func copyToClipboard() {
-        UIPasteboard.general.string = selectedVersion?.code
+        return parserService.paintedRows
     }
     
     var currentTimestamp: String? {
-        return selectedVersion?.timestamp.formatted() ?? ""
+        return selectedSnippet?.timestamp.formatted() ?? ""
     }
     
-    func selectTab(id: String) {
-        codeService.selectedId = id
+    func copyToClipboard() {
+        UIPasteboard.general.string = parserService.cachedCode
+    }
+    
+    func selectTab(snippet: CodeSnippetSendable) {
+        parserService.cacheCode(code: snippet.code)
+        selectedSnippet = snippet
     }
     
     var hasCode: Bool {
-        return selectedId != nil
+        return selectedSnippet != nil
     }
     
-    var selectedVersion: CodeVersion? {
-        guard let selectedId else { return nil }
-        return version(from: selectedId)
+    func hide(snippet: CDCodeSnippet) {
+        
     }
     
-    func version(from id: String) -> CodeVersion? {
-        return versions.first(where: { $0.id == id })
+    func didSelectCode(id: String?) {
+
     }
 }
 
 #if DEBUG
 
 extension FileViewerViewModel {
-    static func mock() -> FileViewerViewModel {
-        let vm = FileViewerViewModel()
-        vm.versions = [CodeVersion.mock(), CodeVersion.mock()]
-        vm.selectedId = vm.versions.first?.id
+    @MainActor static func mock() -> FileViewerViewModel {
+        let vm = FileViewerViewModel(modelContext: PreviewController.codeSnippetPreviewContainer.mainContext)
+
         return vm
     }
 }

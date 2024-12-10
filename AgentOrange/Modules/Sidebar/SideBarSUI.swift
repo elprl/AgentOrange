@@ -11,6 +11,7 @@ import SwiftData
 
 struct SideBarSUI: View {
     @Environment(AIChatViewModel.self) private var chatVM: AIChatViewModel
+    @Environment(FileViewerViewModel.self) private var fileVM: FileViewerViewModel
     @Query(sort: \CDMessageGroup.timestamp, order: .reverse) private var groups: [CDMessageGroup]
 
     var body: some View {
@@ -59,6 +60,13 @@ struct SideBarSUI: View {
         .toolbarBackground(.accent, for: .navigationBar)
         .toolbarBackground(.accent, for: .bottomBar)
         .toolbarBackground(.visible, for: .navigationBar, .bottomBar)
+        .task {
+            if let group = groups.first {
+                chatVM.selectedGroup = group.sendableModel
+                chatVM.selectedGroupId = group.groupId
+                fileVM.selectedGroupId = group.groupId
+            }
+        }
     }
     
     @ViewBuilder
@@ -67,13 +75,13 @@ struct SideBarSUI: View {
             Circle()
                 .fill(.accent)
                 .frame(width: 60, height: 60)
-            Image("skull")
+            Image("biohazard")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 40, height: 40)
                 .foregroundColor(.black)
             Circle()
-                .stroke(.white, lineWidth: 2)
+                .stroke(.black, lineWidth: 2)
                 .frame(width: 60, height: 60)
                 .shadow(color: .gray, radius: 2)
         }

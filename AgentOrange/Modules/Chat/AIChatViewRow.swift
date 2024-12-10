@@ -61,7 +61,7 @@ struct AIChatViewRow: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             } label: {
                 Button {
-                    fileVM.selectedId = chat.codeId
+                    fileVM.didSelectCode(id: chat.codeId)
                 } label: {
                     GroupBox {
                         HStack {
@@ -124,13 +124,13 @@ struct AIChatViewRow: View {
             Circle()
                 .fill(.accent)
                 .frame(width: 20, height: 20)
-            Image("skull")
+            Image("biohazard")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 14, height: 14)
                 .foregroundColor(.black)
             Circle()
-                .stroke(.white, lineWidth: 2)
+                .stroke(.black, lineWidth: 2)
                 .frame(width: 20, height: 20)
                 .shadow(color: .gray, radius: 2)
         }
@@ -147,9 +147,9 @@ struct AIChatViewRow: View {
 
 #Preview {
     List {
-        AIChatViewRow(chat: ChatMessage(role: .user, content: "blah blah")) {}
-        AIChatViewRow(chat: ChatMessage(role: .assistant, content: "blah blah", tag: "CodeGen1")) {}
+        AIChatViewRow(chat: ChatMessage(role: .user, content: "blah blah", groupId: "1")) {}
+        AIChatViewRow(chat: ChatMessage(role: .assistant, content: "blah blah", tag: "CodeGen1", groupId: "1")) {}
     }
     .listStyle(.plain)
-    .environment(FileViewerViewModel())
+    .environment(FileViewerViewModel(modelContext: PreviewController.chatsPreviewContainer.mainContext))
 }

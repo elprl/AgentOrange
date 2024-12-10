@@ -8,7 +8,12 @@
 import SwiftUI
 
 struct TDSplitView: View {
+    @Environment(FileViewerViewModel.self) private var viewModel: FileViewerViewModel
+
     var body: some View {
+#if DEBUG
+        let _ = Self._printChanges()
+#endif
         NavigationSplitView {
             /* Column 1 */
             SideBarSUI()
@@ -22,7 +27,7 @@ struct TDSplitView: View {
         } detail: {
             /* Column 3 */
             NavigationStack {
-                FileViewerSUI()
+                FileViewerSUI(groupId: viewModel.selectedGroupId)
             }
         }
         .tint(.white)
@@ -31,4 +36,5 @@ struct TDSplitView: View {
 
 #Preview {
     TDSplitView()
+        .environment(FileViewerViewModel.mock())
 }

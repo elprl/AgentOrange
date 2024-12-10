@@ -6,20 +6,28 @@
 //  Copyright © 2024 tapdigital Ltd. All rights reserved.
 
 import SwiftUI
+import SwiftData
 
 struct FileViewerSUI: View {
     @Environment(FileViewerViewModel.self) private var viewModel: FileViewerViewModel
     @State private var isFilePickerPresented: Bool = false
     @State private var fileContent: String = ""
     @AppStorage(UserDefaults.Keys.wrapText) var isWrapText: Bool = false
+    @Query private var snippets: [CDCodeSnippet]
+    
+    init(groupId: String? = nil) {
+        if let groupId {
+            _snippets = Query(filter: #Predicate<CDCodeSnippet> { $0.groupId == groupId && $0.isVisible == true }, sort: \CDCodeSnippet.timestamp, order: .reverse)
+        }
+    }
 
     var body: some View {
 #if DEBUG
         let _ = Self._printChanges()
 #endif
         VStack {
-            if viewModel.hasCode {
-                codeVersions
+            if !snippets.isEmpty {
+                browserTabs
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 0) {
                         ForEach(viewModel.currentRows.indices, id: \.self) { index in
@@ -48,7 +56,7 @@ struct FileViewerSUI: View {
         }
         .sheet(isPresented: $isFilePickerPresented) {
             DocumentPickerView() { filename, code in
-                viewModel.addCode(code: code, tag: filename)
+                viewModel.addCodeSnippet(code: code, tag: filename)
             }
         }
 //        .background(Color.black)
@@ -60,7 +68,7 @@ struct FileViewerSUI: View {
                     Button(action: {
                         let pasteboard = UIPasteboard.general
                         if let code = pasteboard.string {
-                            viewModel.addCode(code: code, tag: "PastedCode")
+                            viewModel.addCodeSnippet(code: code, tag: "PastedCode")
                         }
                     }, label: {
                         Label("Paste Code", systemImage: "document.on.clipboard.fill")
@@ -83,10 +91,8 @@ struct FileViewerSUI: View {
                 }
                 .menuOrder(.fixed)
                 .highPriorityGesture(TapGesture())
-                
-
             }
-            if viewModel.hasCode {
+            if !snippets.isEmpty {
                 ToolbarItemGroup(placement: .bottomBar) {
                     if let time = viewModel.currentTimestamp {
                         Text("Added: \(time)")
@@ -104,6 +110,11 @@ struct FileViewerSUI: View {
         .toolbarColorScheme(.dark, for: .navigationBar, .bottomBar)
         .toolbarBackground(.accent, for: .navigationBar, .bottomBar)
         .toolbarBackground(.visible, for: .navigationBar, .bottomBar)
+        .task {
+            if let snippet = snippets.first {
+                viewModel.selectTab(snippet: snippet.sendableModel)
+            }
+        }
     }
     
     @ViewBuilder
@@ -113,7 +124,7 @@ struct FileViewerSUI: View {
                 Button(action: {
                     let pasteboard = UIPasteboard.general
                     if let code = pasteboard.string {
-                        viewModel.addCode(code: code, tag: "PastedCode")
+                        viewModel.addCodeSnippet(code: code, tag: "PastedCode")
                     }
                 }, label: {
                     Label("Paste Code", systemImage: "document.on.clipboard.fill")
@@ -135,27 +146,40 @@ struct FileViewerSUI: View {
     }
     
     @ViewBuilder
-    private var codeVersions: some View {
+    private var browserTabs: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack {
-                ForEach(viewModel.versions, id: \.self) { version in
+                ForEach(snippets, id: \.self) { snippet in
                     Button(action: {
-                        print("Version \(version.tag)")
-                        viewModel.selectTab(id: version.id)
+                        viewModel.selectTab(snippet: snippet.sendableModel)
                     }, label: {
                         HStack {
-                            Text(version.tag)
+                            if let subTitle = snippet.subTitle {
+                                VStack(alignment: .leading) {
+                                    Text(snippet.title)
+                                        .lineLimit(1)
+                                        .foregroundStyle(.white)
+                                    Text(subTitle)
+                                        .lineLimit(1)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
                                 .padding(8)
-                                .foregroundStyle(.white)
+                            } else {
+                                Text(snippet.title)
+                                    .lineLimit(1)
+                                    .foregroundStyle(.white)
+                                    .padding(8)
+                            }
                             Button(action: {
-                                
+                                viewModel.hide(snippet: snippet)
                             }, label: {
                                 Image(systemName: "xmark")
                                     .foregroundStyle(.white)
                             })
                             .padding(.trailing, 8)
                         }
-                        .background(version.id == viewModel.selectedId ? Color(uiColor: UIColor.systemBackground) : .gray.opacity(0.7))
+                        .background(snippet.codeId == (viewModel.selectedSnippet?.id ?? "1") ? Color(uiColor: UIColor.systemBackground) : Color.gray.opacity(0.7))
                         .clipShape(.rect(topLeadingRadius: 8, topTrailingRadius: 8))
                         .padding(.horizontal, 4)
                     })
@@ -173,15 +197,15 @@ struct FileViewerSUI: View {
 
 #Preview("Code Viewer") {
     NavigationStack {
-        FileViewerSUI()
+        FileViewerSUI(groupId: "1")
             .environment(FileViewerViewModel.mock())
     }
 }
 
 #Preview("No code") {
     NavigationStack {
-        FileViewerSUI()
-            .environment(FileViewerViewModel())
+        FileViewerSUI(groupId: "1")
+            .environment(FileViewerViewModel(modelContext: PreviewController.codeSnippetPreviewContainer.mainContext))
     }
 }
 

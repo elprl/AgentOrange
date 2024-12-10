@@ -7,31 +7,24 @@
 import Foundation
 import Splash
 
-protocol CodeServiceProtocol {
-    var codeVersions: [CodeVersion] { get set }
-    var selectedId: String? { get set }
-    var codePublisher: Published<[CodeVersion]>.Publisher { get }
-    var selectorPublisher: Published<String?>.Publisher { get }
-    var currentSelectedCode: String? { get }
-    
-    @discardableResult func addCode(code: String, tag: String) -> String?
+protocol CodeParserServiceProtocol {
+    var cachedCode: String? { get }
+    var paintedRows: [AttributedString] { get }
+
+    func cacheCode(code: String)
     func getHighlighted(code: String) -> NSAttributedString
     func splitAttributedStringByNewlines(input: NSAttributedString) -> [AttributedString]
 }
 
-final class CodeService: CodeServiceProtocol, ObservableObject {
-    @Published var codeVersions: [CodeVersion] = []
-    @Published var selectedId: String?
-    var codePublisher: Published<[CodeVersion]>.Publisher { $codeVersions }
-    var selectorPublisher: Published<String?>.Publisher { $selectedId }
+final class CodeService: CodeParserServiceProtocol, ObservableObject {
+    @Published var cachedCode: String?
+    @Published var paintedRows: [AttributedString] = []
 
-    @discardableResult func addCode(code: String, tag: String) -> String? {
-        if code.isEmpty { return nil }
+    func cacheCode(code: String) {
+        if code.isEmpty { return }
         let attString = getHighlighted(code: code)        
-        let attStrings: [AttributedString] = self.splitAttributedStringByNewlines(input: attString)
-        let newCodeVersion = CodeVersion(code: code, rows: attStrings, tag: tag)
-        self.codeVersions.append(newCodeVersion)
-        return newCodeVersion.id
+        let attStrings: [AttributedString] = splitAttributedStringByNewlines(input: attString)
+        self.paintedRows = attStrings
     }
     
     func getHighlighted(code: String) -> NSAttributedString {
@@ -52,13 +45,5 @@ final class CodeService: CodeServiceProtocol, ObservableObject {
             currentLocation += component.count + 1 // Add 1 for the newline character
         }
         return attributedComponents
-    }
-    
-    var currentSelectedCode: String? {
-        if let selectedId {
-            return codeVersions.first(where: { $0.id == selectedId })?.code
-        } else {
-            return codeVersions.last?.code
-        }
     }
 }

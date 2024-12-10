@@ -34,20 +34,32 @@ struct CodeSnippetSendable {
     let codeId: String
     let timestamp: Date
     let title: String
+    let subTitle: String?
     let code: String
     let messageId: String?
+    let isVisible: Bool
+    let groupId: String
     
-    init(codeId: String = UUID().uuidString, timestamp: Date = Date.now, title: String, code: String, messageId: String? = nil) {
+    init(codeId: String = UUID().uuidString, timestamp: Date = Date.now, title: String, code: String, messageId: String? = nil, subTitle: String? = nil, isVisible: Bool = true, groupId: String) {
         self.codeId = codeId
         self.timestamp = timestamp
         self.title = title
         self.code = code
         self.messageId = messageId
+        self.subTitle = subTitle
+        self.isVisible = isVisible
+        self.groupId = groupId
+    }
+}
+
+extension CodeSnippetSendable: Identifiable, Hashable {
+    var id: String {
+        return codeId
     }
 }
 
 extension CodeSnippetSendable: SendableModelProtocol {
     var persistentModel: CDCodeSnippet {
-        return CDCodeSnippet(codeId: codeId, timestamp: timestamp, title: title, code: code)
+        return CDCodeSnippet(codeId: codeId, timestamp: timestamp, title: title, code: code, messageId: messageId, subTitle: subTitle, isVisible: isVisible, groupId: groupId)
     }
 }

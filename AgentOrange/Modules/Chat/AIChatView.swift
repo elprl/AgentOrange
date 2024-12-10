@@ -10,7 +10,6 @@ import SwiftUI
 struct AIChatView: View {
     @Environment(AIChatViewModel.self) private var chatVM: AIChatViewModel
     @FocusState private var isFocused: Bool
-    @State private var position = ScrollPosition(edge: .top)
 
     var body: some View {
         VStack {
@@ -62,35 +61,9 @@ let _ = Self._printChanges()
                     .padding(.horizontal)
                     .padding(.vertical, 6)
                 }
-                scrollToBottomDetector
             }
         }
-        .scrollPosition($position)
         .tint(.accent)
-        .onChange(of: self.chatVM.chats) {
-            withAnimation {
-                if self.chatVM.hasScrolledOffBottom {
-                    Log.view.debug("Scrolling to bottom from \(position.point?.y ?? 0)")
-                    position.scrollTo(edge: .bottom)
-                }
-            }
-        }
-        .onChange(of: self.chatVM.isGenerating) {
-            withAnimation {
-                if self.chatVM.hasScrolledOffBottom {
-                    Log.view.debug("Scrolling to bottom from \(position.point?.y ?? 0)")
-                    position.scrollTo(edge: .bottom)
-                }
-            }
-        }
-        .onChange(of: self.chatVM.isGenerating) {
-            withAnimation {
-                if self.chatVM.hasScrolledOffBottom {
-                    Log.view.debug("Scrolling to bottom from \(position.point?.y ?? 0)")
-                    position.scrollTo(edge: .bottom)
-                }
-            }
-        }
     }
     
     @ViewBuilder
@@ -98,8 +71,15 @@ let _ = Self._printChanges()
         @Bindable var chatVMBindable = chatVM
         HStack {
             Menu {
+                ForEach(chatVM.commands, id: \.self) { command in
+                    Button {
+                        chatVM.runCommand(command: command)
+                    } label: {
+                        Text(command.name)
+                    }
+                }                
                 Button {
-                    chatVM.runCommands()
+                    chatVM.runAllCommands()
                 } label: {
                     Text("Run all tasks")
                 }
@@ -149,24 +129,11 @@ let _ = Self._printChanges()
         .tint(.accent)
         .padding(.horizontal)
     }
-    
-    @ViewBuilder
-    private var scrollToBottomDetector: some View {
-        Color.clear
-            .frame(width: 0, height: 30, alignment: .bottom)
-            .onAppear {
-                chatVM.hasScrolledOffBottom = false
-            }
-            .onDisappear {
-                chatVM.hasScrolledOffBottom = true
-            }
-            .id(Int.max)
-    }
 }
 
 #Preview("Empty") {
     AIChatView()
         .environment(AIChatViewModel.mock())
-        .environment(FileViewerViewModel())
+        .environment(FileViewerViewModel(modelContext: PreviewController.chatsPreviewContainer.mainContext))
 }
 

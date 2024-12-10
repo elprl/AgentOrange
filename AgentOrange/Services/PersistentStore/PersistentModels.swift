@@ -37,9 +37,9 @@ final class CDChatMessage {
     var content: String
     var tag: String?
     var codeId: String?
-    var groupId: String?
+    var groupId: String
     
-    init(messageId: String = UUID().uuidString, timestamp: Date = Date.now, role: GPTRole = .user, type: MessageType = .message, content: String, tag: String? = nil, codeId: String? = nil, groupId: String? = nil) {
+    init(messageId: String = UUID().uuidString, timestamp: Date = Date.now, role: GPTRole = .user, type: MessageType = .message, content: String, tag: String? = nil, codeId: String? = nil, groupId: String) {
         self.messageId = messageId
         self.timestamp = timestamp
         self.role = role
@@ -62,21 +62,27 @@ final class CDCodeSnippet {
     @Attribute(.unique) var codeId: String
     var timestamp: Date
     var title: String
+    var subTitle: String?
     var code: String
     var messageId: String?
-    
-    init(codeId: String = UUID().uuidString, timestamp: Date = Date.now, title: String, code: String, messageId: String? = nil) {
+    var isVisible: Bool
+    var groupId: String
+
+    init(codeId: String = UUID().uuidString, timestamp: Date = Date.now, title: String, code: String, messageId: String? = nil, subTitle: String? = nil, isVisible: Bool = true, groupId: String) {
         self.codeId = codeId
         self.timestamp = timestamp
         self.title = title
         self.code = code
         self.messageId = messageId
+        self.subTitle = subTitle
+        self.isVisible = isVisible
+        self.groupId = groupId
     }
 }
 
 extension CDCodeSnippet: PersistentModelProtocol {
     var sendableModel: CodeSnippetSendable {
-        return CodeSnippetSendable(codeId: codeId, timestamp: timestamp, title: title, code: code)
+        return CodeSnippetSendable(codeId: codeId, timestamp: timestamp, title: title, code: code, messageId: messageId, subTitle: subTitle, isVisible: isVisible, groupId: groupId)
     }
 }
 
@@ -120,7 +126,7 @@ class PreviewController {
             let container = try ModelContainer(for: CDCodeSnippet.self, configurations: config)
             
             for i in 1..<100 {
-                let group = CDCodeSnippet(codeId: "\(i)", title: "Message \(i)", code: "Code \(i)")
+                let group = CDCodeSnippet(codeId: "\(i)", title: "Message \(i)", code: "Code \(i)", groupId: "1")
                 container.mainContext.insert(group)
             }
             try? container.mainContext.save()

@@ -20,7 +20,15 @@ protocol PersistentChatDataManagerProtocol: Actor {
     func fetchData(for groupId: String) async -> [ChatMessage]
 }
 
-actor PersistentDataManager {
+protocol PersistentCodeDataManagerProtocol: Actor {
+    func add(code: CodeSnippetSendable)
+    func delete(code: CodeSnippetSendable)
+    func fetchData(for groupId: String) async -> [CodeSnippetSendable]
+}
+
+protocol PersistentDataManagerProtocol: PersistentGroupDataManagerProtocol, PersistentChatDataManagerProtocol, PersistentCodeDataManagerProtocol {}
+
+actor PersistentDataManager: PersistentDataManagerProtocol {
     private let container: ModelContainer
     
     /// pass nil for previews or unit testing
@@ -102,5 +110,41 @@ extension PersistentDataManager: PersistentGroupDataManagerProtocol {
                 print(error.localizedDescription)
             }
         }
+    }
+}
+
+// MARK: - Code Snippets
+extension PersistentDataManager: PersistentCodeDataManagerProtocol {
+    func add(code: CodeSnippetSendable) {
+        Task.detached(priority: .userInitiated) { [weak self] in
+            guard let container = self?.container else { return }
+            let dataService = DataService<CDCodeSnippet, CodeSnippetSendable>(modelContainer: container)
+            await dataService.insert(data: code)
+        }
+    }
+    
+    func delete(code: CodeSnippetSendable) {
+        Task.detached(priority: .userInitiated) { [weak self] in
+            guard let container = self?.container else { return }
+            let dataService = DataService<CDCodeSnippet, CodeSnippetSendable>(modelContainer: container)
+            do {
+                let id: String = code.id
+                try await dataService.remove(predicate: #Predicate<CDCodeSnippet> { $0.codeId == id } )
+            } catch {
+                print(error.localizedDescription)
+            }
+        }
+    }
+    
+    func fetchData(for codeId: String) async -> [CodeSnippetSendable] {
+        let vmItems: [CodeSnippetSendable] = await Task.detached(priority: .userInitiated) { [weak self] in
+            guard let container = self?.container else { return [] }
+            let dataService = DataService<CDCodeSnippet, CodeSnippetSendable>(modelContainer: container)
+            if let items: [CodeSnippetSendable] = try? await dataService.fetchDataVMs(predicate: #Predicate<CDCodeSnippet> { $0.codeId == codeId }, sortBy: [SortDescriptor(\.timestamp)]) {
+                return items
+            }
+            return []
+        }.value
+        return vmItems
     }
 }

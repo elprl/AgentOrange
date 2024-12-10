@@ -23,7 +23,7 @@ let _ = Self._printChanges()
                 Text("Scopes: ")
                 ToggleButton(title: Scope.role.rawValue, isOn: $systemScope, onColor: .accent) {}
                 ToggleButton(title: Scope.history.rawValue, isOn: $historyScope, onColor: .accent) {}
-                if let tag = codeVM.selectedVersion?.tag {
+                if let tag = codeVM.selectedSnippet?.title {
                     ToggleButton(title: "\(Scope.code.rawValue): \(tag)", isOn: $codeScope, onColor: .accent) {}
                 }
                 ToggleButton(title: Scope.genCode.rawValue, isOn: $genCodeScope, onColor: .accent) {}
@@ -38,5 +38,5 @@ let _ = Self._printChanges()
 
 #Preview {
     ScopeBarView()
-        .environment(FileViewerViewModel())
+        .environment(FileViewerViewModel(modelContext: PreviewController.messageGroupPreviewContainer.mainContext))
 }

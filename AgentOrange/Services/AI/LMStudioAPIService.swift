@@ -29,12 +29,12 @@ actor LMStudioAPIService {
     }
     
     var model: String {
-        let modelString = UserDefaults.standard.customAIModel ?? "qwen2.5-coder-7b-instruct" // "llama-3.2-3b-instruct"
+        let modelString = UserDefaults.standard.customAIModel ?? "qwen2.5-coder-32b-instruct" // "llama-3.2-3b-instruct"
         return modelString
     }
     
     private var host: String {
-        let myHost = UserDefaults.standard.customAIHost ?? "http://localhost:1234"
+        let myHost = UserDefaults.standard.customAIHost ?? "http://localhost:1234" // "http://192.168.50.3:1234"
         return myHost
     }
 

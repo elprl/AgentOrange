@@ -14,9 +14,9 @@ import Combine
 @MainActor
 final class AIChatViewModel {
     @Injected(\.agiService) @ObservationIgnored private var agiService
-    @Injected(\.codeService) @ObservationIgnored private var codeService
+    @Injected(\.parserService) @ObservationIgnored private var parserService
     @Injected(\.cacheService) @ObservationIgnored private var cacheService
-    /* @Injected(\.chatService) */ @ObservationIgnored private var chatService: PersistentGroupDataManagerProtocol & PersistentChatDataManagerProtocol
+    /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: PersistentDataManagerProtocol
     @ObservationIgnored private var sessionIndex: Int = 0
     @ObservationIgnored private var cancellationTask: Task<Void, Never>?
     var chats: [ChatMessage] = []
@@ -33,24 +33,23 @@ final class AIChatViewModel {
     var selectedGroup: MessageGroupSendable? {
         didSet {
             loadMessages()
+            self.selectedGroupId = selectedGroup?.groupId
         }
     }
-    var selectedGroupId: String? {
-        return selectedGroup?.groupId
-    }
+    var selectedGroupId: String?
     var navTitle: String? {
         return selectedGroup?.title
     }
 
     /// pass nil for previews or unit testing
     init(modelContext: ModelContext) {
-        self.chatService = Container.shared.chatService(modelContext.container) // Injected PersistentDataManager(container: modelContext.container)
+        self.dataService = Container.shared.dataService(modelContext.container) // Injected PersistentDataManager(container: modelContext.container)
     }
     
     func loadMessages() {
         Task { @MainActor in
             if let selectedGroupId = selectedGroupId {
-                self.chats = await chatService.fetchData(for: selectedGroupId)
+                self.chats = await dataService.fetchData(for: selectedGroupId)
             }
         }
     }
@@ -91,10 +90,11 @@ final class AIChatViewModel {
                 Log.pres.debug("AI Generated: \(tempOutput)")
                 DispatchQueue.main.async { [weak self] in
                     if UserDefaults.standard.scopeGenCode {
-                        if let id = self?.codeService.addCode(code: finalOutput, tag: tag) {
-                            self?.codeService.selectedId = id
-                            self?.cacheService.saveFileContent(for: id, fileContent: finalOutput)
-                            self?.updateMessage(message: responseMessage, content: finalOutput, tag: tag, codeId: id)
+                        let codeSnippet = CodeSnippetSendable(title: tag, code: finalOutput, subTitle: "Code Gen", groupId: self?.selectedGroupId ?? "1")
+                        self?.parserService.cacheCode(code: finalOutput)
+                        self?.updateMessage(message: responseMessage, content: finalOutput, tag: tag, codeId: codeSnippet.id)
+                        Task {
+                            await self?.dataService.add(code: codeSnippet)
                         }
                     }
                 }
@@ -126,7 +126,7 @@ final class AIChatViewModel {
     }
     
     // the following function loops over the commands array and calls one at a time to the respondToPrompt function
-    func runCommands() {
+    func runAllCommands() {
         Task { @MainActor in
             start()
             for command in commands {
@@ -138,9 +138,19 @@ final class AIChatViewModel {
         }
     }
     
+    func runCommand(command: ChatCommand) {
+        Task { @MainActor in
+            start()
+            if isGenerating {
+                await respondToPrompt(prompt: command.prompt, tag: command.name, isCmd: true)
+            }
+            stop()
+        }
+    }
+    
     @MainActor
     @discardableResult private func addChatMessage(role: GPTRole = .user, content: String, type: MessageType = .message, tag: String? = nil) -> ChatMessage {
-        let chatMessage = ChatMessage(role: role, type: type, content: content, tag: tag, groupId: selectedGroupId)
+        let chatMessage = ChatMessage(role: role, type: type, content: content, tag: tag, groupId: selectedGroupId ?? "1")
         chats.append(chatMessage)
         persistChat(message: chatMessage)
         return chatMessage
@@ -164,7 +174,7 @@ final class AIChatViewModel {
     
     func persistChat(message: ChatMessage) {
         Task {
-            await chatService.add(message: message)
+            await dataService.add(message: message)
         }
     }
     
@@ -187,14 +197,14 @@ final class AIChatViewModel {
             if defaults.scopeGenCode {
                 systemPrompt += " All your responses must contain swift code ONLY without Markdown."
             }
-            history.append(ChatMessage(role: .system, content: systemPrompt))
+            history.append(ChatMessage(role: .system, content: systemPrompt, groupId: selectedGroupId ?? "1"))
         }
         if defaults.scopeHistory {
             history.append(contentsOf: chats)
         }
         if defaults.scopeCode {
-            if let code = codeService.currentSelectedCode {
-                history.append(ChatMessage(role: .user, content: code))
+            if let code = parserService.cachedCode {
+                history.append(ChatMessage(role: .user, content: code, groupId: selectedGroupId ?? "1"))
             }
         }
         return history
@@ -219,7 +229,7 @@ final class AIChatViewModel {
     @MainActor
     func deleteAll() {
         Task {
-            await chatService.delete(messages: chats)
+            await dataService.delete(messages: chats)
         }
         chats.removeAll()
     }
@@ -227,7 +237,7 @@ final class AIChatViewModel {
     @MainActor
     func delete(message: ChatMessage) {
         Task {
-            await chatService.delete(message: message)
+            await dataService.delete(message: message)
         }
         if let index = chats.firstIndex(where: { $0.id == message.id }) {
             chats.remove(at: index)
@@ -238,7 +248,7 @@ final class AIChatViewModel {
     func delete(group: CDMessageGroup) {
         let groupSendable = group.sendableModel
         Task {
-            await chatService.delete(group: groupSendable)
+            await dataService.delete(group: groupSendable)
         }
         if groupSendable.groupId == selectedGroupId {
             addGroup()
@@ -250,7 +260,7 @@ final class AIChatViewModel {
         let groupSendable = MessageGroupSendable(title: "Chat #\(UUID().uuidString.prefix(5))")
         selectedGroup = groupSendable
         Task {
-            await chatService.add(group: groupSendable)
+            await dataService.add(group: groupSendable)
         }
     }
 }
@@ -261,10 +271,10 @@ extension AIChatViewModel {
     @MainActor static func mock() -> AIChatViewModel {
         let vm = AIChatViewModel(modelContext: PreviewController.chatsPreviewContainer.mainContext)
         vm.chats = [
-            ChatMessage(role: .user, content: "Give me an attribute string from plain string"),
-            ChatMessage(role: .assistant, content: "return try AttributedString(markdown: response, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))", tag: "CodeGen1"),
-            ChatMessage(role: .user, content: "blah blah"),
-            ChatMessage(role: .assistant, content: "return try AttributedString(markdown: response, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))", tag: "CodeGen1")
+            ChatMessage(role: .user, content: "Give me an attribute string from plain string", groupId: "1"),
+            ChatMessage(role: .assistant, content: "return try AttributedString(markdown: response, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))", tag: "CodeGen1", groupId: "1"),
+            ChatMessage(role: .user, content: "blah blah", groupId: "1"),
+            ChatMessage(role: .assistant, content: "return try AttributedString(markdown: response, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))", tag: "CodeGen1", groupId: "1")
         ]
         return vm
     }

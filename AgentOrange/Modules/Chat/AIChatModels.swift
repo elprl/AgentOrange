@@ -21,7 +21,7 @@ struct ChatMessage: Identifiable, Hashable {
     var content: String
     var tag: String? = nil
     var codeId: String? = nil
-    var groupId: String? = nil
+    var groupId: String
 }
 
 extension ChatMessage: SendableModelProtocol {
