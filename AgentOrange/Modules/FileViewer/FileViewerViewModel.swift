@@ -69,8 +69,33 @@ final class FileViewerViewModel {
         }
     }
     
+    @MainActor
+    func unhide(snippet: CodeSnippetSendable) {
+        Task { [weak self] in
+            let newSnippet = CodeSnippetSendable(codeId: snippet.codeId,
+                                                 timestamp: snippet.timestamp,
+                                                 title: snippet.title,
+                                                 code: snippet.code,
+                                                 messageId: snippet.messageId,
+                                                 subTitle: snippet.subTitle,
+                                                 isVisible: true,
+                                                 groupId: snippet.groupId)
+            await self?.dataService.add(code: newSnippet)
+        }
+    }
+    
+    @MainActor
     func didSelectCode(id: String?) {
-
+        Task { [weak self] in
+            guard let self, let groupId = self.selectedGroupId else { return }
+            let snippets = await self.dataService.fetchData(for: groupId)
+            if let snippet = snippets.first(where: { $0.codeId == id }) {
+                self.selectTab(snippet: snippet)
+                if snippet.isVisible == false {
+                    unhide(snippet: snippet)
+                }
+            }
+        }
     }
 }
 

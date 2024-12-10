@@ -36,7 +36,7 @@ struct SideBarSUI: View {
                 Button(action: {
                     chatVM.addGroup()
                 }, label: {
-                    Image(systemName: "plus.bubble")
+                    Image(systemName: "plus")
                         .foregroundColor(.white)
                 })
             }

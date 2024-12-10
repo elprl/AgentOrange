@@ -136,11 +136,11 @@ extension PersistentDataManager: PersistentCodeDataManagerProtocol {
         }
     }
     
-    func fetchData(for codeId: String) async -> [CodeSnippetSendable] {
+    func fetchData(for groupId: String) async -> [CodeSnippetSendable] {
         let vmItems: [CodeSnippetSendable] = await Task.detached(priority: .userInitiated) { [weak self] in
             guard let container = self?.container else { return [] }
             let dataService = DataService<CDCodeSnippet, CodeSnippetSendable>(modelContainer: container)
-            if let items: [CodeSnippetSendable] = try? await dataService.fetchDataVMs(predicate: #Predicate<CDCodeSnippet> { $0.codeId == codeId }, sortBy: [SortDescriptor(\.timestamp)]) {
+            if let items: [CodeSnippetSendable] = try? await dataService.fetchDataVMs(predicate: #Predicate<CDCodeSnippet> { $0.groupId == groupId }, sortBy: [SortDescriptor(\.timestamp)]) {
                 return items
             }
             return []
