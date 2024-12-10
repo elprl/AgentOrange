@@ -21,12 +21,12 @@ let _ = Self._printChanges()
         ScrollView(.horizontal, showsIndicators: false) {
             HStack {
                 Text("Scopes: ")
-                ToggleButton(title: Scope.role.rawValue, isOn: $systemScope, onColor: .accent) {}
-                ToggleButton(title: Scope.history.rawValue, isOn: $historyScope, onColor: .accent) {}
                 if let tag = codeVM.selectedSnippet?.title {
                     ToggleButton(title: "\(Scope.code.rawValue): \(tag)", isOn: $codeScope, onColor: .accent) {}
                 }
                 ToggleButton(title: Scope.genCode.rawValue, isOn: $genCodeScope, onColor: .accent) {}
+                ToggleButton(title: Scope.history.rawValue, isOn: $historyScope, onColor: .accent) {}
+                ToggleButton(title: Scope.role.rawValue, isOn: $systemScope, onColor: .accent) {}
                 Spacer()
             }
         }

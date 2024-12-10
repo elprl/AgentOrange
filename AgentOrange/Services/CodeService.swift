@@ -22,7 +22,8 @@ final class CodeService: CodeParserServiceProtocol, ObservableObject {
 
     func cacheCode(code: String) {
         if code.isEmpty { return }
-        let attString = getHighlighted(code: code)        
+        self.cachedCode = code
+        let attString = getHighlighted(code: code)
         let attStrings: [AttributedString] = splitAttributedStringByNewlines(input: attString)
         self.paintedRows = attStrings
     }

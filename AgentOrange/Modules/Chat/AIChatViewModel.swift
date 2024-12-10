@@ -26,7 +26,8 @@ final class AIChatViewModel {
         ChatCommand(name: "//refactor", prompt: "Refactor the code", shortDescription: "Refactors the code"),
         ChatCommand(name: "//comments", prompt: "Add professional inline code comments while avoiding DocC documentation outside of functions.", shortDescription: "Adds code comments"),
         ChatCommand(name: "//docC", prompt: "Add professional DocC documentation to the code", shortDescription: "Adds code documentation"),
-        ChatCommand(name: "//unittests", prompt: "Create a suite of unit tests for this code", shortDescription: "Adds unit tests"),
+        ChatCommand(name: "//unittests", prompt: "Create a suite of unit tests for this code using the new Swift Testing '#expect(...)' framework (NOT XCTest)", shortDescription: "Adds unit tests"),
+        ChatCommand(name: "//quickNimble", prompt: "Create a suite of unit tests for this code using the Quick and Nimble framework", shortDescription: "Adds unit tests"),
     ]
 //    private let chatService: PersistentDataManager
     private var cancellable: AnyCancellable?
@@ -66,7 +67,7 @@ final class AIChatViewModel {
         }
     }
     
-    private func respondToPrompt(prompt: String, tag: String, isCmd: Bool = false) async {
+    private func respondToPrompt(prompt: String, tag: String, isCmd: Bool = false, history: [ChatMessage]? = nil, subTitle: String? = UserDefaults.standard.string(forKey: UserDefaults.Keys.selectedCodeTitle)) async {
         if isCmd {
             addChatMessage(content: "**Command**: " + tag + "\n**Prompt**: " + prompt)
         } else {
@@ -77,9 +78,16 @@ final class AIChatViewModel {
         await Task.detached { [weak self] in
             do {
                 guard let self else { return }
-                await self.agiService.setHistory(messages: generateHistory())
+                if let history = history {
+                    await self.agiService.setHistory(messages: history)
+                } else {
+                    await self.agiService.setHistory(messages: generateHistory())
+                }
                 let stream = try await self.agiService.sendMessageStream(text: prompt, needsJSONResponse: false)
                 for try await responseDelta in stream {
+                    if await !self.isGenerating {
+                        break
+                    }
                     tempOutput += responseDelta
                     let readonlyOutput = tempOutput
                     DispatchQueue.main.async { [weak self] in
@@ -90,7 +98,12 @@ final class AIChatViewModel {
                 Log.pres.debug("AI Generated: \(tempOutput)")
                 DispatchQueue.main.async { [weak self] in
                     if UserDefaults.standard.scopeGenCode {
-                        let codeSnippet = CodeSnippetSendable(title: tag, code: finalOutput, subTitle: "Code Gen", groupId: self?.selectedGroupId ?? "1")
+                        let codeSnippet: CodeSnippetSendable
+                        if let subTitle {
+                            codeSnippet = CodeSnippetSendable(title: tag, code: finalOutput, subTitle: subTitle, groupId: self?.selectedGroupId ?? "1")
+                        } else {
+                            codeSnippet = CodeSnippetSendable(title: tag, code: finalOutput, subTitle: "Generated", groupId: self?.selectedGroupId ?? "1")
+                        }
                         self?.updateMessage(message: responseMessage, content: finalOutput, tag: tag, codeId: codeSnippet.id)
                         Task {
                             await self?.dataService.add(code: codeSnippet)
@@ -128,9 +141,11 @@ final class AIChatViewModel {
     func runAllCommands() {
         Task { @MainActor in
             start()
+            let history = generateHistory() // capture scopes to prevent changes during browsing
+            let subTitle = UserDefaults.standard.string(forKey: UserDefaults.Keys.selectedCodeTitle)
             for command in commands {
                 if isGenerating {
-                    await respondToPrompt(prompt: command.prompt, tag: command.name, isCmd: true)
+                    await respondToPrompt(prompt: command.prompt, tag: command.name, isCmd: true, history: history, subTitle: subTitle)
                 }
             }
             stop()
@@ -140,8 +155,9 @@ final class AIChatViewModel {
     func runCommand(command: ChatCommand) {
         Task { @MainActor in
             start()
+            let history = generateHistory()
             if isGenerating {
-                await respondToPrompt(prompt: command.prompt, tag: command.name, isCmd: true)
+                await respondToPrompt(prompt: command.prompt, tag: command.name, isCmd: true, history: history)
             }
             stop()
         }
@@ -227,10 +243,10 @@ final class AIChatViewModel {
     
     @MainActor
     func deleteAll() {
-        Task {
+        Task { @MainActor in
             await dataService.delete(messages: chats)
+            chats.removeAll()
         }
-        chats.removeAll()
     }
     
     @MainActor

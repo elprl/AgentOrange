@@ -48,6 +48,7 @@ extension UserDefaults {
         static let repoSortMode = "repoSortMode"
         static let repoFilterMode = "repoFilterMode"
         static let selectedAGI = "selectedAGI"
+        static let selectedCodeTitle = "selectedCodeTitle"
     }
     
     @objc var bookmarks: Set<String>? {

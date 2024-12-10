@@ -52,6 +52,7 @@ final class FileViewerViewModel {
     func selectTab(snippet: CodeSnippetSendable) {
         parserService.cacheCode(code: snippet.code)
         selectedSnippet = snippet
+        UserDefaults.standard.set(snippet.title, forKey: UserDefaults.Keys.selectedCodeTitle)
     }
     
     @MainActor
