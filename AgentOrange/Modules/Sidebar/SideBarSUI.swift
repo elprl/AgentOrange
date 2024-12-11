@@ -13,6 +13,7 @@ struct SideBarSUI: View {
     @Environment(AIChatViewModel.self) private var chatVM: AIChatViewModel
     @Environment(FileViewerViewModel.self) private var fileVM: FileViewerViewModel
     @Query(sort: \CDMessageGroup.timestamp, order: .reverse) private var groups: [CDMessageGroup]
+    @State private var showSheet: Bool = false
 
     var body: some View {
 #if DEBUG
@@ -27,10 +28,9 @@ struct SideBarSUI: View {
         .tint(.accent)
         .navigationBarTitle("Dashboard")
         .navigationBarTitleDisplayMode(.inline)
-//        .sheet(isPresented: $showSheet, content: {
-//            SettingsSUI()
-//                .environmentObject(settingsVM)
-//        })
+        .sheet(isPresented: $showSheet, content: {
+            SettingsView()
+        })
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Button(action: {
@@ -41,19 +41,13 @@ struct SideBarSUI: View {
                 })
             }
             ToolbarItemGroup(placement: .bottomBar) {
+                Spacer()
                 Button(action: {
-//                    self.showSheet = true
+                    self.showSheet = true
                 }, label: {
                     Image(systemName: "gearshape")
                         .foregroundColor(.white)
                 })
-                Button(action: {
-//                    self.selection = NavigationItem.help
-                }, label: {
-                    Image(systemName: "questionmark.circle")
-                        .foregroundColor(.white)
-                })
-                Spacer()
             }
         }
         .toolbarColorScheme(.dark, for: .navigationBar, .bottomBar)
@@ -168,6 +162,7 @@ struct SideBarSUI: View {
     NavigationStack {
         SideBarSUI()
             .environment(AIChatViewModel.mock())
+            .environment(FileViewerViewModel.mock())
             .modelContext(PreviewController.messageGroupPreviewContainer.mainContext)
     }
 }

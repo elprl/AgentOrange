@@ -155,7 +155,7 @@ struct FileViewerSUI: View {
                     }, label: {
                         HStack {
                             if let subTitle = snippet.subTitle {
-                                VStack(alignment: .leading) {
+                                VStack(alignment: .leading, spacing: 2) {
                                     Text(snippet.title)
                                         .lineLimit(1)
                                         .foregroundStyle(.white)
@@ -164,7 +164,9 @@ struct FileViewerSUI: View {
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
-                                .padding(8)
+                                .padding(.horizontal, 8)
+                                .padding(.top, 8)
+                                .padding(.bottom, 4)
                             } else {
                                 Text(snippet.title)
                                     .lineLimit(1)
@@ -195,7 +197,7 @@ struct FileViewerSUI: View {
                 }
             }
         }
-        .padding(.top)
+        .padding(.top, 4)
         .padding(.horizontal)
         .background(Color.accent)
         .padding(.bottom, -8)
