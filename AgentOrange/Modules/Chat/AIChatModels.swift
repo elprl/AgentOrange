@@ -22,11 +22,13 @@ struct ChatMessage: Identifiable, Hashable {
     var tag: String? = nil
     var codeId: String? = nil
     var groupId: String
+    var model: String?
+    var host: String?
 }
 
 extension ChatMessage: SendableModelProtocol {
     var persistentModel: CDChatMessage {
-        return CDChatMessage(messageId: id, timestamp: timestamp, role: role, type: type, content: content, tag: tag, codeId: codeId, groupId: groupId)
+        return CDChatMessage(messageId: id, timestamp: timestamp, role: role, type: type, content: content, tag: tag, codeId: codeId, groupId: groupId, model: model, host: host)
     }
 }
 
@@ -37,9 +39,24 @@ enum Scope: String {
     case genCode
 }
 
-struct ChatCommand: Identifiable, Hashable {
+struct ChatCommand {
     var name: String
     var prompt: String
     var shortDescription: String
+    
+    var role: String?
+    var model: String?
+    var host: String?
+    var type: AgentType?
+    var inputCodeId: String?
+    var dependencyIds: [String]?
+}
+
+extension ChatCommand: Identifiable, Hashable {
     var id: String { name }
+}
+
+enum AgentType: String, Codable {
+    case coder
+    case reviewer
 }

@@ -17,4 +17,5 @@ extension Container {
     var dataService: ParameterFactory<ModelContainer, PersistentDataManagerProtocol> {
         self { PersistentDataManager(container: $0) }.shared
     }
+    var commandService: Factory<CommandServiceProtocol> { self { CommandService() }.shared }
 }

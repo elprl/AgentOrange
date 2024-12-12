@@ -31,10 +31,6 @@ actor ChatGPTAPIService {
             "Authorization": "Bearer \(apiKey ?? "")"
         ]
     }
-    var model: String {
-        let modelString = UserDefaults.standard.openAiModel ?? "gpt-3.5-turbo"
-        return modelString
-    }
 
     init(apiKey: String? = nil) {
         Log.agi.debug("ChatGPTAPIService init")
@@ -66,7 +62,7 @@ actor ChatGPTAPIService {
         return messages
     }
     
-    private func jsonBody(text: String, stream: Bool = true, needsJSONResponse: Bool = false) throws -> Data {
+    private func jsonBody(text: String, stream: Bool = true, needsJSONResponse: Bool = false, model: String) throws -> Data {
         let request = Request(model: model, temperature: 0.5,
                               messages: generateMessages(from: text),
                               stream: stream,
@@ -90,10 +86,10 @@ extension ChatGPTAPIService: TokenServiceProtocol {
 
 extension ChatGPTAPIService: AGIStreamingServiceProtocol {
     
-    func sendMessageStream(text: String, needsJSONResponse: Bool) async throws -> AsyncThrowingStream<String, Error> {
+    func sendMessageStream(text: String, needsJSONResponse: Bool, host: String, model: String) async throws -> AsyncThrowingStream<String, Error> {
         var urlRequest = self.urlRequest
         do {
-            let httpBody = try jsonBody(text: text, needsJSONResponse: needsJSONResponse)
+            let httpBody = try jsonBody(text: text, needsJSONResponse: needsJSONResponse, model: model)
             Log.api.debug("JSON Body: \(String(data: httpBody, encoding: .utf8) ?? "")")
             urlRequest.httpBody = httpBody
         } catch _ as EncodingError {

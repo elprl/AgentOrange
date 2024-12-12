@@ -38,8 +38,10 @@ final class CDChatMessage {
     var tag: String?
     var codeId: String?
     var groupId: String
+    var model: String?
+    var host: String?
     
-    init(messageId: String = UUID().uuidString, timestamp: Date = Date.now, role: GPTRole = .user, type: MessageType = .message, content: String, tag: String? = nil, codeId: String? = nil, groupId: String) {
+    init(messageId: String = UUID().uuidString, timestamp: Date = Date.now, role: GPTRole = .user, type: MessageType = .message, content: String, tag: String? = nil, codeId: String? = nil, groupId: String, model: String? = nil, host: String? = nil) {
         self.messageId = messageId
         self.timestamp = timestamp
         self.role = role
@@ -48,12 +50,14 @@ final class CDChatMessage {
         self.tag = tag
         self.codeId = codeId
         self.groupId = groupId
+        self.model = model
+        self.host = host
     }
 }
 
 extension CDChatMessage: PersistentModelProtocol {
     var sendableModel: ChatMessage {
-        return ChatMessage(id: messageId, timestamp: timestamp, role: role, type: type, content: content, tag: tag, codeId: codeId, groupId: groupId)
+        return ChatMessage(id: messageId, timestamp: timestamp, role: role, type: type, content: content, tag: tag, codeId: codeId, groupId: groupId, model: model, host: host)
     }
 }
 

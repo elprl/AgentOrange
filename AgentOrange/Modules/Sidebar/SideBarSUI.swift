@@ -94,23 +94,11 @@ struct SideBarSUI: View {
                         .font(.title2)
                         .bold()
                         .underline()
-                        .foregroundColor(.gray)
-                    Text("Orange")
-                        .font(.title)
-                        .bold()
-                        .foregroundColor(.gray)
-                }
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("Agent")
-                        .font(.title2)
-                        .bold()
                         .foregroundColor(.white)
                     Text("Orange")
                         .font(.title)
                         .bold()
                 }
-                .scaleEffect(0.97)
-                .shadow(radius: 1)
             }
         }
         .foregroundColor(.accent)

@@ -17,10 +17,10 @@ struct AIChatViewRow: View {
         GroupBox {
             if chat.role == .user {
                 userMessage
-            } else if chat.tag != nil {
-                botCodeMessage
-            } else {
+            } else if (chat.tag?.isEmpty ?? true)  {
                 botSimpleMessage
+            } else {
+                botCodeMessage
             }
         }
         .transition(.slide)
@@ -103,9 +103,25 @@ struct AIChatViewRow: View {
     @ViewBuilder
     private var header: some View {
         HStack {
-            Text("\(Text("Agent").bold().underline().foregroundStyle(.white)) Orange")
-                .bold()
-                .foregroundStyle(.accent)
+            VStack(alignment: .leading) {
+                if let author = chat.model {
+                    Text(author)
+                        .lineLimit(1)
+                        .bold()
+                        .foregroundStyle(.accent)
+                } else {
+                    Text("\(Text("Agent").bold().underline().foregroundStyle(.white)) Orange")
+                        .lineLimit(1)
+                        .bold()
+                        .foregroundStyle(.accent)
+                }
+                if let host = chat.host {
+                    Text(host)
+                        .lineLimit(1)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
             Spacer()
             Menu {
                 Button {

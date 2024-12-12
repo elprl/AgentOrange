@@ -62,6 +62,7 @@ let _ = Self._printChanges()
                     .padding(.vertical, 6)
                 }
             }
+            .padding(.vertical)
         }
         .tint(.accent)
     }
@@ -71,17 +72,23 @@ let _ = Self._printChanges()
         @Bindable var chatVMBindable = chatVM
         HStack {
             Menu {
+                Text("COMMANDS")
                 ForEach(chatVM.commands, id: \.self) { command in
                     Button {
                         chatVM.runCommand(command: command)
                     } label: {
                         Text(command.name)
                     }
-                }                
-                Button {
-                    chatVM.runAllCommands()
-                } label: {
-                    Text("Run all tasks")
+                }
+                Divider()
+                Text("WORKFLOWS")
+                ForEach(chatVM.workflowNames, id: \.self) { name in
+                    Button {
+//                        chatVM.runWorkflow(name: name)
+                        chatVM.runWorkflowInParallel(name: name)
+                    } label: {
+                        Text(name)
+                    }
                 }
             } label: {
                 Image(systemName: "ellipsis.circle")

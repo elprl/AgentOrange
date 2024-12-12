@@ -12,13 +12,6 @@ actor LMStudioAPIService {
     var historyList = [GPTMessage]()
     private var hasCancelledStream: Bool = false
     private var urlSession = URLSession.shared
-    private var urlRequest: URLRequest {
-        let url = URL(string: "\(host)/v1/chat/completions")!
-        var urlRequest = URLRequest(url: url)
-        urlRequest.httpMethod = "POST"
-        headers.forEach {  urlRequest.setValue($1, forHTTPHeaderField: $0) }
-        return urlRequest
-    }
     private let jsonDecoder: JSONDecoder = {
         let jsonDecoder = JSONDecoder()
         jsonDecoder.keyDecodingStrategy = .convertFromSnakeCase
@@ -28,14 +21,12 @@ actor LMStudioAPIService {
         ["Content-Type": "application/json"]
     }
     
-    var model: String {
-        let modelString = UserDefaults.standard.customAIModel ?? "qwen2.5-coder-32b-instruct" // "llama-3.2-3b-instruct"
-        return modelString
-    }
-    
-    private var host: String {
-        let myHost = UserDefaults.standard.customAIHost ?? "http://localhost:1234" // "http://192.168.50.3:1234"
-        return myHost
+    private func urlRequest(for host: String) -> URLRequest {
+        let url = URL(string: "\(host)/v1/chat/completions")!
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = "POST"
+        headers.forEach {  urlRequest.setValue($1, forHTTPHeaderField: $0) }
+        return urlRequest
     }
 
     init() {
@@ -53,7 +44,7 @@ actor LMStudioAPIService {
         return messages
     }
     
-    private func jsonBody(text: String, stream: Bool = true, needsJSONResponse: Bool = false) throws -> Data {
+    private func jsonBody(text: String, stream: Bool = true, needsJSONResponse: Bool = false, model: String) throws -> Data {
         let request = Request(model: model, temperature: 0.5,
                               messages: generateMessages(from: text),
                               stream: stream,
@@ -64,11 +55,11 @@ actor LMStudioAPIService {
 
 extension LMStudioAPIService: AGIStreamingServiceProtocol {
     
-    func sendMessageStream(text: String, needsJSONResponse: Bool) async throws -> AsyncThrowingStream<String, Error> {
+    func sendMessageStream(text: String, needsJSONResponse: Bool, host: String, model: String) async throws -> AsyncThrowingStream<String, Error> {
         self.hasCancelledStream = false
-        var urlRequest = self.urlRequest
+        var urlRequest = urlRequest(for: host)
         do {
-            let httpBody = try jsonBody(text: text, needsJSONResponse: needsJSONResponse)
+            let httpBody = try jsonBody(text: text, needsJSONResponse: needsJSONResponse, model: model)
             Log.api.debug("JSON Body: \(String(data: httpBody, encoding: .utf8) ?? "")")
             urlRequest.httpBody = httpBody
         } catch _ as EncodingError {
