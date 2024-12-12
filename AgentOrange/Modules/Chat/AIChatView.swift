@@ -84,8 +84,8 @@ let _ = Self._printChanges()
                 Text("WORKFLOWS")
                 ForEach(chatVM.workflowNames, id: \.self) { name in
                     Button {
-//                        chatVM.runWorkflow(name: name)
-                        chatVM.runWorkflowInParallel(name: name)
+                        chatVM.runWorkflow(name: name)
+//                        chatVM.runWorkflowInParallel(name: name)
                     } label: {
                         Text(name)
                     }

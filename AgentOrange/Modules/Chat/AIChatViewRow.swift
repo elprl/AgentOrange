@@ -108,7 +108,7 @@ struct AIChatViewRow: View {
                     Text(author)
                         .lineLimit(1)
                         .bold()
-                        .foregroundStyle(.accent)
+                        .foregroundStyle(author.color)
                 } else {
                     Text("\(Text("Agent").bold().underline().foregroundStyle(.white)) Orange")
                         .lineLimit(1)

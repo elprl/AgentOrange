@@ -172,29 +172,6 @@ final class AIChatViewModel {
         }
     }
     
-    func runWorkflowInParallel(name: String) {
-        if let cmdNames = workflows[name] {
-            for command in commandService.defaultCommands {
-                if cmdNames.contains(command.name) {
-                    Task { @MainActor in
-                        let history = generateHistory()
-                        let subTitle = UserDefaults.standard.string(forKey: UserDefaults.Keys.selectedCodeTitle)
-                        let host = command.host ?? UserDefaults.standard.customAIHost ?? "http://localhost:1234"
-                        let model = command.model ?? UserDefaults.standard.customAIModel ?? "qwen2.5-coder-32b-instruct"
-                        let author = "\(model) on \(host)"
-                        await respondToPrompt(prompt: command.prompt,
-                                              tag: command.type == .coder ? command.name : "",
-                                              isCmd: true,
-                                              history: history,
-                                              subTitle: subTitle,
-                                              host: host,
-                                              model: model)
-                    }
-                }
-            }
-        }
-    }
-    
     func runCommand(command: ChatCommand) {
         Task { @MainActor in
             start()

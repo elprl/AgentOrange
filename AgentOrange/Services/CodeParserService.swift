@@ -4,6 +4,7 @@
 //
 //  Created by Paul Leo on 03/12/2024.
 //
+
 import Foundation
 import Splash
 
@@ -16,7 +17,7 @@ protocol CodeParserServiceProtocol {
     func splitAttributedStringByNewlines(input: NSAttributedString) -> [AttributedString]
 }
 
-final class CodeService: CodeParserServiceProtocol, ObservableObject {
+final class CodeParserService: CodeParserServiceProtocol, ObservableObject {
     @Published var cachedCode: String?
     @Published var paintedRows: [AttributedString] = []
 
