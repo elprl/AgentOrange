@@ -18,6 +18,7 @@ final class FileViewerViewModel {
     var selectedRows: [AttributedString] = []
     var selectedSnippet: CodeSnippetSendable?
     var scopedFiles: [CodeSnippetSendable] = []
+    @ObservationIgnored private var pastedCodeCount: Int = 0
     @ObservationIgnored private var cancellable: AnyCancellable?
     @ObservationIgnored private var selectorCancellable: AnyCancellable?
     @ObservationIgnored private let modelContext: ModelContext
@@ -31,6 +32,18 @@ final class FileViewerViewModel {
             .sink { [weak self] scopedCodeFiles in
                 self?.scopedFiles = scopedCodeFiles
             }
+    }
+    
+    @MainActor
+    func addPasted(code: String) {
+        Task { @MainActor [weak self] in
+            guard let self = self, let groupId = self.selectedGroupId else { return }
+            let tag = "Pasted Code \(self.pastedCodeCount + 1)"
+            let snippet = CodeSnippetSendable(title: tag, code: code, subTitle: "Original", groupId: groupId)
+            await self.dataService.add(code: snippet)
+            self.selectTab(snippet: snippet)
+            self.pastedCodeCount += 1
+        }
     }
     
     @MainActor

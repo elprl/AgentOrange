@@ -18,7 +18,6 @@ final class AIChatViewModel {
     @Injected(\.commandService) @ObservationIgnored private var commandService
     /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: PersistentDataManagerProtocol
     @ObservationIgnored private var sessionIndex: Int = 0
-    @ObservationIgnored private var cancellationTask: Task<Void, Never>?
     var chats: [ChatMessage] = []
     var isGenerating: [String: Bool] = [:]
     var question: String = ""
@@ -164,26 +163,12 @@ final class AIChatViewModel {
     
     // the following function loops over the commands array and calls one at a time to the respondToPrompt function
     func runWorkflow(name: String) {
-        Task { @MainActor in
-            let history = generateHistory() // capture scopes to prevent changes during browsing
-            let subTitle = UserDefaults.standard.string(forKey: UserDefaults.Keys.selectedCodeTitle)
-            if let cmdNames = workflows[name] {
-                for command in commandService.defaultCommands {
-                    if cmdNames.contains(command.name) {
-                        let chatId = UUID().uuidString
-                        start(chatId: chatId)
-                        let host = command.host ?? UserDefaults.standard.customAIHost ?? "http://localhost:1234"
-                        let model = command.model ?? UserDefaults.standard.customAIModel ?? "qwen2.5-coder-32b-instruct"
-                        await respondToPrompt(id: chatId,
-                                              prompt: command.prompt,
-                                              tag: command.type == .coder ? command.name : "",
-                                              isCmd: true,
-                                              history: history,
-                                              subTitle: subTitle,
-                                              host: host,
-                                              model: model)
-                        stop(chatId: chatId)
-                    }
+        let history = generateHistory() // capture scopes to prevent changes during browsing
+        let subTitle = UserDefaults.standard.string(forKey: UserDefaults.Keys.selectedCodeTitle)
+        if let cmdNames = workflows[name] {
+            for command in commandService.defaultCommands {
+                if cmdNames.contains(command.name) {
+                    runCommand(command: command)
                 }
             }
         }
@@ -245,7 +230,6 @@ final class AIChatViewModel {
     
     func stop(chatId: String) {
         isGenerating[chatId] = false
-        cancellationTask?.cancel()
     }
     
     @MainActor

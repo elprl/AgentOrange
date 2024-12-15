@@ -68,7 +68,7 @@ struct FileViewerSUI: View {
                     Button(action: {
                         let pasteboard = UIPasteboard.general
                         if let code = pasteboard.string {
-                            viewModel.addCodeSnippet(code: code, tag: "PastedCode")
+                            viewModel.addPasted(code: code)
                         }
                     }, label: {
                         Label("Paste Code", systemImage: "document.on.clipboard.fill")
@@ -125,7 +125,7 @@ struct FileViewerSUI: View {
             Button(action: {
                 let pasteboard = UIPasteboard.general
                 if let code = pasteboard.string {
-                    viewModel.addCodeSnippet(code: code, tag: "PastedCode")
+                    viewModel.addPasted(code: code)
                 }
             }, label: {
                 Label("Paste Code", systemImage: "document.on.clipboard.fill")
