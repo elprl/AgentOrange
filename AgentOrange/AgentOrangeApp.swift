@@ -10,6 +10,7 @@ import SwiftData
 
 @main
 struct AgentOrangeApp: App {
+    @AppStorage("darkLightAutoMode") var darkLightAutoMode: UIUserInterfaceStyle = .unspecified
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             CDChatMessage.self, CDMessageGroup.self, CDCodeSnippet.self
@@ -37,6 +38,7 @@ struct AgentOrangeApp: App {
                 .environment(codeVM)
                 .environment(aiVM)
                 .modelContainer(sharedModelContainer)
+                .preferredColorScheme(ColorScheme(darkLightAutoMode)) // tint on status bar
         }
     }
 }

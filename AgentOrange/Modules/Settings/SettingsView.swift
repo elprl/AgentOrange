@@ -30,13 +30,12 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             List {
-//                appPreferences
+                appPreferences
                 aiSettings
                 data
                 miscellaneous
             }
             .listStyle(.insetGrouped)
-            .scrollContentBackground(.hidden)
             .tint(.accent)
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
@@ -70,6 +69,7 @@ struct SettingsView: View {
             } message: {
                 Text("This deletes all data including chats and cached code snippets. Are you sure?")
             }
+            .preferredColorScheme(ColorScheme(darkLightAutoMode)) 
         }
     }
     
@@ -110,7 +110,6 @@ struct SettingsView: View {
                     Text("Factory\nhttps://github.com/hmlongco/Factory")
                     Text("Splash\nhttps://github.com/JohnSundell/Splash")
                 }
-                .scrollContentBackground(.hidden)
                 .navigationTitle("Licenses & Thanks")
                 .toolbarColorScheme(.dark, for: .navigationBar, .bottomBar)
                 .toolbarBackground(.accent, for: .navigationBar, .bottomBar)

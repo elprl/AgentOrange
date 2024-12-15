@@ -231,16 +231,17 @@ struct FileViewerSUI: View {
                             .highPriorityGesture(TapGesture())
                             .padding(.trailing, 8)
                         }
-                        .background(snippet.codeId == (viewModel.selectedSnippet?.codeId ?? "1") ? Color(uiColor: UIColor.systemBackground) : Color.gray.opacity(0.7))
+                        .background(snippet.codeId == (viewModel.selectedSnippet?.codeId ?? "1") ? Color.accent : Color.accent.opacity(0.2))
                         .clipShape(.rect(topLeadingRadius: 8, topTrailingRadius: 8))
                         .padding(.horizontal, 4)
+                        .shadow(radius: snippet.codeId == (viewModel.selectedSnippet?.codeId ?? "1") ? 2 : 0, y: 2)
                     })
                 }
             }
         }
         .padding(.top, 4)
         .padding(.horizontal)
-        .background(Color.accent)
+        .background(Color.gray)
         .padding(.bottom, -8)
     }
 }

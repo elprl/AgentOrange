@@ -7,6 +7,7 @@
 
 import Foundation
 import Splash
+import SwiftUI
 
 protocol CodeParserServiceProtocol {
     var cachedCode: String? { get }
@@ -34,7 +35,12 @@ class CodeParserService: CodeParserServiceProtocol, ObservableObject {
     }
     
     func getHighlighted(code: String) -> NSAttributedString {
-        let highlighter = SyntaxHighlighter(format: AttributedStringOutputFormat(theme: .midnight(withFont: Splash.Font(size: 16))))
+        var theme: Theme = .midnight(withFont: Splash.Font(size: 16))
+        let mode = UserDefaults.standard.integer(forKey: "darkLightAutoMode")
+        if mode == UIUserInterfaceStyle.light.rawValue {
+            theme = .sunset(withFont: Splash.Font(size: 16))
+        }
+        let highlighter = SyntaxHighlighter(format: AttributedStringOutputFormat(theme: theme))
         let attString = highlighter.highlight(code)
         return attString
     }

@@ -94,7 +94,7 @@ struct SideBarSUI: View {
                         .font(.title2)
                         .bold()
                         .underline()
-                        .foregroundColor(.white)
+                        .foregroundColor(.primary)
                     Text("Orange")
                         .font(.title)
                         .bold()
