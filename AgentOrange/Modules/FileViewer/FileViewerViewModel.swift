@@ -17,6 +17,7 @@ final class FileViewerViewModel {
     var selectedGroupId: String?
     var selectedRows: [AttributedString] = []
     var selectedSnippet: CodeSnippetSendable?
+    var scopedFiles: [CodeSnippetSendable] = []
     @ObservationIgnored private var cancellable: AnyCancellable?
     @ObservationIgnored private var selectorCancellable: AnyCancellable?
     @ObservationIgnored private let modelContext: ModelContext
@@ -25,6 +26,11 @@ final class FileViewerViewModel {
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
         self.dataService = Container.shared.dataService(modelContext.container) // Injected PersistentDataManager(container: modelContext.container)
+        cancellable = parserService.publisher
+            .dropFirst()
+            .sink { [weak self] scopedCodeFiles in
+                self?.scopedFiles = scopedCodeFiles
+            }
     }
     
     @MainActor
@@ -53,6 +59,22 @@ final class FileViewerViewModel {
         parserService.cacheCode(code: snippet.code)
         selectedSnippet = snippet
         UserDefaults.standard.set(snippet.title, forKey: UserDefaults.Keys.selectedCodeTitle)
+    }
+    
+    func addToScope(snippet: CodeSnippetSendable) {
+        if !parserService.scopedCodeFiles.contains(snippet) {
+            parserService.scopedCodeFiles.append(snippet)
+        }
+    }
+    
+    func removeFromScope(snippetId: String) {
+        if let index = parserService.scopedCodeFiles.firstIndex(where: { $0.codeId == snippetId }) {
+            parserService.scopedCodeFiles.remove(at: index)
+        }
+    }
+    
+    func isScoped(id: String) -> Bool {
+        return scopedFiles.contains(where: { $0.codeId == id })
     }
     
     @MainActor
@@ -103,6 +125,43 @@ final class FileViewerViewModel {
 
 extension FileViewerViewModel {
     @MainActor static func mock() -> FileViewerViewModel {
+        let _ = Container.shared.parserService.register {
+            let ps = CodeParserService()
+            ps.cacheCode(code: "let x = 1")
+            return ps
+        }
+        let vm = FileViewerViewModel(modelContext: PreviewController.codeSnippetPreviewContainer.mainContext)
+        vm.selectedGroupId = "1"
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            
+            vm.addCodeSnippet(code: """
+        #if DEBUG
+
+        extension FileViewerViewModel {
+            @MainActor static func mock() -> FileViewerViewModel {
+                let _ = Container.shared.parserService.register {
+                    let ps = CodeParserService()
+                    ps.cacheCode(code: "let x = 1")
+                    return ps
+                }
+                let vm = FileViewerViewModel(modelContext: PreviewController.codeSnippetPreviewContainer.mainContext)                
+                return vm
+            }
+            
+            @MainActor static func emptyMock() -> FileViewerViewModel {
+                let vm = FileViewerViewModel(modelContext: PreviewController.codeSnippetPreviewContainer.mainContext)
+                return vm
+            }
+        }
+
+        #endif
+""", tag: "PastedCode")
+        }
+        
+        return vm
+    }
+    
+    @MainActor static func emptyMock() -> FileViewerViewModel {
         let vm = FileViewerViewModel(modelContext: PreviewController.codeSnippetPreviewContainer.mainContext)
         return vm
     }

@@ -7,11 +7,15 @@
 
 import SwiftUI
 
+enum RowEvent {
+    case deleted
+    case selected
+    case stopped
+}
+
 struct AIChatViewRow: View {
     let chat: ChatMessage
-    @State private var isExpanded: Bool = true
-    @Environment(FileViewerViewModel.self) private var fileVM: FileViewerViewModel
-    let deleteAction: () -> Void
+    let action: (RowEvent) -> Void
 
     var body: some View {
         GroupBox {
@@ -37,7 +41,7 @@ struct AIChatViewRow: View {
                 .padding(.trailing)
             Menu {
                 Button {
-                    deleteAction()
+                    action(.deleted)
                 } label: {
                     Label("Delete", systemImage: "trash")
                 }
@@ -66,7 +70,7 @@ struct AIChatViewRow: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             } label: {
                 Button {
-                    fileVM.didSelectCode(id: chat.codeId)
+                    action(.selected)
                 } label: {
                     GroupBox {
                         HStack {
@@ -102,7 +106,7 @@ struct AIChatViewRow: View {
     
     @ViewBuilder
     private var header: some View {
-        HStack {
+        HStack(alignment: .top) {
             VStack(alignment: .leading) {
                 if let author = chat.model {
                     Text(author)
@@ -125,9 +129,19 @@ struct AIChatViewRow: View {
             Spacer()
             Menu {
                 Button {
-                    deleteAction()
+                    action(.deleted)
                 } label: {
                     Label("Delete", systemImage: "trash")
+                }
+                Button {
+                    UIPasteboard.general.string = chat.content
+                } label: {
+                    Label("Copy", systemImage: "document.on.document.fill")
+                }
+                Button {
+                    action(.stopped)
+                } label: {
+                    Label("Stop", systemImage: "stop.circle")
                 }
             } label: {
                 Image(systemName: "ellipsis.circle")
@@ -136,24 +150,6 @@ struct AIChatViewRow: View {
             .menuOrder(.fixed)
             .highPriorityGesture(TapGesture())
             .offset(x: 4)
-        }
-    }
-    
-    @ViewBuilder
-    private var logo: some View {
-        ZStack {
-            Circle()
-                .fill(.accent)
-                .frame(width: 20, height: 20)
-            Image("biohazard")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 14, height: 14)
-                .foregroundColor(.black)
-            Circle()
-                .stroke(.black, lineWidth: 2)
-                .frame(width: 20, height: 20)
-                .shadow(color: .gray, radius: 2)
         }
     }
     
@@ -168,8 +164,8 @@ struct AIChatViewRow: View {
 
 #Preview {
     List {
-        AIChatViewRow(chat: ChatMessage(role: .user, content: "blah blah", groupId: "1")) {}
-        AIChatViewRow(chat: ChatMessage(role: .assistant, content: "blah blah", tag: "CodeGen1", groupId: "1")) {}
+        AIChatViewRow(chat: ChatMessage(role: .user, content: "blah blah", groupId: "1")) { _ in }
+        AIChatViewRow(chat: ChatMessage(role: .assistant, content: "blah blah", tag: "CodeGen1", groupId: "1")) { _ in }
     }
     .listStyle(.plain)
     .environment(FileViewerViewModel(modelContext: PreviewController.chatsPreviewContainer.mainContext))

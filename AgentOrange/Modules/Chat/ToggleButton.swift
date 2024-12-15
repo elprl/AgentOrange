@@ -23,7 +23,8 @@ struct ToggleButton: View {
             self.action()
         } label: {
             Text(self.title)
-                .font(.custom("PierSans-Bold", size: 14))
+                .lineLimit(1)
+                .font(.system(size: 14))
                 .foregroundColor(isOn ? onTextColor : offTextColor)
                 .padding(.horizontal)
                 .padding(.vertical, 2)

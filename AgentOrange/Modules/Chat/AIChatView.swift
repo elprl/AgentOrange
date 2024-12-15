@@ -9,6 +9,7 @@ import SwiftUI
 
 struct AIChatView: View {
     @Environment(AIChatViewModel.self) private var chatVM: AIChatViewModel
+    @Environment(FileViewerViewModel.self) private var fileVM: FileViewerViewModel
     @FocusState private var isFocused: Bool
 
     var body: some View {
@@ -54,8 +55,15 @@ let _ = Self._printChanges()
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
                 ForEach(chatVM.chats, id: \.self) { chat in
-                    AIChatViewRow(chat: chat) {
-                        chatVM.delete(message: chat)
+                    AIChatViewRow(chat: chat) { action in
+                        switch action {
+                        case .deleted:
+                            chatVM.delete(message: chat)
+                        case .selected:
+                            fileVM.didSelectCode(id: chat.codeId)
+                        case .stopped:
+                            chatVM.stop(chatId: chat.id)
+                        }
                     }
                     .transition(.slide)
                     .padding(.horizontal)
@@ -111,20 +119,20 @@ let _ = Self._printChanges()
                 .lineLimit(1...10)
             Spacer()
             Group {
-                if !chatVM.isGenerating {
-                    Button {
-                        chatVM.streamResponse()
+                if chatVM.isAnyGenerating {
+                    DebouncedButton {
+                        chatVM.stopAll()
                     } label: {
-                        Image(systemName: "paperplane.fill")
+                        Image(systemName: "stop.circle")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 26, height: 26, alignment: .center)
                     }
                 } else {
-                    Button {
-                        chatVM.stop()
+                    DebouncedButton {
+                        chatVM.streamResponse()
                     } label: {
-                        Image(systemName: "stop.circle")
+                        Image(systemName: "paperplane.fill")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 26, height: 26, alignment: .center)

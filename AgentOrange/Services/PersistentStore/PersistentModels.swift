@@ -129,7 +129,7 @@ class PreviewController {
             let config = ModelConfiguration(isStoredInMemoryOnly: true)
             let container = try ModelContainer(for: CDCodeSnippet.self, configurations: config)
             
-            for i in 1..<100 {
+            for i in 1..<10 {
                 let group = CDCodeSnippet(codeId: "\(i)", title: "Message \(i)", code: "Code \(i)", groupId: "1")
                 container.mainContext.insert(group)
             }

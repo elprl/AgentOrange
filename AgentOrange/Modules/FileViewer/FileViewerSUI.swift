@@ -158,11 +158,23 @@ struct FileViewerSUI: View {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(snippet.title)
                                         .lineLimit(1)
-                                        .foregroundStyle(.white)
-                                    Text(subTitle)
-                                        .lineLimit(1)
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(.primary)
+                                    HStack {
+                                        if viewModel.isScoped(id: snippet.codeId) {
+                                            Text("S")
+                                                .font(.system(size: 8))
+                                                .foregroundStyle(.white)
+                                                .padding(3)
+                                                .background(content: {
+                                                    Circle()
+                                                        .fill(Color.accent)
+                                                })
+                                        }
+                                        Text(subTitle)
+                                            .lineLimit(1)
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
                                 }
                                 .padding(.horizontal, 8)
                                 .padding(.top, 8)
@@ -170,24 +182,53 @@ struct FileViewerSUI: View {
                             } else {
                                 Text(snippet.title)
                                     .lineLimit(1)
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(.primary)
                                     .padding(8)
                             }
-                            Button(action: {
-                                if let selectedSnippet = viewModel.selectedSnippet, selectedSnippet.id == snippet.codeId {
-                                    if let index = snippets.firstIndex(where: { $0.codeId == selectedSnippet.id }) {
-                                        if index > 0 {
-                                            viewModel.selectTab(snippet: snippets[index - 1].sendableModel)
-                                        } else if snippets.count > 1 {
-                                            viewModel.selectTab(snippet: snippets[1].sendableModel)
+                            Menu {
+                                if viewModel.isScoped(id: snippet.codeId) {
+                                    Button(action: {
+                                        viewModel.removeFromScope(snippetId: snippet.codeId)
+                                    }, label: {
+                                        
+                                        Label("Remove from Scope", systemImage: "minus")
+                                            .foregroundStyle(.white)
+                                    })
+                                } else {
+                                    Button(action: {
+                                        viewModel.addToScope(snippet: snippet.sendableModel)
+                                    }, label: {
+                                        
+                                        Label("Add to Scope", systemImage: "plus")
+                                            .foregroundStyle(.white)
+                                    })
+                                }
+                                Button(action: {
+                                    if let selectedSnippet = viewModel.selectedSnippet, selectedSnippet.id == snippet.codeId {
+                                        if let index = snippets.firstIndex(where: { $0.codeId == selectedSnippet.id }) {
+                                            if index > 0 {
+                                                viewModel.selectTab(snippet: snippets[index - 1].sendableModel)
+                                            } else if snippets.count > 1 {
+                                                viewModel.selectTab(snippet: snippets[1].sendableModel)
+                                            }
                                         }
                                     }
-                                }
-                                viewModel.hide(snippet: snippet.sendableModel)
-                            }, label: {
-                                Image(systemName: "xmark")
+                                    viewModel.hide(snippet: snippet.sendableModel)
+                                }, label: {
+                                    Label("Hide", systemImage: "xmark")
+                                        .foregroundStyle(.white)
+                                })
+                            } label: {
+                                Image(systemName: "ellipsis")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
                                     .foregroundStyle(.white)
-                            })
+                                    .frame(width: 20, height: 20)
+                                    .contentShape(Rectangle())
+                                    .rotationEffect(.degrees(90))
+                            }
+                            .menuOrder(.fixed)
+                            .highPriorityGesture(TapGesture())
                             .padding(.trailing, 8)
                         }
                         .background(snippet.codeId == (viewModel.selectedSnippet?.codeId ?? "1") ? Color(uiColor: UIColor.systemBackground) : Color.gray.opacity(0.7))
@@ -210,13 +251,17 @@ struct FileViewerSUI: View {
     NavigationStack {
         FileViewerSUI(groupId: "1")
             .environment(FileViewerViewModel.mock())
+            .environment(AIChatViewModel.mock())
+            .modelContainer(PreviewController.codeSnippetPreviewContainer.mainContext.container)
     }
 }
 
 #Preview("No code") {
     NavigationStack {
         FileViewerSUI(groupId: "1")
+            .environment(AIChatViewModel.mock())
             .environment(FileViewerViewModel(modelContext: PreviewController.codeSnippetPreviewContainer.mainContext))
+//            .modelContainer(PreviewController.codeSnippetPreviewContainer.mainContext.container)
     }
 }
 

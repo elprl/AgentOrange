@@ -20,7 +20,7 @@ final class AIChatViewModel {
     @ObservationIgnored private var sessionIndex: Int = 0
     @ObservationIgnored private var cancellationTask: Task<Void, Never>?
     var chats: [ChatMessage] = []
-    var isGenerating: Bool = false
+    var isGenerating: [String: Bool] = [:]
     var question: String = ""
     var hasScrolledOffBottom: Bool = false
     var commands: [ChatCommand] {
@@ -31,6 +31,9 @@ final class AIChatViewModel {
     }
     var workflowNames: [String] {
         workflows.keys.map { $0 }
+    }
+    var isAnyGenerating: Bool {
+        isGenerating.values.contains(true)
     }
     
 //    private let chatService: PersistentDataManager
@@ -63,15 +66,27 @@ final class AIChatViewModel {
         Task { @MainActor in
             let questionCopy = String(self.question.trimmingCharacters(in: .whitespacesAndNewlines))
             self.question = ""
-            start()
+            let chatId = UUID().uuidString
+            start(chatId: chatId)
             self.sessionIndex += 1
             let tag = "Version \(self.sessionIndex)"
-            await respondToPrompt(prompt: questionCopy, tag: tag)
-            stop()
+            await respondToPrompt(id: chatId, prompt: questionCopy, tag: tag)
+            stop(chatId: chatId)
         }
     }
     
-    private func respondToPrompt(prompt: String,
+    func isGenerating(chatId: String) -> Bool {
+        isGenerating[chatId] ?? false
+    }
+    
+    func stopAll() {
+        isGenerating.keys.forEach {
+            stop(chatId: $0)
+        }
+    }
+    
+    private func respondToPrompt(id: String = UUID().uuidString,
+                                 prompt: String,
                                  tag: String,
                                  isCmd: Bool = false,
                                  history: [ChatMessage]? = nil,
@@ -83,7 +98,7 @@ final class AIChatViewModel {
         } else {
             addChatMessage(content: prompt)
         }
-        let responseMessage = addChatMessage(role: .assistant, content: "", model: model, host: host)
+        let responseMessage = addChatMessage(id: id, role: .assistant, content: "", model: model, host: host)
         var tempOutput = ""
         await Task.detached { [weak self] in
             do {
@@ -95,7 +110,7 @@ final class AIChatViewModel {
                 }
                 let stream = try await self.agiService.sendMessageStream(text: prompt, needsJSONResponse: false, host: host, model: model)
                 for try await responseDelta in stream {
-                    if await !self.isGenerating {
+                    if await !self.isGenerating(chatId: responseMessage.id) {
                         break
                     }
                     tempOutput += responseDelta
@@ -150,51 +165,53 @@ final class AIChatViewModel {
     // the following function loops over the commands array and calls one at a time to the respondToPrompt function
     func runWorkflow(name: String) {
         Task { @MainActor in
-            start()
             let history = generateHistory() // capture scopes to prevent changes during browsing
             let subTitle = UserDefaults.standard.string(forKey: UserDefaults.Keys.selectedCodeTitle)
             if let cmdNames = workflows[name] {
                 for command in commandService.defaultCommands {
-                    if isGenerating && cmdNames.contains(command.name) {
+                    if cmdNames.contains(command.name) {
+                        let chatId = UUID().uuidString
+                        start(chatId: chatId)
                         let host = command.host ?? UserDefaults.standard.customAIHost ?? "http://localhost:1234"
                         let model = command.model ?? UserDefaults.standard.customAIModel ?? "qwen2.5-coder-32b-instruct"
-                        await respondToPrompt(prompt: command.prompt,
+                        await respondToPrompt(id: chatId,
+                                              prompt: command.prompt,
                                               tag: command.type == .coder ? command.name : "",
                                               isCmd: true,
                                               history: history,
                                               subTitle: subTitle,
                                               host: host,
                                               model: model)
+                        stop(chatId: chatId)
                     }
                 }
             }
-            stop()
         }
     }
     
     func runCommand(command: ChatCommand) {
         Task { @MainActor in
-            start()
+            let chatId = UUID().uuidString
+            start(chatId: chatId)
             let history = generateHistory()
             let subTitle = UserDefaults.standard.string(forKey: UserDefaults.Keys.selectedCodeTitle)
             let host = command.host ?? UserDefaults.standard.customAIHost ?? "http://localhost:1234"
             let model = command.model ?? UserDefaults.standard.customAIModel ?? "qwen2.5-coder-32b-instruct"
-            if isGenerating {
-                await respondToPrompt(prompt: command.prompt,
-                                      tag: command.name,
-                                      isCmd: true,
-                                      history: history,
-                                      subTitle: subTitle,
-                                      host: host,
-                                      model: model)
-            }
-            stop()
+            await respondToPrompt(id: chatId,
+                                  prompt: command.prompt,
+                                  tag: command.name,
+                                  isCmd: true,
+                                  history: history,
+                                  subTitle: subTitle,
+                                  host: host,
+                                  model: model)
+            stop(chatId: chatId)
         }
     }
     
     @MainActor
-    @discardableResult private func addChatMessage(role: GPTRole = .user, content: String, type: MessageType = .message, tag: String? = nil, model: String? = nil, host: String? = nil) -> ChatMessage {
-        let chatMessage = ChatMessage(role: role, type: type, content: content, tag: tag, groupId: selectedGroupId ?? "1", model: model, host: host)
+    @discardableResult private func addChatMessage(id: String = UUID().uuidString, role: GPTRole = .user, content: String, type: MessageType = .message, tag: String? = nil, model: String? = nil, host: String? = nil) -> ChatMessage {
+        let chatMessage = ChatMessage(id: id, role: role, type: type, content: content, tag: tag, groupId: selectedGroupId ?? "1", model: model, host: host)
         chats.append(chatMessage)
         persistChat(message: chatMessage)
         return chatMessage
@@ -222,12 +239,12 @@ final class AIChatViewModel {
         }
     }
     
-    func start() {
-        isGenerating = true
+    func start(chatId: String) {
+        isGenerating[chatId] = true
     }
     
-    func stop() {
-        isGenerating = false
+    func stop(chatId: String) {
+        isGenerating[chatId] = false
         cancellationTask?.cancel()
     }
     
@@ -246,10 +263,8 @@ final class AIChatViewModel {
         if defaults.scopeHistory {
             history.append(contentsOf: chats)
         }
-        if defaults.scopeCode {
-            if let code = parserService.cachedCode {
-                history.append(ChatMessage(role: .user, content: code, groupId: selectedGroupId ?? "1"))
-            }
+        for snippet in parserService.scopedCodeFiles {
+            history.append(ChatMessage(role: .user, content: snippet.code, groupId: selectedGroupId ?? "1"))
         }
         return history
     }
@@ -261,9 +276,6 @@ final class AIChatViewModel {
         }
         if defaults.object(forKey: Scope.history.rawValue) == nil {
             defaults.scopeHistory = true
-        }
-        if defaults.object(forKey: Scope.code.rawValue) == nil {
-            defaults.scopeCode = true
         }
         if defaults.object(forKey: Scope.genCode.rawValue) == nil {
             defaults.scopeGenCode = false

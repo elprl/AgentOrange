@@ -18,21 +18,69 @@ struct ScopeBarView: View {
 #if DEBUG
 let _ = Self._printChanges()
 #endif
+        scopes
+        files
+    }
+    
+    @ViewBuilder
+    private var scopes: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack {
                 Text("Scopes: ")
-                if let tag = codeVM.selectedSnippet?.title {
-                    ToggleButton(title: "\(Scope.code.rawValue): \(tag)", isOn: $codeScope, onColor: .accent) {}
-                }
-                ToggleButton(title: Scope.genCode.rawValue, isOn: $genCodeScope, onColor: .accent) {}
-                ToggleButton(title: Scope.history.rawValue, isOn: $historyScope, onColor: .accent) {}
                 ToggleButton(title: Scope.role.rawValue, isOn: $systemScope, onColor: .accent) {}
+                ToggleButton(title: Scope.history.rawValue, isOn: $historyScope, onColor: .accent) {}
+                ToggleButton(title: Scope.genCode.rawValue, isOn: $genCodeScope, onColor: .accent) {}
                 Spacer()
             }
         }
         .transition(.opacity)
         .padding(.vertical, 4)
         .padding(.horizontal)
+    }
+
+    @ViewBuilder
+    private var files: some View {
+        if !codeVM.scopedFiles.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+                
+                HStack {
+                    ForEach(codeVM.scopedFiles, id: \.self) { fileName in
+                        HStack(alignment: .center) {
+                            Image(systemName: "text.page.fill")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 14, height: 14, alignment: .center)
+                            Text(fileName.title)
+                                .font(.system(size: 14))
+                            Button {
+                                codeVM.removeFromScope(snippetId: fileName.codeId)
+                            } label: {
+                                Image(systemName: "xmark")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 14, height: 14, alignment: .center)
+                            }
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .foregroundStyle(.white)
+                        .background(
+                            ZStack {
+                                Color.accent
+                                Capsule()
+                                    .stroke(.accent, lineWidth: 3)
+                            }
+                        )
+                        .contentShape(Capsule())
+                        .clipShape(Capsule())
+                    }
+                    Spacer()
+                }
+            }
+            .transition(.opacity)
+            .padding(.vertical, 4)
+            .padding(.horizontal)
+        }
     }
 }
 

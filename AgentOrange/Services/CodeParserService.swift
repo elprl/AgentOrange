@@ -11,16 +11,20 @@ import Splash
 protocol CodeParserServiceProtocol {
     var cachedCode: String? { get }
     var paintedRows: [AttributedString] { get }
+    var scopedCodeFiles: [CodeSnippetSendable] { get set }
+    var publisher: Published<[CodeSnippetSendable]>.Publisher { get }
 
     func cacheCode(code: String)
     func getHighlighted(code: String) -> NSAttributedString
     func splitAttributedStringByNewlines(input: NSAttributedString) -> [AttributedString]
 }
 
-final class CodeParserService: CodeParserServiceProtocol, ObservableObject {
+class CodeParserService: CodeParserServiceProtocol, ObservableObject {
     @Published var cachedCode: String?
     @Published var paintedRows: [AttributedString] = []
-
+    @Published var scopedCodeFiles: [CodeSnippetSendable] = []
+    var publisher: Published<[CodeSnippetSendable]>.Publisher { $scopedCodeFiles }
+    
     func cacheCode(code: String) {
         if code.isEmpty { return }
         self.cachedCode = code
