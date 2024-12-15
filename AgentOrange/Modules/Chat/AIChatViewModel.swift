@@ -263,8 +263,9 @@ final class AIChatViewModel {
         if defaults.scopeHistory {
             history.append(contentsOf: chats)
         }
-        for snippet in parserService.scopedCodeFiles {
-            history.append(ChatMessage(role: .user, content: snippet.code, groupId: selectedGroupId ?? "1"))
+        let allCode = parserService.scopedCodeFiles.reduce("", { $0 + "\n\n" + $1.code }).trimmingCharacters(in: .whitespacesAndNewlines)
+        if !allCode.isEmpty {
+            history.append(ChatMessage(role: .user, content: allCode, groupId: selectedGroupId ?? "1"))
         }
         return history
     }
