@@ -7,8 +7,11 @@
 
 import SwiftUI
 import SwiftData
+import MarkdownUI
+import Splash
 
 struct FileViewerSUI: View {
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(FileViewerViewModel.self) private var viewModel: FileViewerViewModel
     @State private var isFilePickerPresented: Bool = false
     @State private var fileContent: String = ""
@@ -28,27 +31,10 @@ struct FileViewerSUI: View {
         VStack {
             if !snippets.isEmpty {
                 browserTabs
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 0) {
-                        ForEach(viewModel.currentRows.indices, id: \.self) { index in
-                            if isWrapText {
-                                Text(viewModel.currentRows[index])
-                                    .padding(.horizontal)
-                                    .id(index)
-                                    .lineLimit(nil)
-                                    .textSelection(.enabled)
-                                    .multilineTextAlignment(.leading)
-                            } else {
-                                Text(viewModel.currentRows[index])
-                                    .padding(.horizontal)
-                                    .id(index)
-                                    .lineLimit(1)
-                                    .textSelection(.enabled)
-                            }
-                        }
-                    }
-                    .padding(.top)
-                    .padding(.bottom)
+                ScrollView(showsIndicators: true) {
+                    markdown
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 16)
                 }
             } else {
                 pasteBtn
@@ -101,7 +87,7 @@ struct FileViewerSUI: View {
                     Button(action: {
                         viewModel.copyToClipboard()
                     }, label: {
-                        Image(systemName: "document.on.document.fill")
+                        Image(systemName: "clipboard")
                             .foregroundStyle(.white)
                     })
                 }
@@ -117,6 +103,74 @@ struct FileViewerSUI: View {
                 }
             }
         }
+    }
+    
+    @ViewBuilder
+    private var markdown: some View {
+        Markdown(viewModel.cachedCode)
+            .markdownBlockStyle(\.codeBlock) {
+                codeBlock($0)
+            }
+            .markdownCodeSyntaxHighlighter(.splash(theme: self.theme))
+    }
+    
+    @ViewBuilder
+    private func codeBlock(_ configuration: CodeBlockConfiguration) -> some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text(configuration.language ?? "plain text")
+                    .font(.system(.caption, design: .monospaced))
+                    .fontWeight(.semibold)
+                    .foregroundColor(Color(theme.plainTextColor))
+                Spacer()
+                
+                Image(systemName: "clipboard")
+                    .onTapGesture {
+                        copyToClipboard(configuration.content)
+                    }
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+            .background {
+                Color(theme.backgroundColor)
+            }
+            
+            Divider()
+            
+            ScrollView(.horizontal) {
+                configuration.label
+                    .relativeLineSpacing(.em(0.25))
+                    .markdownTextStyle {
+                        FontFamilyVariant(.monospaced)
+                        FontSize(.em(0.85))
+                    }
+                    .padding()
+            }
+        }
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .markdownMargin(top: .em(0.8), bottom: .em(0.8))
+    }
+    
+    private var theme: Splash.Theme {
+        // NOTE: We are ignoring the Splash theme font
+        switch self.colorScheme {
+        case .dark:
+            return .wwdc17(withFont: .init(size: 16))
+        default:
+            return .sunset(withFont: .init(size: 16))
+        }
+    }
+    
+    private func copyToClipboard(_ string: String) {
+#if os(macOS)
+        if let pasteboard = NSPasteboard.general {
+            pasteboard.clearContents()
+            pasteboard.setString(string, forType: .string)
+        }
+#elseif os(iOS)
+        UIPasteboard.general.string = string
+#endif
     }
     
     @ViewBuilder

@@ -37,9 +37,13 @@ final class FileViewerViewModel {
     @MainActor
     func addPasted(code: String) {
         Task { @MainActor [weak self] in
+            var formattedCode = code
+            if !code.hasPrefix("```") {
+                formattedCode = "```\n\(code)\n```"
+            }
             guard let self = self, let groupId = self.selectedGroupId else { return }
             let tag = "Pasted Code \(self.pastedCodeCount + 1)"
-            let snippet = CodeSnippetSendable(title: tag, code: code, subTitle: "Original", groupId: groupId)
+            let snippet = CodeSnippetSendable(title: tag, code: formattedCode, subTitle: "Original", groupId: groupId)
             await self.dataService.add(code: snippet)
             self.selectTab(snippet: snippet)
             self.pastedCodeCount += 1
@@ -58,6 +62,10 @@ final class FileViewerViewModel {
     
     var currentRows: [AttributedString] {
         return parserService.paintedRows
+    }
+    
+    var cachedCode: String {
+        return parserService.cachedCode ?? ""
     }
     
     var currentTimestamp: String? {

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E14D11522D11CB6B00F6FB32 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = E14D11512D11CB6B00F6FB32 /* MarkdownUI */; };
 		E1A39E2F2CFFA2DE00A83ADF /* Factory in Frameworks */ = {isa = PBXBuildFile; productRef = E1A39E2E2CFFA2DE00A83ADF /* Factory */; };
 		E1A39E312CFFA2DE00A83ADF /* Splash in Frameworks */ = {isa = PBXBuildFile; productRef = E1A39E302CFFA2DE00A83ADF /* Splash */; };
 /* End PBXBuildFile section */
@@ -57,6 +58,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E14D11522D11CB6B00F6FB32 /* MarkdownUI in Frameworks */,
 				E1A39E2F2CFFA2DE00A83ADF /* Factory in Frameworks */,
 				E1A39E312CFFA2DE00A83ADF /* Splash in Frameworks */,
 			);
@@ -129,6 +131,7 @@
 			packageProductDependencies = (
 				E1A39E2E2CFFA2DE00A83ADF /* Factory */,
 				E1A39E302CFFA2DE00A83ADF /* Splash */,
+				E14D11512D11CB6B00F6FB32 /* MarkdownUI */,
 			);
 			productName = AgentOrange;
 			productReference = E10E1C042CFFA1C7006AE920 /* AgentOrange.app */;
@@ -215,6 +218,7 @@
 			packageReferences = (
 				E10E1C332CFFA223006AE920 /* XCRemoteSwiftPackageReference "Factory" */,
 				E10E1C342CFFA232006AE920 /* XCRemoteSwiftPackageReference "Splash" */,
+				E101E8602D11C9BD0057DB62 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E10E1C052CFFA1C7006AE920 /* Products */;
@@ -587,6 +591,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		E101E8602D11C9BD0057DB62 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/gonzalezreal/swift-markdown-ui";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.4.1;
+			};
+		};
 		E10E1C332CFFA223006AE920 /* XCRemoteSwiftPackageReference "Factory" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/hmlongco/Factory";
@@ -606,6 +618,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		E14D11512D11CB6B00F6FB32 /* MarkdownUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E101E8602D11C9BD0057DB62 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */;
+			productName = MarkdownUI;
+		};
 		E1A39E2E2CFFA2DE00A83ADF /* Factory */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E10E1C332CFFA223006AE920 /* XCRemoteSwiftPackageReference "Factory" */;

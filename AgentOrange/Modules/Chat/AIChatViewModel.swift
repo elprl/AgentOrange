@@ -118,7 +118,7 @@ final class AIChatViewModel {
                         self?.updateMessage(message: responseMessage, content: readonlyOutput)
                     }
                 }
-                let finalOutput = await removeMarkdown(from: tempOutput)
+                let finalOutput =  tempOutput // await removeMarkdown(from: tempOutput)
                 Log.pres.debug("AI Generated: \(tempOutput)")
                 DispatchQueue.main.async { [weak self] in
                     if UserDefaults.standard.scopeGenCode {
@@ -163,8 +163,6 @@ final class AIChatViewModel {
     
     // the following function loops over the commands array and calls one at a time to the respondToPrompt function
     func runWorkflow(name: String) {
-        let history = generateHistory() // capture scopes to prevent changes during browsing
-        let subTitle = UserDefaults.standard.string(forKey: UserDefaults.Keys.selectedCodeTitle)
         if let cmdNames = workflows[name] {
             for command in commandService.defaultCommands {
                 if cmdNames.contains(command.name) {
@@ -240,7 +238,7 @@ final class AIChatViewModel {
         if defaults.scopeRole {
             var systemPrompt = "You are an experienced professional Swift iOS engineer."
             if defaults.scopeGenCode {
-                systemPrompt += " All your responses must contain swift code ONLY without Markdown."
+                systemPrompt += " All your responses must contain swift 6 code ONLY, with any guidance, descriptions or comments written inside the code as code comments."
             }
             history.append(ChatMessage(role: .system, content: systemPrompt, groupId: selectedGroupId ?? "1"))
         }
