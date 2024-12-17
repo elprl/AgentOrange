@@ -33,8 +33,7 @@ struct FileViewerSUI: View {
                 browserTabs
                 ScrollView(showsIndicators: true) {
                     markdown
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 16)
+                        .padding()
                 }
             } else {
                 pasteBtn
@@ -49,35 +48,30 @@ struct FileViewerSUI: View {
         .navigationTitle("Code Viewer")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItemGroup(placement: .topBarTrailing) {
-                Menu {
-                    Button(action: {
-                        let pasteboard = UIPasteboard.general
-                        if let code = pasteboard.string {
-                            viewModel.addPasted(code: code)
-                        }
-                    }, label: {
-                        Label("Paste Code", systemImage: "document.on.clipboard.fill")
-                            .foregroundStyle(.white)
-                    })
-                    Button(action: {
-                        isFilePickerPresented = true
-                    }, label: {
-                        Label("Browse Files", systemImage: "folder.fill")
-                            .foregroundStyle(.white)
-                    })
-                    Button {
-                        isWrapText.toggle()
-                    } label: {
-                        Label("Wrap Text", systemImage: isWrapText ? "checkmark" : "xmark")
-                    }
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                        .foregroundStyle(.white)
-                }
-                .menuOrder(.fixed)
-                .highPriorityGesture(TapGesture())
-            }
+//            ToolbarItemGroup(placement: .topBarTrailing) {
+//                Menu {
+//                    Button(action: {
+//                        let pasteboard = UIPasteboard.general
+//                        if let code = pasteboard.string {
+//                            viewModel.addPasted(code: code)
+//                        }
+//                    }, label: {
+//                        Label("Paste Code", systemImage: "document.on.clipboard.fill")
+//                            .foregroundStyle(.white)
+//                    })
+//                    Button(action: {
+//                        isFilePickerPresented = true
+//                    }, label: {
+//                        Label("Browse Files", systemImage: "folder.fill")
+//                            .foregroundStyle(.white)
+//                    })
+//                } label: {
+//                    Image(systemName: "ellipsis.circle")
+//                        .foregroundStyle(.white)
+//                }
+//                .menuOrder(.fixed)
+//                .highPriorityGesture(TapGesture())
+//            }
             if !snippets.isEmpty {
                 ToolbarItemGroup(placement: .bottomBar) {
                     if let time = viewModel.currentTimestamp {
@@ -123,7 +117,6 @@ struct FileViewerSUI: View {
                     .fontWeight(.semibold)
                     .foregroundColor(Color(theme.plainTextColor))
                 Spacer()
-                
                 Image(systemName: "clipboard")
                     .onTapGesture {
                         copyToClipboard(configuration.content)
@@ -201,102 +194,123 @@ struct FileViewerSUI: View {
     
     @ViewBuilder
     private var browserTabs: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack {
-                ForEach(snippets, id: \.self) { snippet in
-                    Button(action: {
-                        viewModel.selectTab(snippet: snippet.sendableModel)
-                    }, label: {
-                        HStack {
-                            if let subTitle = snippet.subTitle {
-                                VStack(alignment: .leading, spacing: 2) {
+        HStack {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack {
+                    ForEach(snippets, id: \.self) { snippet in
+                        Button(action: {
+                            viewModel.selectTab(snippet: snippet.sendableModel)
+                        }, label: {
+                            HStack {
+                                if let subTitle = snippet.subTitle {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(snippet.title)
+                                            .lineLimit(1)
+                                            .foregroundStyle(.white)
+                                        HStack {
+                                            if viewModel.isScoped(id: snippet.codeId) {
+                                                Text("S")
+                                                    .font(.system(size: 8))
+                                                    .foregroundStyle(.white)
+                                                    .padding(3)
+                                                    .background(content: {
+                                                        Circle()
+                                                            .fill(Color.accent)
+                                                    })
+                                            }
+                                            Text(subTitle)
+                                                .lineLimit(1)
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                        }
+                                    }
+                                    .padding(8)
+                                } else {
                                     Text(snippet.title)
                                         .lineLimit(1)
-                                        .foregroundStyle(.primary)
-                                    HStack {
-                                        if viewModel.isScoped(id: snippet.codeId) {
-                                            Text("S")
-                                                .font(.system(size: 8))
+                                        .foregroundStyle(.white)
+                                        .padding(8)
+                                }
+                                Menu {
+                                    if viewModel.isScoped(id: snippet.codeId) {
+                                        Button(action: {
+                                            viewModel.removeFromScope(snippetId: snippet.codeId)
+                                        }, label: {
+                                            
+                                            Label("Remove from Scope", systemImage: "minus")
                                                 .foregroundStyle(.white)
-                                                .padding(3)
-                                                .background(content: {
-                                                    Circle()
-                                                        .fill(Color.accent)
-                                                })
-                                        }
-                                        Text(subTitle)
-                                            .lineLimit(1)
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
+                                        })
+                                    } else {
+                                        Button(action: {
+                                            viewModel.addToScope(snippet: snippet.sendableModel)
+                                        }, label: {
+                                            
+                                            Label("Add to Scope", systemImage: "plus")
+                                                .foregroundStyle(.white)
+                                        })
                                     }
-                                }
-                                .padding(.horizontal, 8)
-                                .padding(.top, 8)
-                                .padding(.bottom, 4)
-                            } else {
-                                Text(snippet.title)
-                                    .lineLimit(1)
-                                    .foregroundStyle(.primary)
-                                    .padding(8)
-                            }
-                            Menu {
-                                if viewModel.isScoped(id: snippet.codeId) {
                                     Button(action: {
-                                        viewModel.removeFromScope(snippetId: snippet.codeId)
-                                    }, label: {
-                                        
-                                        Label("Remove from Scope", systemImage: "minus")
-                                            .foregroundStyle(.white)
-                                    })
-                                } else {
-                                    Button(action: {
-                                        viewModel.addToScope(snippet: snippet.sendableModel)
-                                    }, label: {
-                                        
-                                        Label("Add to Scope", systemImage: "plus")
-                                            .foregroundStyle(.white)
-                                    })
-                                }
-                                Button(action: {
-                                    if let selectedSnippet = viewModel.selectedSnippet, selectedSnippet.id == snippet.codeId {
-                                        if let index = snippets.firstIndex(where: { $0.codeId == selectedSnippet.id }) {
-                                            if index > 0 {
-                                                viewModel.selectTab(snippet: snippets[index - 1].sendableModel)
-                                            } else if snippets.count > 1 {
-                                                viewModel.selectTab(snippet: snippets[1].sendableModel)
+                                        if let selectedSnippet = viewModel.selectedSnippet, selectedSnippet.id == snippet.codeId {
+                                            if let index = snippets.firstIndex(where: { $0.codeId == selectedSnippet.id }) {
+                                                if index > 0 {
+                                                    viewModel.selectTab(snippet: snippets[index - 1].sendableModel)
+                                                } else if snippets.count > 1 {
+                                                    viewModel.selectTab(snippet: snippets[1].sendableModel)
+                                                }
                                             }
                                         }
-                                    }
-                                    viewModel.hide(snippet: snippet.sendableModel)
-                                }, label: {
-                                    Label("Hide", systemImage: "xmark")
+                                        viewModel.hide(snippet: snippet.sendableModel)
+                                    }, label: {
+                                        Label("Hide", systemImage: "xmark")
+                                            .foregroundStyle(.white)
+                                    })
+                                } label: {
+                                    Image(systemName: "ellipsis")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
                                         .foregroundStyle(.white)
-                                })
-                            } label: {
-                                Image(systemName: "ellipsis")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .foregroundStyle(.white)
-                                    .frame(width: 20, height: 20)
-                                    .contentShape(Rectangle())
-                                    .rotationEffect(.degrees(90))
+                                        .frame(width: 20, height: 20)
+                                        .contentShape(Rectangle())
+                                        .rotationEffect(.degrees(90))
+                                }
+                                .menuOrder(.fixed)
+                                .highPriorityGesture(TapGesture())
+                                .padding(.trailing, 8)
                             }
-                            .menuOrder(.fixed)
-                            .highPriorityGesture(TapGesture())
-                            .padding(.trailing, 8)
-                        }
-                        .background(snippet.codeId == (viewModel.selectedSnippet?.codeId ?? "1") ? Color.accent : Color.accent.opacity(0.2))
-                        .clipShape(.rect(topLeadingRadius: 8, topTrailingRadius: 8))
-                        .padding(.horizontal, 4)
-                        .shadow(radius: snippet.codeId == (viewModel.selectedSnippet?.codeId ?? "1") ? 2 : 0, y: 2)
-                    })
+                            .background(snippet.codeId == (viewModel.selectedSnippet?.codeId ?? "1") ? Color.accent : Color(red: 0.15, green: 0.15, blue: 0.16, opacity: 1.00).opacity(0.8))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        })
+                    }
                 }
             }
+            Spacer()
+            Menu {
+                Button(action: {
+                    let pasteboard = UIPasteboard.general
+                    if let code = pasteboard.string {
+                        viewModel.addPasted(code: code)
+                    }
+                }, label: {
+                    Label("Paste Code", systemImage: "document.on.clipboard.fill")
+                        .foregroundStyle(.white)
+                })
+                Button(action: {
+                    isFilePickerPresented = true
+                }, label: {
+                    Label("Browse Files", systemImage: "folder.fill")
+                        .foregroundStyle(.white)
+                })
+            } label: {
+                Image(systemName: "plus")
+                    .foregroundStyle(.accent)
+                    .padding(8)
+                    .contentShape(Rectangle())
+            }
+            .menuOrder(.fixed)
+            .highPriorityGesture(TapGesture())
         }
-        .padding(.top, 4)
-        .padding(.horizontal)
-        .background(Color.gray)
-        .padding(.bottom, -8)
+        .padding(.top, 8)
+        .padding(.horizontal, 16)
     }
 }
 

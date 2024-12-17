@@ -60,9 +60,23 @@ struct SideBarSUI: View {
                 chatVM.selectedGroupId = group.groupId
                 fileVM.selectedGroupId = group.groupId
             }
+            chatVM.groupName = chatVM.navTitle ?? ""
         }
         .onChange(of: chatVM.selectedGroup) {
             fileVM.selectedGroupId = chatVM.selectedGroup?.id
+        }
+        .alert("Rename", isPresented: $chatVM.shouldShowRenameDialog) {
+            TextField(chatVM.navTitle ?? "", text: $chatVM.groupName)
+                .textInputAutocapitalization(.never)
+            Button("OK", action: {
+                Log.view.debug("Save new host")
+                chatVM.renameGroup()
+            })
+            Button("Cancel", role: .cancel) {
+                chatVM.groupName = chatVM.navTitle ?? ""
+            }
+        } message: {
+            Text("Enter a new name for this chat group")
         }
     }
     
@@ -126,6 +140,11 @@ struct SideBarSUI: View {
                         Spacer()
                         Menu {
                             Button(action: {
+                                chatVM.shouldShowRenameDialog = true
+                            }, label: {
+                                Label("Rename", systemImage: "pencil")
+                            })
+                            Button(role: .destructive, action: {
                                 chatVM.delete(group: group)
                             }, label: {
                                 Label("Delete", systemImage: "trash")

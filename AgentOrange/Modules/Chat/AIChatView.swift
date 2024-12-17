@@ -27,6 +27,11 @@ let _ = Self._printChanges()
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Menu {
                     Button(action: {
+                        chatVM.shouldShowRenameDialog = true
+                    }, label: {
+                        Label("Rename", systemImage: "pencil")
+                    })
+                    Button(action: {
                         chatVM.deleteAll()
                     }, label: {
                         Label("Delete All", systemImage: "trash")

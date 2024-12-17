@@ -22,6 +22,8 @@ final class AIChatViewModel {
     var isGenerating: [String: Bool] = [:]
     var question: String = ""
     var hasScrolledOffBottom: Bool = false
+    var groupName: String = ""
+    var shouldShowRenameDialog: Bool = false
     var commands: [ChatCommand] {
         commandService.defaultCommands
     }
@@ -300,6 +302,15 @@ final class AIChatViewModel {
         selectedGroup = groupSendable
         Task {
             await dataService.add(group: groupSendable)
+        }
+    }
+    
+    @MainActor
+    func renameGroup() {
+        let newGroup = MessageGroupSendable(id: selectedGroup?.groupId ?? "1", title: groupName)
+        selectedGroup = newGroup
+        Task {
+            await dataService.add(group: newGroup)
         }
     }
 }
