@@ -81,7 +81,7 @@ struct SettingsView: View {
                 Text("Dark").font(.callout).tag(UIUserInterfaceStyle.dark)
                 Text("Light").font(.callout).tag(UIUserInterfaceStyle.light)
             }
-            .tint(colorScheme == .dark ? .orange : .brown)
+            .tint(colorScheme == .dark ? .accent : .brown)
         }
     }
     
@@ -95,10 +95,11 @@ struct SettingsView: View {
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 30, height: 30)
                     Text("Custom AI Server")
-                        .foregroundColor(.accent)
+                        .foregroundColor(.primary)
                     Spacer()
                 }
             }
+            .foregroundStyle(.primary, .accent)
         }
     }
     
@@ -109,15 +110,17 @@ struct SettingsView: View {
                 List {
                     Text("Factory\nhttps://github.com/hmlongco/Factory")
                     Text("Splash\nhttps://github.com/JohnSundell/Splash")
+                    Text("MarkdownUI\nhttps://github.com/gonzalezreal/swift-markdown-ui")
                 }
+                .tint(.accent)
                 .navigationTitle("Licenses & Thanks")
                 .toolbarColorScheme(.dark, for: .navigationBar, .bottomBar)
                 .toolbarBackground(.accent, for: .navigationBar, .bottomBar)
                 .toolbarBackground(.visible, for: .navigationBar)
             }
+            .foregroundStyle(.primary, .accent)
             version
         }
-        .tint(.primary)
     }
     
     @ViewBuilder
@@ -130,7 +133,6 @@ struct SettingsView: View {
                     .foregroundStyle(.red)
             })
         }
-        .tint(.primary)
     }
     
     @ViewBuilder
@@ -143,8 +145,9 @@ struct SettingsView: View {
             Text(versionString)
                 .font(.callout)
                 .lineLimit(1)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.accent)
         }
+        .foregroundStyle(.primary, .accent)
     }
     
     private var versionString: String {

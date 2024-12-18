@@ -10,6 +10,7 @@ import SwiftUI
 import SwiftData
 
 struct SideBarSUI: View {
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(AIChatViewModel.self) private var chatVM: AIChatViewModel
     @Environment(FileViewerViewModel.self) private var fileVM: FileViewerViewModel
     @Query(sort: \CDMessageGroup.timestamp, order: .reverse) private var groups: [CDMessageGroup]
@@ -108,7 +109,7 @@ struct SideBarSUI: View {
                         .font(.title2)
                         .bold()
                         .underline()
-                        .foregroundColor(.primary)
+                        .foregroundColor(colorScheme == .dark ? .white : .black)
                     Text("Orange")
                         .font(.title)
                         .bold()
@@ -126,6 +127,10 @@ struct SideBarSUI: View {
         @Bindable var chatVM = chatVM
 
         Section(header: Text("Recent").font(.title3).foregroundColor(.accent)) {
+            if groups.isEmpty {
+                Text("No recent chat groups")
+                    .foregroundStyle(.secondary)
+            }
             ForEach(groups, id: \.groupId) { group in
                 NavigationLink(value: group.sendableModel) {
                     HStack {
@@ -140,6 +145,7 @@ struct SideBarSUI: View {
                         Spacer()
                         Menu {
                             Button(action: {
+                                chatVM.groupName = group.title
                                 chatVM.shouldShowRenameDialog = true
                             }, label: {
                                 Label("Rename", systemImage: "pencil")

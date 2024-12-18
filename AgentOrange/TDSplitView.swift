@@ -9,12 +9,13 @@ import SwiftUI
 
 struct TDSplitView: View {
     @Environment(FileViewerViewModel.self) private var viewModel: FileViewerViewModel
-
+    @State private var columnVisibility = NavigationSplitViewVisibility.all
+    
     var body: some View {
 #if DEBUG
         let _ = Self._printChanges()
 #endif
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility: $columnVisibility) {
             /* Column 1 */
             SideBarSUI()
                 .navigationSplitViewColumnWidth(240)

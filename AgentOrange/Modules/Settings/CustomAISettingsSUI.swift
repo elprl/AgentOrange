@@ -26,7 +26,7 @@ struct CustomAISettingsSUI: View {
                 self.viewModel.onSaveNewHost()
             })
             Button("Cancel", role: .cancel) {
-                self.viewModel.onCancelNewModel()
+                self.viewModel.onCancelNewHost()
             }
         } message: {
             Text("Enter the URL of the Custom AI server (e.g. http://localhost:1234 )")
@@ -36,7 +36,7 @@ struct CustomAISettingsSUI: View {
                 .textInputAutocapitalization(.never)
             Button("OK", action: {
                 Log.view.debug("Save new host")
-                self.viewModel.onSaveNewHost()
+                self.viewModel.onSaveNewModel()
             })
             Button("Cancel", role: .cancel) {
                 self.viewModel.onCancelNewModel()

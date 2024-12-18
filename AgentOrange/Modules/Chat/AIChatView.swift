@@ -17,16 +17,30 @@ struct AIChatView: View {
 #if DEBUG
 let _ = Self._printChanges()
 #endif
-            messages
-            Spacer()
-            ScopeBarView()
-            input
+            if chatVM.selectedGroup == nil {
+                Text("← Select or create a new group to start chatting")
+                    .foregroundStyle(.secondary)
+                    .padding()
+            } else {
+                messages
+                Spacer()
+                ScopeBarView()
+                input
+            }
         }
+        .transition(.opacity)
         .padding(.bottom)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Menu {
                     Button(action: {
+                        chatVM.addGroup()
+                    }, label: {
+                        Label("New Group", systemImage: "plus")
+                            .foregroundColor(.white)
+                    })
+                    Button(action: {
+                        chatVM.groupName = chatVM.selectedGroup?.title ?? ""
                         chatVM.shouldShowRenameDialog = true
                     }, label: {
                         Label("Rename", systemImage: "pencil")

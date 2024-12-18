@@ -51,12 +51,37 @@ final class FileViewerViewModel {
     }
     
     @MainActor
-    func addCodeSnippet(code: String, tag: String) {
+    func addCodeSnippet(code: String, from filename: String) {
         Task { @MainActor [weak self] in
             guard let groupId = self?.selectedGroupId else { return }
-            let snippet = CodeSnippetSendable(title: tag, code: code, subTitle: "Original", groupId: groupId)
+            var snippetCode = code
+            let language = self?.language(from: filename) ?? "swift"
+            if !code.hasPrefix("```") {
+                snippetCode = "```\(language)\n\(code)\n```"
+            }
+            let snippet = CodeSnippetSendable(title: filename, code: snippetCode, subTitle: "Original", groupId: groupId)
             await self?.dataService.add(code: snippet)
             self?.selectTab(snippet: snippet)
+        }
+    }
+    
+    // get the language from extension of the filename
+    // TODO: use languages.json from Peerwalk
+    private func language(from filename: String) -> String {
+        let ext = URL(fileURLWithPath: filename).pathExtension
+        switch ext {
+        case "swift":
+            return "swift"
+        case "js":
+            return "javascript"
+        case "ts":
+            return "typescript"
+        case "md":
+            return "markdown"
+        case "kt":
+            return "kotlin"
+        default:
+            return ext
         }
     }
     
@@ -176,7 +201,7 @@ extension FileViewerViewModel {
         }
 
         #endif
-""", tag: "PastedCode")
+""", from: "PastedCode")
         }
         
         return vm

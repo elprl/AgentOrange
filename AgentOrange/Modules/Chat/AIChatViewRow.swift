@@ -31,7 +31,7 @@ struct AIChatViewRow: View {
             }
         }
         .transition(.slide)
-        .backgroundStyle(chat.role == .assistant ? Color.black.opacity(0.6) : Color.accent)
+        .backgroundStyle(chat.role == .assistant ? (colorScheme == .dark ? Color.black.opacity(0.6) : Color.gray.opacity(0.6)) : Color.accent)
         .listRowSeparator(.hidden)
         .frame(maxWidth: .infinity, alignment: .trailing)
     }
@@ -126,7 +126,7 @@ struct AIChatViewRow: View {
                     Text(author)
                         .lineLimit(1)
                         .bold()
-                        .foregroundStyle(author.color)
+                        .foregroundStyle(author.color(isDarkMode: colorScheme == .dark))
                 } else {
                     Text("\(Text("Agent").bold().underline().foregroundStyle(.white)) Orange")
                         .lineLimit(1)
@@ -195,9 +195,7 @@ struct AIChatViewRow: View {
             .background {
                 Color(theme.backgroundColor)
             }
-            
             Divider()
-            
             ScrollView(.horizontal) {
                 configuration.label
                     .relativeLineSpacing(.em(0.25))

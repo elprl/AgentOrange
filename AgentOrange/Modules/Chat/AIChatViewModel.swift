@@ -95,7 +95,8 @@ final class AIChatViewModel {
                                  host: String = UserDefaults.standard.customAIHost ?? "http://localhost:1234",
                                  model: String = UserDefaults.standard.customAIModel ?? "qwen2.5-coder-32b-instruct") async {
         if isCmd {
-            addChatMessage(content: "**Command**: " + tag + "\n**Prompt**: " + prompt)
+            let content = "### **Command**: \n" + tag + "\n### **Prompt**: \n" + prompt
+            addChatMessage(content: content)
         } else {
             addChatMessage(content: prompt)
         }

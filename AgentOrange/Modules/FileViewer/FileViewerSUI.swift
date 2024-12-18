@@ -29,19 +29,26 @@ struct FileViewerSUI: View {
         let _ = Self._printChanges()
 #endif
         VStack {
-            if !snippets.isEmpty {
-                browserTabs
-                ScrollView(showsIndicators: true) {
-                    markdown
-                        .padding()
-                }
+            if viewModel.selectedGroupId == nil {
+                Text("No chat group selected")
+                    .foregroundStyle(.secondary)
+                    .padding()
             } else {
-                pasteBtn
+                if !snippets.isEmpty {
+                    browserTabs
+                    ScrollView(showsIndicators: true) {
+                        markdown
+                            .padding()
+                    }
+                    .textSelection(.enabled)
+                } else {
+                    pasteBtn
+                }
             }
         }
         .sheet(isPresented: $isFilePickerPresented) {
             DocumentPickerView() { filename, code in
-                viewModel.addCodeSnippet(code: code, tag: filename)
+                viewModel.addCodeSnippet(code: code, from: filename)
             }
         }
 //        .background(Color.black)
@@ -127,9 +134,7 @@ struct FileViewerSUI: View {
             .background {
                 Color(theme.backgroundColor)
             }
-            
             Divider()
-            
             ScrollView(.horizontal) {
                 configuration.label
                     .relativeLineSpacing(.em(0.25))
@@ -139,10 +144,15 @@ struct FileViewerSUI: View {
                     }
                     .padding()
             }
+            .textSelection(.enabled)
         }
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
         .markdownMargin(top: .em(0.8), bottom: .em(0.8))
+        .background(Color(.secondarySystemBackground))
+        .overlay(content: {
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(.gray, lineWidth: 1)
+        })
+        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
     
     private var theme: Splash.Theme {
