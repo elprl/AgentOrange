@@ -44,7 +44,7 @@ extension AGIHistoryServiceProtocol {
         }
         if scopes.contains(.messages) {
             let oldMessages = messages.compactMap { message -> GPTMessage? in
-                return GPTMessage(id: message.id, role: message.type.rawValue.hasPrefix("ai") ? GPTRole.assistant.rawValue : GPTRole.user.rawValue, content: message.content)
+                return GPTMessage(id: message.id, role: message.role.rawValue, content: message.content)
             }
             historyList.append(contentsOf: oldMessages)
         }

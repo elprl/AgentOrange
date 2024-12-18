@@ -61,6 +61,8 @@ final class AIChatViewModel {
         Task { @MainActor in
             if let selectedGroupId = selectedGroupId {
                 self.chats = await dataService.fetchData(for: selectedGroupId)
+            } else {
+                self.chats = []
             }
         }
     }

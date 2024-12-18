@@ -61,7 +61,7 @@ struct CommandService: CommandServiceProtocol {
                     role: "You are an expert professional Swift iOS engineer.",
                     type: .coder),
         ChatCommand(name: "//quickNimble",
-                    prompt: "Create a suite of unit tests for this code using the Quick and Nimble framework.",
+                    prompt: "Create a suite of unit tests for this code using the Quick and Nimble framework and a describe(\"GIVEN...\") { context(\"WHEN...\") { it(\"THEN...\") }}} style.",
                     shortDescription: "Adds unit tests",
                     role: "You are an expert professional Swift iOS engineer.",
                     type: .coder),

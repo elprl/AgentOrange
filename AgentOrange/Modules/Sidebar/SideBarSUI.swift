@@ -66,6 +66,13 @@ struct SideBarSUI: View {
         .onChange(of: chatVM.selectedGroup) {
             fileVM.selectedGroupId = chatVM.selectedGroup?.id
         }
+        .onChange(of: groups) {
+            if groups.isEmpty {
+                fileVM.selectedGroupId = nil
+                chatVM.selectedGroupId = nil
+                chatVM.selectedGroup = nil
+            }
+        }
         .alert("Rename", isPresented: $chatVM.shouldShowRenameDialog) {
             TextField(chatVM.navTitle ?? "", text: $chatVM.groupName)
                 .textInputAutocapitalization(.never)

@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		E14D11522D11CB6B00F6FB32 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = E14D11512D11CB6B00F6FB32 /* MarkdownUI */; };
+		E17CB1C72D133D67008FD7C5 /* Quick in Frameworks */ = {isa = PBXBuildFile; productRef = E17CB1C62D133D67008FD7C5 /* Quick */; };
+		E17CB1C92D133D67008FD7C5 /* Nimble in Frameworks */ = {isa = PBXBuildFile; productRef = E17CB1C82D133D67008FD7C5 /* Nimble */; };
 		E1A39E2F2CFFA2DE00A83ADF /* Factory in Frameworks */ = {isa = PBXBuildFile; productRef = E1A39E2E2CFFA2DE00A83ADF /* Factory */; };
 		E1A39E312CFFA2DE00A83ADF /* Splash in Frameworks */ = {isa = PBXBuildFile; productRef = E1A39E302CFFA2DE00A83ADF /* Splash */; };
 /* End PBXBuildFile section */
@@ -68,6 +70,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E17CB1C72D133D67008FD7C5 /* Quick in Frameworks */,
+				E17CB1C92D133D67008FD7C5 /* Nimble in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -155,6 +159,8 @@
 			);
 			name = AgentOrangeTests;
 			packageProductDependencies = (
+				E17CB1C62D133D67008FD7C5 /* Quick */,
+				E17CB1C82D133D67008FD7C5 /* Nimble */,
 			);
 			productName = AgentOrangeTests;
 			productReference = E10E1C162CFFA1C9006AE920 /* AgentOrangeTests.xctest */;
@@ -219,6 +225,8 @@
 				E10E1C332CFFA223006AE920 /* XCRemoteSwiftPackageReference "Factory" */,
 				E10E1C342CFFA232006AE920 /* XCRemoteSwiftPackageReference "Splash" */,
 				E101E8602D11C9BD0057DB62 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */,
+				E14E28AB2D133D2100E182BA /* XCRemoteSwiftPackageReference "Quick" */,
+				E14E28AC2D133D2D00E182BA /* XCRemoteSwiftPackageReference "Nimble" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E10E1C052CFFA1C7006AE920 /* Products */;
@@ -615,6 +623,22 @@
 				minimumVersion = 0.16.0;
 			};
 		};
+		E14E28AB2D133D2100E182BA /* XCRemoteSwiftPackageReference "Quick" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Quick/Quick";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.6.2;
+			};
+		};
+		E14E28AC2D133D2D00E182BA /* XCRemoteSwiftPackageReference "Nimble" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Quick/Nimble";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 13.7.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -622,6 +646,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E101E8602D11C9BD0057DB62 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */;
 			productName = MarkdownUI;
+		};
+		E17CB1C62D133D67008FD7C5 /* Quick */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E14E28AB2D133D2100E182BA /* XCRemoteSwiftPackageReference "Quick" */;
+			productName = Quick;
+		};
+		E17CB1C82D133D67008FD7C5 /* Nimble */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E14E28AC2D133D2D00E182BA /* XCRemoteSwiftPackageReference "Nimble" */;
+			productName = Nimble;
 		};
 		E1A39E2E2CFFA2DE00A83ADF /* Factory */ = {
 			isa = XCSwiftPackageProductDependency;
