@@ -205,18 +205,17 @@ final class AIChatViewModel {
     
     @MainActor
     private func updateMessage(message: ChatMessage, content: String, tag: String? = nil, codeId: String? = nil) {
-        guard var chat = chats.first(where: { $0.id == message.id } ) else {
+        guard let index = chats.firstIndex(where: { $0.id == message.id } ) else {
             return
         }
-        chat.content = content
+        chats[index].content = content
         if let tag {
-            chat.tag = tag
+            chats[index].tag = tag
         }
         if let codeId {
-            chat.codeId = codeId
+            chats[index].codeId = codeId
         }
-        chats.safeReplace(chat) // replace the chat message with the updated one
-        persistChat(message: chat)
+        persistChat(message: chats[index])
     }
     
     func persistChat(message: ChatMessage) {

@@ -71,17 +71,18 @@ let _ = Self._printChanges()
     
     @ViewBuilder
     private var messages: some View {
+        @Bindable var vm = chatVM
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
-                ForEach(chatVM.chats, id: \.self) { chat in
-                    AIChatViewRow(chat: chat) { action in
+                ForEach(chatVM.chats.indices, id: \.self) { index in
+                    AIChatViewRow(chat: $vm.chats[index]) { action in
                         switch action {
                         case .deleted:
-                            chatVM.delete(message: chat)
+                            chatVM.delete(message: vm.chats[index])
                         case .selected:
-                            fileVM.didSelectCode(id: chat.codeId)
+                            fileVM.didSelectCode(id: vm.chats[index].codeId)
                         case .stopped:
-                            chatVM.stop(chatId: chat.id)
+                            chatVM.stop(chatId: vm.chats[index].id)
                         }
                     }
                     .transition(.slide)

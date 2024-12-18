@@ -17,7 +17,7 @@ enum RowEvent {
 
 struct AIChatViewRow: View {
     @Environment(\.colorScheme) private var colorScheme
-    let chat: ChatMessage
+    @Binding var chat: ChatMessage
     let action: (RowEvent) -> Void
 
     var body: some View {
@@ -39,46 +39,23 @@ struct AIChatViewRow: View {
     @ViewBuilder
     private var userMessage: some View {
         HStack {
-            Markdown(chat.content)
-                .markdownBlockStyle(\.codeBlock) {
-                    codeBlock($0)
-                }
-                .markdownCodeSyntaxHighlighter(.splash(theme: self.theme))
-//            Text(markdown(from: chat.content))
-//                .foregroundStyle(.white)
+            MessageContentView(content: chat.content)
                 .padding(.trailing)
-            Menu {
-                Button {
-                    action(.deleted)
-                } label: {
-                    Label("Delete", systemImage: "trash")
-                }
-                Button {
-                    UIPasteboard.general.string = chat.content
-                } label: {
-                    Label("Copy", systemImage: "clipboard")
-                }
-            } label: {
-                Image(systemName: "ellipsis.circle")
-                    .foregroundStyle(chat.role == .assistant ? .accent : .white)
+            UserMenuButton(chat: chat) {
+                action($0)
             }
-            .menuOrder(.fixed)
-            .highPriorityGesture(TapGesture())
             .offset(x: 4)
         }
     }
     
     @ViewBuilder
     private var botCodeMessage: some View {
-        header
+        BotHeader(model: chat.model, host: chat.host, content: chat.content, isAssistant: chat.role == .assistant) {
+            action($0)
+        }
         if let tag = chat.tag {
             DisclosureGroup {
-                Markdown(chat.content)
-                    .markdownBlockStyle(\.codeBlock) {
-                        codeBlock($0)
-                    }
-                    .markdownCodeSyntaxHighlighter(.splash(theme: self.theme))
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                MessageContentView(content: chat.content)
             } label: {
                 Button {
                     action(.selected)
@@ -109,20 +86,49 @@ struct AIChatViewRow: View {
     
     @ViewBuilder
     private var botSimpleMessage: some View {
-        header
-        Markdown(chat.content)
-            .markdownBlockStyle(\.codeBlock) {
-                codeBlock($0)
-            }
-            .markdownCodeSyntaxHighlighter(.splash(theme: self.theme))
-            .frame(maxWidth: .infinity, alignment: .leading)
+        BotHeader(model: chat.model, host: chat.host, content: chat.content, isAssistant: chat.role == .assistant) {
+            action($0)
+        }
+        MessageContentView(content: chat.content)
     }
-    
-    @ViewBuilder
-    private var header: some View {
+}
+
+struct UserMenuButton: View {
+    let chat: ChatMessage
+    let action: (RowEvent) -> Void
+    var body: some View {
+        Menu {
+            Button {
+                action(.deleted)
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+            Button {
+                UIPasteboard.general.string = chat.content
+            } label: {
+                Label("Copy", systemImage: "clipboard")
+            }
+        } label: {
+            Image(systemName: "ellipsis.circle")
+                .foregroundStyle(chat.role == .assistant ? .accent : .white)
+        }
+        .menuOrder(.fixed)
+        .highPriorityGesture(TapGesture())
+    }
+}
+
+struct BotHeader: View {
+    @Environment(\.colorScheme) private var colorScheme
+    let model: String?
+    let host: String?
+    let content: String
+    let isAssistant: Bool
+    let action: (RowEvent) -> Void
+
+    var body: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading) {
-                if let author = chat.model {
+                if let author = model {
                     Text(author)
                         .lineLimit(1)
                         .bold()
@@ -133,7 +139,7 @@ struct AIChatViewRow: View {
                         .bold()
                         .foregroundStyle(.accent)
                 }
-                if let host = chat.host {
+                if let host = host {
                     Text(host)
                         .lineLimit(1)
                         .font(.caption)
@@ -141,38 +147,59 @@ struct AIChatViewRow: View {
                 }
             }
             Spacer()
-            Menu {
-                Button {
-                    action(.deleted)
-                } label: {
-                    Label("Delete", systemImage: "trash")
-                }
-                Button {
-                    UIPasteboard.general.string = chat.content
-                } label: {
-                    Label("Copy", systemImage: "document.on.document.fill")
-                }
-                Button {
-                    action(.stopped)
-                } label: {
-                    Label("Stop", systemImage: "stop.circle")
-                }
-            } label: {
-                Image(systemName: "ellipsis.circle")
-                    .foregroundStyle(chat.role == .assistant ? .accent : .white)
+            BotMenuButton(content: content, isAssistant: isAssistant) {
+                action($0)
             }
-            .menuOrder(.fixed)
-            .highPriorityGesture(TapGesture())
             .offset(x: 4)
         }
     }
+}
+
+struct BotMenuButton: View {
+    let content: String
+    let isAssistant: Bool
+    let action: (RowEvent) -> Void
     
-    private func markdown(from response: String) -> AttributedString {
-        do {
-            return try AttributedString(markdown: response, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))
-        } catch {
-            return AttributedString("Error parsing markdown: \(error)")
+    var body: some View {
+#if DEBUG
+let _ = Self._printChanges()
+#endif
+        Menu {
+            Button {
+                action(.deleted)
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+            Button {
+                UIPasteboard.general.string = content
+            } label: {
+                Label("Copy", systemImage: "document.on.document.fill")
+            }
+            Button {
+                action(.stopped)
+            } label: {
+                Label("Stop", systemImage: "stop.circle")
+            }
+        } label: {
+            Image(systemName: "ellipsis.circle")
+                .foregroundStyle(isAssistant ? .accent : .white)
         }
+        .menuOrder(.fixed)
+        .highPriorityGesture(TapGesture())
+    }
+}
+
+struct MessageContentView: View {
+    @Environment(\.colorScheme) private var colorScheme
+    let content: String
+    
+    var body: some View {
+        Markdown(content)
+            .markdownBlockStyle(\.codeBlock) {
+                codeBlock($0)
+            }
+            .markdownCodeSyntaxHighlighter(.splash(theme: self.theme))
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
     
     @ViewBuilder
@@ -235,8 +262,8 @@ struct AIChatViewRow: View {
 
 #Preview {
     List {
-        AIChatViewRow(chat: ChatMessage(role: .user, content: "blah blah", groupId: "1")) { _ in }
-        AIChatViewRow(chat: ChatMessage(role: .assistant, content: "blah blah", tag: "CodeGen1", groupId: "1")) { _ in }
+        AIChatViewRow(chat: .constant(ChatMessage(role: .user, content: "blah blah", groupId: "1"))) { _ in }
+        AIChatViewRow(chat: .constant(ChatMessage(role: .assistant, content: "blah blah", tag: "CodeGen1", groupId: "1"))) { _ in }
     }
     .listStyle(.plain)
     .environment(FileViewerViewModel(modelContext: PreviewController.chatsPreviewContainer.mainContext))
