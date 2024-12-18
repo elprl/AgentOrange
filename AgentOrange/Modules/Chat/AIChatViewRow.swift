@@ -13,12 +13,14 @@ enum RowEvent {
     case deleted
     case selected
     case stopped
+    case fullscreen
 }
 
 struct AIChatViewRow: View {
     @Environment(\.colorScheme) private var colorScheme
     @Binding var chat: ChatMessage
     let action: (RowEvent) -> Void
+    var isFullScreen = false
 
     var body: some View {
         GroupBox {
@@ -108,6 +110,11 @@ struct UserMenuButton: View {
             } label: {
                 Label("Copy", systemImage: "clipboard")
             }
+            Button {
+                action(.fullscreen)
+            } label: {
+                Label("Fullscreen (pinch)", systemImage: "arrow.down.backward.and.arrow.up.forward")
+            }
         } label: {
             Image(systemName: "ellipsis.circle")
                 .foregroundStyle(chat.role == .assistant ? .accent : .white)
@@ -179,6 +186,11 @@ let _ = Self._printChanges()
                 action(.stopped)
             } label: {
                 Label("Stop", systemImage: "stop.circle")
+            }
+            Button {
+                action(.fullscreen)
+            } label: {
+                Label("Fullscreen (pinch)", systemImage: "arrow.down.backward.and.arrow.up.forward")
             }
         } label: {
             Image(systemName: "ellipsis.circle")

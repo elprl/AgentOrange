@@ -11,6 +11,7 @@ struct AIChatView: View {
     @Environment(AIChatViewModel.self) private var chatVM: AIChatViewModel
     @Environment(FileViewerViewModel.self) private var fileVM: FileViewerViewModel
     @FocusState private var isFocused: Bool
+    @State private var isPresented = false
 
     var body: some View {
         VStack {
@@ -67,6 +68,44 @@ let _ = Self._printChanges()
         .task {
             chatVM.loadMessages()
         }
+        .fullScreenCover(isPresented: $isPresented) {
+            NavigationStack {
+                @Bindable var vm = chatVM
+                ScrollView {
+                    if let id = vm.selectedChatId, let index = vm.chats.firstIndex(where: { $0.id == id }) {
+                        AIChatViewRow(chat: $vm.chats[index]) { action in
+                            switch action {
+                            case .deleted:
+                                chatVM.delete(message: vm.chats[index])
+                            case .selected:
+                                fileVM.didSelectCode(id: vm.chats[index].codeId)
+                            case .stopped:
+                                chatVM.stop(chatId: id)
+                            case .fullscreen:
+                                isPresented = false
+                            }
+                        }
+                        .padding()
+                    } else {
+                        EmptyView()
+                    }
+                }
+                .navigationTitle("Chat Message")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        Button(action: {
+                            isPresented = false
+                        }, label: {
+                            Image(systemName: "xmark")
+                        })
+                    }
+                }
+                .toolbarColorScheme(.dark, for: .navigationBar)
+                .toolbarBackground(.accent, for: .navigationBar)
+                .toolbarBackground(.visible, for: .navigationBar)
+            }
+        }
     }
     
     @ViewBuilder
@@ -83,6 +122,9 @@ let _ = Self._printChanges()
                             fileVM.didSelectCode(id: vm.chats[index].codeId)
                         case .stopped:
                             chatVM.stop(chatId: vm.chats[index].id)
+                        case .fullscreen:
+                            vm.selectedChatId = vm.chats[index].id
+                            isPresented = true
                         }
                     }
                     .transition(.slide)

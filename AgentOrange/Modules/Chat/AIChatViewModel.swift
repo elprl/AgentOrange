@@ -18,6 +18,8 @@ final class AIChatViewModel {
     @Injected(\.commandService) @ObservationIgnored private var commandService
     /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: PersistentDataManagerProtocol
     @ObservationIgnored private var sessionIndex: Int = 0
+    var isPresented = false
+    var selectedChatId: String?
     var chats: [ChatMessage] = []
     var isGenerating: [String: Bool] = [:]
     var question: String = ""
@@ -31,7 +33,7 @@ final class AIChatViewModel {
         commandService.workflows
     }
     var workflowNames: [String] {
-        workflows.keys.map { $0 }
+        commandService.workflows.keys.map { $0 }
     }
     var isAnyGenerating: Bool {
         isGenerating.values.contains(true)
