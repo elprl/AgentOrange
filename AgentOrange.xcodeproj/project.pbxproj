@@ -12,6 +12,7 @@
 		E17CB1C92D133D67008FD7C5 /* Nimble in Frameworks */ = {isa = PBXBuildFile; productRef = E17CB1C82D133D67008FD7C5 /* Nimble */; };
 		E1A39E2F2CFFA2DE00A83ADF /* Factory in Frameworks */ = {isa = PBXBuildFile; productRef = E1A39E2E2CFFA2DE00A83ADF /* Factory */; };
 		E1A39E312CFFA2DE00A83ADF /* Splash in Frameworks */ = {isa = PBXBuildFile; productRef = E1A39E302CFFA2DE00A83ADF /* Splash */; };
+		E1B7F7AD2D14BF930076F03A /* GoogleGenerativeAI in Frameworks */ = {isa = PBXBuildFile; productRef = E1B7F7AC2D14BF930076F03A /* GoogleGenerativeAI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,6 +64,7 @@
 				E14D11522D11CB6B00F6FB32 /* MarkdownUI in Frameworks */,
 				E1A39E2F2CFFA2DE00A83ADF /* Factory in Frameworks */,
 				E1A39E312CFFA2DE00A83ADF /* Splash in Frameworks */,
+				E1B7F7AD2D14BF930076F03A /* GoogleGenerativeAI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -136,6 +138,7 @@
 				E1A39E2E2CFFA2DE00A83ADF /* Factory */,
 				E1A39E302CFFA2DE00A83ADF /* Splash */,
 				E14D11512D11CB6B00F6FB32 /* MarkdownUI */,
+				E1B7F7AC2D14BF930076F03A /* GoogleGenerativeAI */,
 			);
 			productName = AgentOrange;
 			productReference = E10E1C042CFFA1C7006AE920 /* AgentOrange.app */;
@@ -227,6 +230,7 @@
 				E101E8602D11C9BD0057DB62 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */,
 				E14E28AB2D133D2100E182BA /* XCRemoteSwiftPackageReference "Quick" */,
 				E14E28AC2D133D2D00E182BA /* XCRemoteSwiftPackageReference "Nimble" */,
+				E1593EEF2D14BF520090E71A /* XCRemoteSwiftPackageReference "generative-ai-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E10E1C052CFFA1C7006AE920 /* Products */;
@@ -639,6 +643,14 @@
 				minimumVersion = 13.7.1;
 			};
 		};
+		E1593EEF2D14BF520090E71A /* XCRemoteSwiftPackageReference "generative-ai-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google-gemini/generative-ai-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.5.6;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -666,6 +678,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E10E1C342CFFA232006AE920 /* XCRemoteSwiftPackageReference "Splash" */;
 			productName = Splash;
+		};
+		E1B7F7AC2D14BF930076F03A /* GoogleGenerativeAI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E1593EEF2D14BF520090E71A /* XCRemoteSwiftPackageReference "generative-ai-swift" */;
+			productName = GoogleGenerativeAI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

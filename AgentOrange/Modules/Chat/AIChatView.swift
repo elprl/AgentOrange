@@ -127,10 +127,11 @@ let _ = Self._printChanges()
                             isPresented = true
                         }
                     }
-                    .transition(.slide)
                     .padding(.horizontal)
                     .padding(.vertical, 6)
                 }
+                .transition(.slide)
+                .animation(.default, value: chatVM.chats.count)
             }
             .padding(.vertical)
         }

@@ -32,10 +32,15 @@ struct AIChatViewRow: View {
                 botCodeMessage
             }
         }
-        .transition(.slide)
         .backgroundStyle(chat.role == .assistant ? (colorScheme == .dark ? Color.black.opacity(0.6) : Color.gray.opacity(0.6)) : Color.accent)
         .listRowSeparator(.hidden)
+        .overlay(content: {
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(.gray.opacity(0.3), lineWidth: 1)
+        })
         .frame(maxWidth: .infinity, alignment: .trailing)
+        .padding(.leading, chat.role == .assistant ? 0 : 16)
+        .padding(.trailing, chat.role == .assistant ? 16 : 0)
     }
     
     @ViewBuilder
