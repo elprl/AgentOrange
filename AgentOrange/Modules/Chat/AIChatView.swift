@@ -204,7 +204,7 @@ let _ = Self._printChanges()
             }
         }
         .transition(.opacity)
-        .tint(.accent)
+        .tint(.messageBlue)
         .padding(.horizontal)
     }
 }

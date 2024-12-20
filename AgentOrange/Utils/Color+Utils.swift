@@ -63,6 +63,49 @@ extension Color: Codable {
                           lroundf(blue * 255))
         }
     }
+    
+    static var messageBlue: Color {
+        Color(red: 0.13, green: 0.56, blue: 0.98, opacity: 1.00)
+    }
+    
+    static var mustard: Color {
+        Color(red: 0.97, green: 0.79, blue: 0.24, opacity: 1.00)
+    }
+    
+    /**
+     * Get contrast color in monochrome
+     *
+     * - Parameters:
+     *   - color: A SwiftUI.Color input
+     *   - maxContrast: Maximum contrast (128~255), default is 192
+     * - Returns: A SwiftUI.Color representing the contrast color
+     */
+    func contrastColor(maxContrast: Int = 192) -> Color {
+        let minContrast = 128
+        
+        // Extract RGB components from the SwiftUI.Color
+        let components = self.cgColor?.components ?? [0, 0, 0]
+        let r = Int(components[0] * 255)
+        let g = Int(components[1] * 255)
+        let b = Int(components[2] * 255)
+        
+        // Calculate luma
+        let y = Int(round(0.299 * Double(r) + 0.587 * Double(g) + 0.114 * Double(b)))
+        var oy = 255 - y // Opposite
+        var dy = oy - y // Delta
+        
+        if abs(dy) > maxContrast {
+            dy = (dy > 0 ? 1 : -1) * maxContrast
+            oy = y + dy
+        } else if abs(dy) < minContrast {
+            dy = (dy > 0 ? 1 : -1) * minContrast
+            oy = y + dy
+        }
+        
+        // Convert the grayscale value back to a SwiftUI.Color
+        let normalizedOy = Double(oy) / 255.0
+        return Color(red: normalizedOy, green: normalizedOy, blue: normalizedOy)
+    }
 }
 
 struct RGBColor {

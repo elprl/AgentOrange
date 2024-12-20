@@ -13,11 +13,11 @@ import Splash
 struct FileViewerSUI: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(FileViewerViewModel.self) private var viewModel: FileViewerViewModel
-    @State private var isFilePickerPresented: Bool = false
-    @State private var fileContent: String = ""
+    @State private var showingImporter: Bool = false
+    @State private var showingExporter: Bool = false
     @AppStorage(UserDefaults.Keys.wrapText) var isWrapText: Bool = false
     @Query private var snippets: [CDCodeSnippet]
-    
+
     init(groupId: String? = nil) {
         if let groupId {
             _snippets = Query(filter: #Predicate<CDCodeSnippet> { $0.groupId == groupId && $0.isVisible == true }, sort: \CDCodeSnippet.timestamp, order: .forward)
@@ -46,12 +46,22 @@ struct FileViewerSUI: View {
                 }
             }
         }
-        .sheet(isPresented: $isFilePickerPresented) {
-            DocumentPickerView() { filename, code in
-                viewModel.addCodeSnippet(code: code, from: filename)
+        .fileImporter(isPresented: $showingImporter, allowedContentTypes: [.plainText]) { result in
+            switch result {
+            case .success(let file):
+                viewModel.addCodeSnippet(url: file)
+            case .failure(let error):
+                Log.view.error("Error importing file: \(error.localizedDescription)")
             }
         }
-//        .background(Color.black)
+        .fileExporter(isPresented: $showingExporter, document: viewModel.document, contentType: .plainText, defaultFilename: viewModel.defaultFilename) { result in
+            switch result {
+            case .success(let url):
+                Log.view.info("Saved to \(url)")
+            case .failure(let error):
+                Log.view.error("Error exporting file: \(error.localizedDescription)")
+            }
+        }
         .navigationTitle("Code Viewer")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -191,7 +201,7 @@ struct FileViewerSUI: View {
             })
             .buttonStyle(.borderedProminent)
             Button(action: {
-                isFilePickerPresented = true
+                showingImporter = true
             }, label: {
                 Label("Browse Files", systemImage: "folder.fill")
                     .foregroundStyle(.white)
@@ -274,6 +284,13 @@ struct FileViewerSUI: View {
                                         Label("Hide", systemImage: "xmark")
                                             .foregroundStyle(.white)
                                     })
+                                    Button(action: {
+                                        viewModel.exportCode(snippet: snippet.sendableModel)
+                                        self.showingExporter = true
+                                    }, label: {
+                                        Label("Export", systemImage: "document.badge.arrow.up")
+                                            .foregroundStyle(.white)
+                                    })
                                 } label: {
                                     Image(systemName: "ellipsis")
                                         .resizable()
@@ -305,7 +322,7 @@ struct FileViewerSUI: View {
                         .foregroundStyle(.white)
                 })
                 Button(action: {
-                    isFilePickerPresented = true
+                    showingImporter = true
                 }, label: {
                     Label("Browse Files", systemImage: "folder.fill")
                         .foregroundStyle(.white)

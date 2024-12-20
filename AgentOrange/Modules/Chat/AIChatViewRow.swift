@@ -32,7 +32,7 @@ struct AIChatViewRow: View {
                 botCodeMessage
             }
         }
-        .backgroundStyle(chat.role == .assistant ? (colorScheme == .dark ? Color.black.opacity(0.6) : Color.gray.opacity(0.6)) : Color.accent)
+        .backgroundStyle(chat.role == .assistant ? Color.accent : Color.messageBlue)
         .listRowSeparator(.hidden)
         .overlay(content: {
             RoundedRectangle(cornerRadius: 8)
@@ -45,7 +45,7 @@ struct AIChatViewRow: View {
     
     @ViewBuilder
     private var userMessage: some View {
-        HStack {
+        HStack(alignment: .top) {
             MessageContentView(content: chat.content)
                 .padding(.trailing)
             UserMenuButton(chat: chat) {
@@ -72,13 +72,15 @@ struct AIChatViewRow: View {
                             Image(systemName: "text.page")
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
+                                .foregroundStyle(.white)
                                 .frame(width: 32, height: 32)
                             Divider().frame(height: 32)
                             VStack(alignment: .leading) {
                                 Text(tag)
+                                    .foregroundStyle(.white)
                                 Text("Click to view code")
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(.gray)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                         }
@@ -86,8 +88,8 @@ struct AIChatViewRow: View {
                     }
                     .backgroundStyle(.ultraThinMaterial)
                 }
-                .tint(.accent)
             }
+            .tint(.white)
         }
     }
     
@@ -122,7 +124,7 @@ struct UserMenuButton: View {
             }
         } label: {
             Image(systemName: "ellipsis.circle")
-                .foregroundStyle(chat.role == .assistant ? .accent : .white)
+                .foregroundStyle(.white)
         }
         .menuOrder(.fixed)
         .highPriorityGesture(TapGesture())
@@ -144,7 +146,7 @@ struct BotHeader: View {
                     Text(author)
                         .lineLimit(1)
                         .bold()
-                        .foregroundStyle(author.color(isDarkMode: colorScheme == .dark))
+                        .foregroundStyle(author.color(isDarkMode: false))
                 } else {
                     Text("\(Text("Agent").bold().underline().foregroundStyle(.white)) Orange")
                         .lineLimit(1)
@@ -199,7 +201,7 @@ let _ = Self._printChanges()
             }
         } label: {
             Image(systemName: "ellipsis.circle")
-                .foregroundStyle(isAssistant ? .accent : .white)
+                .foregroundStyle(.white)
         }
         .menuOrder(.fixed)
         .highPriorityGesture(TapGesture())
@@ -226,9 +228,8 @@ struct MessageContentView: View {
                 Text(configuration.language ?? "plain text")
                     .font(.system(.caption, design: .monospaced))
                     .fontWeight(.semibold)
-                    .foregroundColor(Color(theme.plainTextColor))
+                    .foregroundStyle(Color(theme.plainTextColor))
                 Spacer()
-                
                 Image(systemName: "clipboard")
                     .onTapGesture {
                         copyToClipboard(configuration.content)

@@ -18,6 +18,8 @@ final class FileViewerViewModel {
     var selectedRows: [AttributedString] = []
     var selectedSnippet: CodeSnippetSendable?
     var scopedFiles: [CodeSnippetSendable] = []
+    var document: TextFile?
+    var defaultFilename: String?
     @ObservationIgnored private var pastedCodeCount: Int = 0
     @ObservationIgnored private var cancellable: AnyCancellable?
     @ObservationIgnored private var selectorCancellable: AnyCancellable?
@@ -51,18 +53,27 @@ final class FileViewerViewModel {
     }
     
     @MainActor
-    func addCodeSnippet(code: String, from filename: String) {
+    func addCodeSnippet(url: URL) {
         Task { @MainActor [weak self] in
-            guard let groupId = self?.selectedGroupId else { return }
-            var snippetCode = code
-            let language = self?.language(from: filename) ?? "swift"
-            if !code.hasPrefix("```") {
-                snippetCode = "```\(language)\n\(code)\n```"
+            let filename = url.lastPathComponent
+            if let fileContent = try? String(contentsOf: url, encoding: .utf8) {
+                guard let groupId = self?.selectedGroupId else { return }
+                var snippetCode = fileContent
+                let language = self?.language(from: filename) ?? "swift"
+                if !fileContent.hasPrefix("```") {
+                    snippetCode = "```\(language)\n\(fileContent)\n```"
+                }
+                let snippet = CodeSnippetSendable(title: filename, code: snippetCode, subTitle: "Original", groupId: groupId)
+                await self?.dataService.add(code: snippet)
+                self?.selectTab(snippet: snippet)
             }
-            let snippet = CodeSnippetSendable(title: filename, code: snippetCode, subTitle: "Original", groupId: groupId)
-            await self?.dataService.add(code: snippet)
-            self?.selectTab(snippet: snippet)
         }
+    }
+    
+    @MainActor
+    func exportCode(snippet: CodeSnippetSendable) {
+        self.document = TextFile(initialText: snippet.code)
+        self.defaultFilename = snippet.title
     }
     
     // get the language from extension of the filename
@@ -178,31 +189,31 @@ extension FileViewerViewModel {
         }
         let vm = FileViewerViewModel(modelContext: PreviewController.codeSnippetPreviewContainer.mainContext)
         vm.selectedGroupId = "1"
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            
-            vm.addCodeSnippet(code: """
-        #if DEBUG
-
-        extension FileViewerViewModel {
-            @MainActor static func mock() -> FileViewerViewModel {
-                let _ = Container.shared.parserService.register {
-                    let ps = CodeParserService()
-                    ps.cacheCode(code: "let x = 1")
-                    return ps
-                }
-                let vm = FileViewerViewModel(modelContext: PreviewController.codeSnippetPreviewContainer.mainContext)                
-                return vm
-            }
-            
-            @MainActor static func emptyMock() -> FileViewerViewModel {
-                let vm = FileViewerViewModel(modelContext: PreviewController.codeSnippetPreviewContainer.mainContext)
-                return vm
-            }
-        }
-
-        #endif
-""", from: "PastedCode")
-        }
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+//            
+//            vm.addCodeSnippet(code: """
+//        #if DEBUG
+//
+//        extension FileViewerViewModel {
+//            @MainActor static func mock() -> FileViewerViewModel {
+//                let _ = Container.shared.parserService.register {
+//                    let ps = CodeParserService()
+//                    ps.cacheCode(code: "let x = 1")
+//                    return ps
+//                }
+//                let vm = FileViewerViewModel(modelContext: PreviewController.codeSnippetPreviewContainer.mainContext)                
+//                return vm
+//            }
+//            
+//            @MainActor static func emptyMock() -> FileViewerViewModel {
+//                let vm = FileViewerViewModel(modelContext: PreviewController.codeSnippetPreviewContainer.mainContext)
+//                return vm
+//            }
+//        }
+//
+//        #endif
+//""", from: "PastedCode")
+//        }
         
         return vm
     }
