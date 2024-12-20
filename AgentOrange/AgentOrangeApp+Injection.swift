@@ -18,4 +18,5 @@ extension Container {
         self { PersistentDataManager(container: $0) }.shared
     }
     var commandService: Factory<CommandServiceProtocol> { self { CommandService() }.shared }
+    var keychainService: Factory<KeychainProtocol> { self { KeychainService() }.shared }
 }

@@ -11,16 +11,13 @@ import Factory
 @preconcurrency import GoogleGenerativeAI
 
 actor GeminiAPIService {
-    var geminiClient: GenerativeModel?
     internal var apiKey: String?
     var historyList = [GPTMessage]()
     var hasCancelledStream: Bool = false
-    var model: String = UserDefaults.standard.geminiModel ?? "gemini-2.0-flash-exp"
 
     init(apiKey: String? = nil) {
         Log.agi.debug("ChatGPTAPIService init")
         var prepToken: String? = apiKey?.trimmingCharacters(in: .whitespacesAndNewlines)
-        
         
         #if DEBUG
         if prepToken == nil {
@@ -29,15 +26,12 @@ actor GeminiAPIService {
             }
         }
         #endif
+        
         self.apiKey = prepToken
     }
     
     deinit {
         Log.agi.debug("deinit \(String(describing: type(of: self)))")
-    }
-    
-    private var client: GenerativeModel {
-        return GenerativeModel(name: model, apiKey: apiKey ?? "")
     }
     
     private func generateMessages(maxTokens: Int = GeminiModel.fromUserDefaults().maxTokens) -> [GPTMessage] {
@@ -104,7 +98,6 @@ extension GeminiAPIService: TokenServiceProtocol {
     
     func setIsActive() {
         if let key = self.apiKey, !key.isEmpty {
-            self.geminiClient = GenerativeModel(name: model, apiKey: key)
             if !(UserDefaults.standard.hasGeminiKey ?? false) {
                 UserDefaults.standard.hasGeminiKey = true
             }
@@ -112,7 +105,8 @@ extension GeminiAPIService: TokenServiceProtocol {
     }
     
     func resetAccessToken(apiKey: String? = nil) {
-        self.apiKey = apiKey
+        let prepToken = apiKey?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.apiKey = prepToken
         setIsActive()
     }
 }
@@ -127,8 +121,9 @@ extension GeminiAPIService: AGIStreamingServiceProtocol {
                         continuation.finish(throwing: TDAPIError.streamError("No API Key"))
                         return
                     }
+                    let client = GenerativeModel(name: model, apiKey: key)
                     let messages: [ModelContent] = await generateGeminiMessages(text: text)
-                    let outputContentStream = await client.generateContentStream(messages)
+                    let outputContentStream = client.generateContentStream(messages)
                     var outputText: String = ""
                     
                     // stream response

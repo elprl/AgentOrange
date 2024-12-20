@@ -9,7 +9,7 @@
 import Foundation
 
 actor ChatGPTAPIService {
-    var historyList = [GPTMessage]()
+    internal var historyList = [GPTMessage]()
     private var hasCancelledStream: Bool = false
     internal var apiKey: String?
     private var urlSession = URLSession.shared
@@ -36,7 +36,6 @@ actor ChatGPTAPIService {
         Log.agi.debug("ChatGPTAPIService init")
         var prepToken: String? = apiKey?.trimmingCharacters(in: .whitespacesAndNewlines)
         
-        
         #if DEBUG
         if prepToken == nil {
             if let mockToken = Bundle.main.infoDictionary?["MOCK_OPENAI_TOKEN"] as? String {
@@ -44,6 +43,7 @@ actor ChatGPTAPIService {
             }
         }
         #endif
+        
         self.apiKey = prepToken
     }
     
@@ -80,7 +80,8 @@ extension ChatGPTAPIService: TokenServiceProtocol {
     }
     
     func resetAccessToken(apiKey: String? = nil) {
-        self.apiKey = apiKey
+        let prepToken = apiKey?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.apiKey = prepToken
     }
 }
 

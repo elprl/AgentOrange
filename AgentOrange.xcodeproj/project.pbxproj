@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E14809EE2D15BE92001E8A46 /* SwiftAnthropic in Frameworks */ = {isa = PBXBuildFile; productRef = E14809ED2D15BE92001E8A46 /* SwiftAnthropic */; };
 		E14D11522D11CB6B00F6FB32 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = E14D11512D11CB6B00F6FB32 /* MarkdownUI */; };
 		E17CB1C72D133D67008FD7C5 /* Quick in Frameworks */ = {isa = PBXBuildFile; productRef = E17CB1C62D133D67008FD7C5 /* Quick */; };
 		E17CB1C92D133D67008FD7C5 /* Nimble in Frameworks */ = {isa = PBXBuildFile; productRef = E17CB1C82D133D67008FD7C5 /* Nimble */; };
@@ -38,9 +39,23 @@
 		E10E1C202CFFA1C9006AE920 /* AgentOrangeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AgentOrangeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		E14809F12D15D3F7001E8A46 /* Exceptions for "AgentOrange" folder in "AgentOrange" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Config.xcconfig,
+				Info.plist,
+			);
+			target = E10E1C032CFFA1C7006AE920 /* AgentOrange */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		E10E1C062CFFA1C7006AE920 /* AgentOrange */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				E14809F12D15D3F7001E8A46 /* Exceptions for "AgentOrange" folder in "AgentOrange" target */,
+			);
 			path = AgentOrange;
 			sourceTree = "<group>";
 		};
@@ -64,6 +79,7 @@
 				E14D11522D11CB6B00F6FB32 /* MarkdownUI in Frameworks */,
 				E1A39E2F2CFFA2DE00A83ADF /* Factory in Frameworks */,
 				E1A39E312CFFA2DE00A83ADF /* Splash in Frameworks */,
+				E14809EE2D15BE92001E8A46 /* SwiftAnthropic in Frameworks */,
 				E1B7F7AD2D14BF930076F03A /* GoogleGenerativeAI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -139,6 +155,7 @@
 				E1A39E302CFFA2DE00A83ADF /* Splash */,
 				E14D11512D11CB6B00F6FB32 /* MarkdownUI */,
 				E1B7F7AC2D14BF930076F03A /* GoogleGenerativeAI */,
+				E14809ED2D15BE92001E8A46 /* SwiftAnthropic */,
 			);
 			productName = AgentOrange;
 			productReference = E10E1C042CFFA1C7006AE920 /* AgentOrange.app */;
@@ -231,6 +248,7 @@
 				E14E28AB2D133D2100E182BA /* XCRemoteSwiftPackageReference "Quick" */,
 				E14E28AC2D133D2D00E182BA /* XCRemoteSwiftPackageReference "Nimble" */,
 				E1593EEF2D14BF520090E71A /* XCRemoteSwiftPackageReference "generative-ai-swift" */,
+				E16FD0FF2D15BE6000E62007 /* XCRemoteSwiftPackageReference "SwiftAnthropic" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E10E1C052CFFA1C7006AE920 /* Products */;
@@ -308,6 +326,8 @@
 /* Begin XCBuildConfiguration section */
 		E10E1C282CFFA1C9006AE920 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = E10E1C062CFFA1C7006AE920 /* AgentOrange */;
+			baseConfigurationReferenceRelativePath = Config.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -429,6 +449,8 @@
 		};
 		E10E1C2B2CFFA1C9006AE920 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = E10E1C062CFFA1C7006AE920 /* AgentOrange */;
+			baseConfigurationReferenceRelativePath = Config.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -438,6 +460,7 @@
 				DEVELOPMENT_TEAM = WY258SLJLV;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = AgentOrange/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Agent Orange";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -450,6 +473,8 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
+				MOCK_CLAUDE_TOKEN = "$(MOCK_CLAUDE_TOKEN)";
+				MOCK_GEMINI_TOKEN = "$(MOCK_GEMINI_TOKEN)";
 				PRODUCT_BUNDLE_IDENTIFIER = com.tapdigital.AgentOrange;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -469,6 +494,7 @@
 				DEVELOPMENT_TEAM = WY258SLJLV;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = AgentOrange/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Agent Orange";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -481,6 +507,8 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
+				MOCK_CLAUDE_TOKEN = "$(MOCK_CLAUDE_TOKEN)";
+				MOCK_GEMINI_TOKEN = "$(MOCK_GEMINI_TOKEN)";
 				PRODUCT_BUNDLE_IDENTIFIER = com.tapdigital.AgentOrange;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -491,6 +519,8 @@
 		};
 		E10E1C2E2CFFA1C9006AE920 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = E10E1C062CFFA1C7006AE920 /* AgentOrange */;
+			baseConfigurationReferenceRelativePath = Config.xcconfig;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
@@ -529,6 +559,8 @@
 		};
 		E10E1C312CFFA1C9006AE920 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = E10E1C062CFFA1C7006AE920 /* AgentOrange */;
+			baseConfigurationReferenceRelativePath = Config.xcconfig;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -651,9 +683,22 @@
 				minimumVersion = 0.5.6;
 			};
 		};
+		E16FD0FF2D15BE6000E62007 /* XCRemoteSwiftPackageReference "SwiftAnthropic" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jamesrochabrun/SwiftAnthropic";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.4.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		E14809ED2D15BE92001E8A46 /* SwiftAnthropic */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E16FD0FF2D15BE6000E62007 /* XCRemoteSwiftPackageReference "SwiftAnthropic" */;
+			productName = SwiftAnthropic;
+		};
 		E14D11512D11CB6B00F6FB32 /* MarkdownUI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E101E8602D11C9BD0057DB62 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */;

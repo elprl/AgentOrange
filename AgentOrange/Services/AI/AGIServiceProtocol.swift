@@ -93,7 +93,7 @@ enum AGIServiceChoice: String {
     var defaultModel: String {
         switch self {
         case .openai:
-            return UserDefaults.standard.openAiModel ?? "gpt-3.5-turbo"
+            return UserDefaults.standard.openAiModel ?? "gpt-4o-mini"
         case .gemini:
             return UserDefaults.standard.geminiModel ?? "gemini-1.5-pro"
         case .claude:

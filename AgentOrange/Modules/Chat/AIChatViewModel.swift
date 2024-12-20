@@ -13,9 +13,9 @@ import Combine
 @Observable
 @MainActor
 final class AIChatViewModel {
-    @Injected(\.agiService) @ObservationIgnored private var agiService
     @Injected(\.parserService) @ObservationIgnored private var parserService
     @Injected(\.commandService) @ObservationIgnored private var commandService
+    @Injected(\.keychainService) @ObservationIgnored private var keychainService
     /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: PersistentDataManagerProtocol
     @ObservationIgnored private var sessionIndex: Int = 0
     var isPresented = false
@@ -37,6 +37,15 @@ final class AIChatViewModel {
     }
     var isAnyGenerating: Bool {
         isGenerating.values.contains(true)
+    }
+    private var claudeAPIKey: String? {
+        return keychainService[AGIServiceChoice.claude.rawValue]?.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    private var openaiAPIKey: String? {
+        return keychainService[AGIServiceChoice.openai.rawValue]?.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    private var geminiAPIKey: String? {
+        return keychainService[AGIServiceChoice.gemini.rawValue]?.trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
 //    private let chatService: PersistentDataManager
@@ -109,12 +118,27 @@ final class AIChatViewModel {
         await Task.detached { [weak self] in
             do {
                 guard let self else { return }
-                if let history = history {
-                    await self.agiService.setHistory(messages: history)
-                } else {
-                    await self.agiService.setHistory(messages: generateHistory())
+                var agiService: AGIStreamingServiceProtocol & AGIHistoryServiceProtocol
+                switch host {
+                case "gemini":
+                    let key = await self.geminiAPIKey
+                    agiService = GeminiAPIService(apiKey: key)
+                case "openai":
+                    let key = await self.openaiAPIKey
+                    agiService = ChatGPTAPIService(apiKey: key)
+                case "claude":
+                    let key = await self.claudeAPIKey
+                    agiService = ClaudeAPIService(apiKey: key)
+                default:
+                    agiService = LMStudioAPIService()
                 }
-                let stream = try await self.agiService.sendMessageStream(text: prompt, needsJSONResponse: false, host: host, model: model)
+                
+                if let history = history {
+                    await agiService.setHistory(messages: history)
+                } else {
+                    await agiService.setHistory(messages: generateHistory())
+                }
+                let stream = try await agiService.sendMessageStream(text: prompt, needsJSONResponse: false, host: host, model: model)
                 for try await responseDelta in stream {
                     if await !self.isGenerating(chatId: responseMessage.id) {
                         break

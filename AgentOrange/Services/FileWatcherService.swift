@@ -9,7 +9,8 @@
 import SwiftUI
 import Combine
 
-class FileWatcherService: ObservableObject {
+@available(*, deprecated, message: "Removed due to file system events not always firing")
+final class FileWatcherService: ObservableObject {
     @Published var fileContent: String = ""
     
     private var fileHandle: FileHandle?
