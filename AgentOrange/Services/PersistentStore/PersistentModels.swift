@@ -62,6 +62,40 @@ extension CDChatMessage: PersistentModelProtocol {
 }
 
 @Model
+final class CDChatCommand {
+    @Attribute(.unique) var name: String
+    var timestamp: Date
+    var prompt: String
+    var shortDescription: String
+    
+    var role: String?
+    var model: String?
+    var host: String?
+    var type: AgentType?
+    var inputCodeId: String?
+    var dependencyIds: [String]?
+    
+    init(name: String, timestamp: Date = Date.now, prompt: String, shortDescription: String, role: String? = nil, model: String? = nil, host: String? = nil, type: AgentType? = .coder, inputCodeId: String? = nil, dependencyIds: [String]? = nil) {
+        self.name = name
+        self.timestamp = timestamp
+        self.prompt = prompt
+        self.shortDescription = shortDescription
+        self.role = role
+        self.model = model
+        self.host = host
+        self.type = type
+        self.inputCodeId = inputCodeId
+        self.dependencyIds = dependencyIds
+    }
+}
+
+extension CDChatCommand: PersistentModelProtocol {
+    var sendableModel: ChatCommand {
+        return ChatCommand(name: name, timestamp: timestamp, prompt: prompt, shortDescription: shortDescription, role: role, model: model, host: host, type: type, inputCodeId: inputCodeId, dependencyIds: dependencyIds)
+    }
+}
+
+@Model
 final class CDCodeSnippet {
     @Attribute(.unique) var codeId: String
     var timestamp: Date
@@ -131,6 +165,22 @@ class PreviewController {
             
             for i in 1..<10 {
                 let group = CDCodeSnippet(codeId: "\(i)", title: "Message \(i)", code: "Code \(i)", groupId: "1")
+                container.mainContext.insert(group)
+            }
+            try? container.mainContext.save()
+            return container
+        } catch {
+            fatalError("Failed to create model container for previewing: \(error.localizedDescription)")
+        }
+    }()
+    
+    static let commandsPreviewContainer: ModelContainer = {
+        do {
+            let config = ModelConfiguration(isStoredInMemoryOnly: true)
+            let container = try ModelContainer(for: CDCodeSnippet.self, configurations: config)
+            
+            for i in 1..<10 {
+                let group = CDChatCommand(name: "Command \(i)", prompt: "Prompt \(i)", shortDescription: "Description \(i)")
                 container.mainContext.insert(group)
             }
             try? container.mainContext.save()

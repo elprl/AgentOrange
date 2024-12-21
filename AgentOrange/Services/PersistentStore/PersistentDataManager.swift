@@ -27,7 +27,17 @@ protocol PersistentCodeDataManagerProtocol: Actor {
     func fetchSnippet(for codeId: String) async -> CodeSnippetSendable?
 }
 
-protocol PersistentDataManagerProtocol: PersistentGroupDataManagerProtocol, PersistentChatDataManagerProtocol, PersistentCodeDataManagerProtocol {}
+protocol PersistentCommandDataManagerProtocol: Actor {
+    func add(command: ChatCommand)
+    func delete(command: ChatCommand)
+    func fetchAllCommands() async -> [ChatCommand]
+    func fetchCommand(for name: String) async -> ChatCommand?
+}
+
+protocol PersistentDataManagerProtocol: PersistentGroupDataManagerProtocol,
+                                        PersistentChatDataManagerProtocol,
+                                        PersistentCodeDataManagerProtocol,
+                                        PersistentCommandDataManagerProtocol {}
 
 actor PersistentDataManager: PersistentDataManagerProtocol {
     private let container: ModelContainer
@@ -154,6 +164,54 @@ extension PersistentDataManager: PersistentCodeDataManagerProtocol {
             guard let container = self?.container else { return nil }
             let dataService = DataService<CDCodeSnippet, CodeSnippetSendable>(modelContainer: container)
             if let items: [CodeSnippetSendable] = try? await dataService.fetchDataVMs(predicate: #Predicate<CDCodeSnippet> { $0.codeId == codeId }, sortBy: [SortDescriptor(\.timestamp)]) {
+                return items.first
+            }
+            return nil
+        }.value
+        return vmItem
+    }
+}
+
+// MARK: - Command
+extension PersistentDataManager: PersistentCommandDataManagerProtocol {
+    func add(command: ChatCommand) {
+        Task.detached(priority: .userInitiated) { [weak self] in
+            guard let container = self?.container else { return }
+            let dataService = DataService<CDChatCommand, ChatCommand>(modelContainer: container)
+            await dataService.insert(data: command)
+        }
+    }
+    
+    func delete(command: ChatCommand) {
+        Task.detached(priority: .userInitiated) { [weak self] in
+            guard let container = self?.container else { return }
+            let dataService = DataService<CDChatCommand, ChatCommand>(modelContainer: container)
+            do {
+                let id: String = command.name
+                try await dataService.remove(predicate: #Predicate<CDChatCommand> { $0.name == id } )
+            } catch {
+                print(error.localizedDescription)
+            }
+        }
+    }
+    
+    func fetchAllCommands() async -> [ChatCommand] {
+        let vmItems: [ChatCommand] = await Task.detached(priority: .userInitiated) { [weak self] in
+            guard let container = self?.container else { return [] }
+            let dataService = DataService<CDChatCommand, ChatCommand>(modelContainer: container)
+            if let items: [ChatCommand] = try? await dataService.fetchDataVMs(predicate: nil, sortBy: [SortDescriptor(\.timestamp)]) {
+                return items
+            }
+            return []
+        }.value
+        return vmItems
+    }
+    
+    func fetchCommand(for name: String) async -> ChatCommand? {
+        let vmItem: ChatCommand? = await Task.detached(priority: .userInitiated) { [weak self] in
+            guard let container = self?.container else { return nil }
+            let dataService = DataService<CDChatCommand, ChatCommand>(modelContainer: container)
+            if let items: [ChatCommand] = try? await dataService.fetchDataVMs(predicate: #Predicate<CDChatCommand> { $0.name == name }, sortBy: [SortDescriptor(\.timestamp)]) {
                 return items.first
             }
             return nil

@@ -9,6 +9,19 @@
 import SwiftUI
 import SwiftData
 
+enum NavigationItem: Hashable {
+    case commands(command: ChatCommand)
+    case workflows
+    case chats
+    case openAISettings
+    case openAIInputSettings
+    case geminiSettings
+    case geminiInputSettings
+    case customAISettings
+    case claudeSettings
+    case fileViewer
+}
+
 struct SideBarSUI: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(AIChatViewModel.self) private var chatVM: AIChatViewModel
@@ -132,8 +145,29 @@ struct SideBarSUI: View {
     @ViewBuilder
     private var dashboard: some View {
         @Bindable var chatVM = chatVM
+        
+        Section(header: Text("Logic").font(.title3).foregroundStyle(.accent)) {
+            NavigationLink(destination: CommandListView()) {
+                Label {
+                    Text("Commands")
+                        .font(.headline)
+                } icon: {
+                    Image(systemName: "command")
+                }
+                .tint(.accent)
+            }
+            NavigationLink(destination: WorkflowListView()) {
+                Label {
+                    Text("Workflows")
+                        .font(.headline)
+                } icon: {
+                    Image(systemName: "arrow.trianglehead.swap")
+                }
+                .tint(.accent)
+            }
+        }
 
-        Section(header: Text("Recent").font(.title3).foregroundColor(.accent)) {
+        Section(header: Text("Recent Chat Groups").font(.title3).foregroundStyle(.accent)) {
             if groups.isEmpty {
                 Text("No recent chat groups")
                     .foregroundStyle(.secondary)

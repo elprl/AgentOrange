@@ -13,7 +13,7 @@ struct AgentOrangeApp: App {
     @AppStorage("darkLightAutoMode") var darkLightAutoMode: UIUserInterfaceStyle = .unspecified
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            CDChatMessage.self, CDMessageGroup.self, CDCodeSnippet.self
+            CDChatMessage.self, CDMessageGroup.self, CDCodeSnippet.self, CDChatCommand.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -25,11 +25,13 @@ struct AgentOrangeApp: App {
     }()
     @State private var codeVM: FileViewerViewModel
     @State private var aiVM: AIChatViewModel
+    @State private var commandVM: CommandListViewModel
     
     init() {
         let modelContext = sharedModelContainer.mainContext
         _codeVM = State(initialValue: FileViewerViewModel(modelContext: modelContext))
         _aiVM = State(initialValue: AIChatViewModel(modelContext: modelContext))
+        _commandVM = State(initialValue: CommandListViewModel(modelContext: modelContext))
     }
     
     var body: some Scene {
@@ -37,6 +39,7 @@ struct AgentOrangeApp: App {
             TDSplitView()
                 .environment(codeVM)
                 .environment(aiVM)
+                .environment(commandVM)
                 .modelContainer(sharedModelContainer)
                 .preferredColorScheme(ColorScheme(darkLightAutoMode)) // tint on status bar
         }

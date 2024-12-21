@@ -41,6 +41,7 @@ enum Scope: String {
 
 struct ChatCommand {
     var name: String
+    var timestamp = Date.now
     var prompt: String
     var shortDescription: String
     
@@ -54,9 +55,35 @@ struct ChatCommand {
 
 extension ChatCommand: Identifiable, Hashable {
     var id: String { name }
+    
+    static func blank() -> ChatCommand {
+        ChatCommand(name: "", prompt: "", shortDescription: "")
+    }
+}
+
+extension ChatCommand: SendableModelProtocol {
+    var persistentModel: CDChatCommand {
+        return CDChatCommand(name: name, timestamp: timestamp, prompt: prompt, shortDescription: shortDescription, role: role, model: model, host: host, type: type, inputCodeId: inputCodeId, dependencyIds: dependencyIds)
+    }
 }
 
 enum AgentType: String, Codable {
     case coder
     case reviewer
 }
+
+#if DEBUG
+
+extension ChatCommand {
+    static func mock() -> ChatCommand {
+        ChatCommand(name: "//correctness",
+                    prompt: "Check the code carefully for correctness and security. Give helpful and constructive criticism for how to improve it.",
+                    shortDescription: "Refactors the code",
+                    role: "You are an expert reviewer of Swift 6 code.",
+                    model: "meta-llama-3.1-8b-instruct",
+                    host: "http://192.168.50.3:1234",
+                    type: .reviewer)
+    }
+}
+
+#endif

@@ -7,15 +7,6 @@
 
 import SwiftUI
 
-enum NavigationItem {
-    case openAISettings
-    case openAIInputSettings
-    case geminiSettings
-    case geminiInputSettings
-    case customAISettings
-    case claudeSettings
-}
-
 struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
