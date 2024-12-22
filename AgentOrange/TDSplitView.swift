@@ -36,9 +36,7 @@ struct TDSplitView: View {
                     WorkflowListView()
                 }                
             default:
-                NavigationStack {
-                    Text("Select an item")
-                }
+                selectSidedbarItem
             }
         } detail: {
             /* Column 3 */
@@ -54,12 +52,38 @@ struct TDSplitView: View {
                 WorkflowDetailedView(workflow: workflow)
                     .environment(viewModel)
             default:
-                NavigationStack {
-                    Text("Select an item")
-                }
+                selectDetailedItem
             }
         }
         .tint(.white)
+    }
+    
+    @ViewBuilder
+    private var selectDetailedItem: some View {
+        NavigationStack {
+            VStack {
+                Text("Select an item")
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color(.secondarySystemBackground))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbarBackground(.accent, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+        }
+    }
+    
+    @ViewBuilder
+    private var selectSidedbarItem: some View {
+        NavigationStack {
+            VStack {
+                Text("Select sidebar menu item")
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbarBackground(.accent, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+        }
     }
 }
 

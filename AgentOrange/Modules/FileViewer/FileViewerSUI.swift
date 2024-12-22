@@ -46,6 +46,8 @@ struct FileViewerSUI: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.secondarySystemBackground))
         .fileImporter(isPresented: $showingImporter, allowedContentTypes: [.plainText]) { result in
             switch result {
             case .success(let file):
@@ -157,7 +159,7 @@ struct FileViewerSUI: View {
             .textSelection(.enabled)
         }
         .markdownMargin(top: .em(0.8), bottom: .em(0.8))
-        .background(Color(.secondarySystemBackground))
+        .background(.primary.opacity(0.1))
         .overlay(content: {
             RoundedRectangle(cornerRadius: 8)
                 .stroke(.gray, lineWidth: 1)
@@ -210,6 +212,7 @@ struct FileViewerSUI: View {
             .buttonStyle(.borderedProminent)
         }
         .tint(.accent)
+        .background(Color(.secondarySystemBackground))
     }
     
     @ViewBuilder
