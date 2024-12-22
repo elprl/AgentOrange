@@ -52,7 +52,7 @@ struct CommandRowView: View {
         }
         .overlay {
             RoundedRectangle(cornerRadius: 8)
-                .strokeBorder(.accent, lineWidth: 1)
+                .strokeBorder(Color(UIColor.systemGray4), lineWidth: 1)
         }
         .backgroundStyle(.ultraThinMaterial)
     }

@@ -159,7 +159,7 @@ struct SideBarSUI: View {
             }
         }
 
-        Section(header: Text("Recent Chat Groups").font(.title3).foregroundStyle(.accent)) {
+        Section(header: Text("Recent Chats").font(.title3).foregroundStyle(.accent)) {
             if groups.isEmpty {
                 Text("No recent chat groups")
                     .foregroundStyle(.secondary)

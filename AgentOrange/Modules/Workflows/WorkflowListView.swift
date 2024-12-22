@@ -24,6 +24,12 @@ struct WorkflowListView: View {
                             workflowVM.delete(workflow: workflow.sendableModel)
                         }
                     }
+                    .overlay {
+                        if case let .workflowDetail(selectedWorkflow) = navVM.selectedDetailedItem, selectedWorkflow.name == workflow.name {
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.accent, lineWidth: 3)
+                        }
+                    }
                 }
                 .transition(.slide)
                 .animation(.default, value: workflows.count)

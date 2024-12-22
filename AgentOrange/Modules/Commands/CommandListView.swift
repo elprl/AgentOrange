@@ -24,7 +24,7 @@ struct CommandListView: View {
                             
                         }
                         .overlay {
-                            if command.name == viewModel.selectedName {
+                            if case let .commandDetail(selectedCommand) = navVM.selectedDetailedItem, selectedCommand.name == command.name {
                                 RoundedRectangle(cornerRadius: 8)
                                     .stroke(Color.accent, lineWidth: 3)
                             }
