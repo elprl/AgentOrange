@@ -14,13 +14,13 @@ import SwiftData
 final class CommandListViewModel {
     @Injected(\.commandService) @ObservationIgnored private var commandService
     /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: PersistentCommandDataManagerProtocol
-    var commands: [ChatCommand] = []
-    var selectedIndex: Int?
+    var selectedName: String?
     var isEditing: Bool = false
     var editableCommand: ChatCommand = ChatCommand.blank()
     var selectedCommand: ChatCommand?
+    var errorMessage: String?
 
-    init(modelContext: ModelContext, command: ChatCommand? = nil) {
+    init(modelContext: ModelContext) {
         self.dataService = Container.shared.dataService(modelContext.container) // Injected PersistentDataManager(container: modelContext.container)
 
         let hasLoadedDefaultCommand = UserDefaults.standard.bool(forKey: "hasLoadedDefaultCommand")
@@ -35,16 +35,47 @@ final class CommandListViewModel {
     }
     
     func save() {
-        Task {
-            await dataService.add(command: editableCommand)
+        if validateCommand() {
+            errorMessage = nil
+            Task {
+                await dataService.add(command: editableCommand)
+            }
+        } else {
+            errorMessage = "Name and prompt are required"
         }
     }
+    
+    func createNewCommand() {
+        isEditing = true
+        editableCommand = ChatCommand.blank()
+    }
+    
+    private func validateCommand() -> Bool {
+        return !editableCommand.name.isEmpty && !editableCommand.prompt.isEmpty
+    }
+    
+    func editBtnPressed(command: ChatCommand) {
+        selectedName = command.name
+        if isEditing {
+            isEditing = false
+            save()
+        } else {
+            editableCommand = command
+            isEditing = true
+        }
+    }
+    
+    func cancelBtnPressed(command: ChatCommand) {
+        isEditing = false
+        editableCommand = command
+        errorMessage = nil
+    }
+        
 }
 
 extension CommandListViewModel {
     static func mock() -> CommandListViewModel {
         let viewModel = CommandListViewModel(modelContext: PreviewController.commandsPreviewContainer.mainContext)
-        viewModel.commands = [ChatCommand.mock(), ChatCommand.mock(), ChatCommand.mock()]
         return viewModel
     }
 }

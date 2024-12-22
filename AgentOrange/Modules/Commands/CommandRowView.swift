@@ -10,43 +10,51 @@ import SwiftUI
 struct CommandRowView: View {
     let command: ChatCommand
     let action: (RowEvent) -> Void
-
+    
     var body: some View {
         GroupBox {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(alignment: .top) {
+                    Image(systemName: "command")
+                        .foregroundStyle(.accent)
                     Text(command.name)
                         .lineLimit(1)
                         .font(.headline)
-                        .foregroundStyle(.primary)
-                    Text(command.shortDescription)
+                    Spacer()
+                    Menu {
+                        Button {
+                            action(.deleted)
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .foregroundStyle(.accent)
+                    }
+                    .menuOrder(.fixed)
+                    .highPriorityGesture(TapGesture())
+                }
+                Text(command.shortDescription)
+                    .lineLimit(1)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                HStack {
+                    Text("Model: \(Text(command.model ?? "default").foregroundStyle(.secondary))")
                         .lineLimit(1)
                         .font(.caption)
-                        .foregroundStyle(.secondary)
-                    HStack {
-                        Text("Model: \(Text(command.model ?? "default").foregroundStyle(.secondary))")
-                            .lineLimit(1)
-                            .font(.caption)
-                        Spacer()
-                        Text("Host: \(Text(command.host ?? "default").foregroundStyle(.secondary))")
-                            .lineLimit(1)
-                            .font(.caption)
-                    }
-                }
-                Spacer()
-                Menu {
-                    Button {
-                        action(.deleted)
-                    } label: {
-                        Label("Delete", systemImage: "trash")
-                    }
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                        .foregroundStyle(.accent)
-                }
-                .menuOrder(.fixed)
-                .highPriorityGesture(TapGesture())
+                    Spacer()
+                    Text("Host: \(Text(command.host ?? "default").foregroundStyle(.secondary))")
+                        .lineLimit(1)
+                        .font(.caption)
+                }                
             }
+            .tint(.primary)
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 8)
+                .strokeBorder(LinearGradient(colors: [.accent, .gray],
+                                             startPoint: .top,
+                                             endPoint: .bottom), style: StrokeStyle(lineWidth: 1, lineCap: .round, dash: []))
         }
         .backgroundStyle(.ultraThinMaterial)
     }

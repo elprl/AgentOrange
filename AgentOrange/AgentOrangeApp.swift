@@ -26,12 +26,14 @@ struct AgentOrangeApp: App {
     @State private var codeVM: FileViewerViewModel
     @State private var aiVM: AIChatViewModel
     @State private var commandVM: CommandListViewModel
-    
+    @State private var navVM: NavigationViewModel
+
     init() {
         let modelContext = sharedModelContainer.mainContext
         _codeVM = State(initialValue: FileViewerViewModel(modelContext: modelContext))
         _aiVM = State(initialValue: AIChatViewModel(modelContext: modelContext))
         _commandVM = State(initialValue: CommandListViewModel(modelContext: modelContext))
+        _navVM = State(initialValue: NavigationViewModel())
     }
     
     var body: some Scene {
@@ -40,6 +42,7 @@ struct AgentOrangeApp: App {
                 .environment(codeVM)
                 .environment(aiVM)
                 .environment(commandVM)
+                .environment(navVM)
                 .modelContainer(sharedModelContainer)
                 .preferredColorScheme(ColorScheme(darkLightAutoMode)) // tint on status bar
         }

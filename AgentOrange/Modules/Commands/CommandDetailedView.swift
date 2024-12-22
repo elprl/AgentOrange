@@ -18,25 +18,23 @@ struct CommandDetailedView: View {
             } else {
                 readOnlyView
             }
+            if let error = viewModel.errorMessage {
+                Text(error)
+                    .foregroundStyle(.red)
+                    .padding()
+            }
         }
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Button(action: {
-                    if viewModel.isEditing {
-                        viewModel.isEditing = false
-                        viewModel.save()
-                    } else {
-                        viewModel.editableCommand = command
-                        viewModel.isEditing = true
-                    }
+                    viewModel.editBtnPressed(command: command)
                 }, label: {
                     Text(viewModel.isEditing ? "Save" :"Edit")
                         .foregroundStyle(.white)
                 })
                 if viewModel.isEditing {
                     Button(action: {
-                        viewModel.isEditing = false
-                        viewModel.editableCommand = command
+                        viewModel.cancelBtnPressed(command: command)
                     }, label: {
                         Text("Cancel")
                             .foregroundStyle(.white)
@@ -49,6 +47,9 @@ struct CommandDetailedView: View {
         .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbarBackground(.accent, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
+        .onChange(of: command.name) {
+            viewModel.selectedName = command.name
+        }            
     }
     
     @ViewBuilder

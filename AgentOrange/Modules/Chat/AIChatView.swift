@@ -6,12 +6,14 @@
 //  Copyright © 2024 tapdigital Ltd. All rights reserved.
 
 import SwiftUI
+import SwiftData
 
 struct AIChatView: View {
     @Environment(AIChatViewModel.self) private var chatVM: AIChatViewModel
     @Environment(FileViewerViewModel.self) private var fileVM: FileViewerViewModel
     @FocusState private var isFocused: Bool
     @State private var isPresented = false
+    @Query private var commands: [CDChatCommand]
 
     var body: some View {
         VStack {
@@ -144,9 +146,9 @@ let _ = Self._printChanges()
         HStack {
             Menu {
                 Text("COMMANDS")
-                ForEach(chatVM.commands, id: \.self) { command in
+                ForEach(commands, id: \.self) { command in
                     Button {
-                        chatVM.runCommand(command: command)
+                        chatVM.runCommand(command: command.sendableModel)
                     } label: {
                         Text(command.name)
                     }

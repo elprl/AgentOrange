@@ -10,9 +10,11 @@ import SwiftUI
 import SwiftData
 
 enum NavigationItem: Hashable {
-    case commands(command: ChatCommand)
-    case workflows
-    case chats
+    case commandList
+    case commandDetail(command: ChatCommand)
+    case workflowList
+    case workflowDetail(workflow: ChatCommand)
+    case chatGroup(group: MessageGroupSendable)
     case openAISettings
     case openAIInputSettings
     case geminiSettings
@@ -26,6 +28,7 @@ struct SideBarSUI: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(AIChatViewModel.self) private var chatVM: AIChatViewModel
     @Environment(FileViewerViewModel.self) private var fileVM: FileViewerViewModel
+    @Environment(NavigationViewModel.self) private var navVM: NavigationViewModel
     @Query(sort: \CDMessageGroup.timestamp, order: .reverse) private var groups: [CDMessageGroup]
     @State private var showSheet: Bool = false
 
@@ -33,8 +36,9 @@ struct SideBarSUI: View {
 #if DEBUG
         let _ = Self._printChanges()
 #endif
+        @Bindable var navVM = navVM
         @Bindable var chatVM = chatVM
-        List(selection: $chatVM.selectedGroup) {
+        List(selection: $navVM.selectedNavigationItem) {
             header
             dashboard
         }
@@ -76,8 +80,10 @@ struct SideBarSUI: View {
             }
             chatVM.groupName = chatVM.navTitle ?? ""
         }
-        .onChange(of: chatVM.selectedGroup) {
-            fileVM.selectedGroupId = chatVM.selectedGroup?.id
+        .onChange(of: navVM.selectedNavigationItem) {
+            if case .chatGroup(let group) = navVM.selectedNavigationItem {
+                fileVM.selectedGroupId = group.groupId
+            }
         }
         .onChange(of: groups) {
             if groups.isEmpty {
@@ -147,7 +153,7 @@ struct SideBarSUI: View {
         @Bindable var chatVM = chatVM
         
         Section(header: Text("Logic").font(.title3).foregroundStyle(.accent)) {
-            NavigationLink(destination: CommandListView()) {
+            NavigationLink(value: NavigationItem.commandList) {
                 Label {
                     Text("Commands")
                         .font(.headline)
@@ -156,7 +162,7 @@ struct SideBarSUI: View {
                 }
                 .tint(.accent)
             }
-            NavigationLink(destination: WorkflowListView()) {
+            NavigationLink(value: NavigationItem.workflowList) {
                 Label {
                     Text("Workflows")
                         .font(.headline)
@@ -173,7 +179,7 @@ struct SideBarSUI: View {
                     .foregroundStyle(.secondary)
             }
             ForEach(groups, id: \.groupId) { group in
-                NavigationLink(value: group.sendableModel) {
+                NavigationLink(value: NavigationItem.chatGroup(group: group.sendableModel)) {
                     HStack {
                         VStack(alignment: .leading) {
                             Text(group.title)
