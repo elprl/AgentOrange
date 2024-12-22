@@ -6,24 +6,34 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct WorkflowListView: View {
+    @Environment(NavigationViewModel.self) private var navVM: NavigationViewModel
+    @Environment(WorkflowListViewModel.self) private var workflowVM: WorkflowListViewModel
+    @Query private var workflows: [CDWorkflow]
+
     var body: some View {
         ScrollView {
             LazyVStack {
-                ForEach(0..<10) { index in
-                    NavigationLink(destination: Text("Workflow \(index)")) {
-                        Text("workflow \(index)")
-                            .padding()
-                            .background(Color(.systemGray5))
+                ForEach(workflows) { workflow in
+                    Button {
+                        navVM.selectedNavigationItem = .workflowDetail(workflow: workflow.sendableModel)
+                    } label: {
+                        WorkflowRowView(workflow: workflow.sendableModel) { event in
+                            workflowVM.delete(workflow: workflow.sendableModel)
+                        }
                     }
                 }
+                .transition(.slide)
+                .animation(.default, value: workflows.count)
             }
+            .padding()
         }
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Button(action: {
-
+                    workflowVM.addWorkflow()
                 }, label: {
                     Image(systemName: "plus")
                         .foregroundColor(.white)
@@ -40,4 +50,7 @@ struct WorkflowListView: View {
 
 #Preview {
     WorkflowListView()
+        .environment(NavigationViewModel())
+        .environment(WorkflowListViewModel(modelContext: PreviewController.workflowsPreviewContainer.mainContext))
+        .modelContext(PreviewController.workflowsPreviewContainer.mainContext)
 }

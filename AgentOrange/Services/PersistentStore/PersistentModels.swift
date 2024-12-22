@@ -96,6 +96,27 @@ extension CDChatCommand: PersistentModelProtocol {
 }
 
 @Model
+final class CDWorkflow {
+    @Attribute(.unique) var name: String
+    var timestamp: Date
+    var shortDescription: String
+    var commands: [CDChatCommand]
+    
+    init(name: String, timestamp: Date = Date.now, shortDescription: String, commands: [CDChatCommand]) {
+        self.name = name
+        self.timestamp = timestamp
+        self.shortDescription = shortDescription
+        self.commands = commands
+    }
+}
+
+extension CDWorkflow: PersistentModelProtocol {
+    var sendableModel: Workflow {
+        return Workflow(name: name, timestamp: timestamp, shortDescription: shortDescription, commands: commands.map({ $0.sendableModel }))
+    }
+}
+
+@Model
 final class CDCodeSnippet {
     @Attribute(.unique) var codeId: String
     var timestamp: Date
@@ -181,6 +202,22 @@ class PreviewController {
             
             for i in 1..<10 {
                 let group = CDChatCommand(name: "Command \(i)", prompt: "Prompt \(i)", shortDescription: "Description \(i)")
+                container.mainContext.insert(group)
+            }
+            try? container.mainContext.save()
+            return container
+        } catch {
+            fatalError("Failed to create model container for previewing: \(error.localizedDescription)")
+        }
+    }()
+    
+    static let workflowsPreviewContainer: ModelContainer = {
+        do {
+            let config = ModelConfiguration(isStoredInMemoryOnly: true)
+            let container = try ModelContainer(for: CDWorkflow.self, configurations: config)
+            
+            for i in 1..<10 {
+                let group = CDWorkflow(name: "Workflow \(i)", shortDescription: "Description \(i)", commands: [CDChatCommand(name: "Command \(i)", prompt: "Prompt \(i)", shortDescription: "Description \(i)")])
                 container.mainContext.insert(group)
             }
             try? container.mainContext.save()

@@ -63,3 +63,28 @@ extension CodeSnippetSendable: SendableModelProtocol {
         return CDCodeSnippet(codeId: codeId, timestamp: timestamp, title: title, code: code, messageId: messageId, subTitle: subTitle, isVisible: isVisible, groupId: groupId)
     }
 }
+
+struct Workflow {
+    var name: String
+    var timestamp: Date
+    var shortDescription: String
+    var commands: [ChatCommand]
+}
+
+extension Workflow: Identifiable, Hashable {
+    var id: String {
+        return name
+    }
+}
+
+extension Workflow: SendableModelProtocol {
+    var persistentModel: CDWorkflow {
+        return CDWorkflow(name: name, timestamp: timestamp, shortDescription: shortDescription, commands: commands.map({ $0.persistentModel }))
+    }
+}
+
+extension Workflow {
+    static func mock() -> Workflow {
+        return Workflow(name: UUID().uuidString, timestamp: Date.now, shortDescription: UUID().uuidString, commands: [ChatCommand.mock()])
+    }
+}

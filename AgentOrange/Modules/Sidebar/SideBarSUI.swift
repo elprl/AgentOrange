@@ -13,7 +13,7 @@ enum NavigationItem: Hashable {
     case commandList
     case commandDetail(command: ChatCommand)
     case workflowList
-    case workflowDetail(workflow: ChatCommand)
+    case workflowDetail(workflow: Workflow)
     case chatGroup(group: MessageGroupSendable)
     case openAISettings
     case openAIInputSettings

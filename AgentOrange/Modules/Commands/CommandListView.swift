@@ -11,7 +11,6 @@ import SwiftData
 struct CommandListView: View {
     @Environment(CommandListViewModel.self) private var viewModel: CommandListViewModel
     @Environment(NavigationViewModel.self) private var navVM: NavigationViewModel
-
     @Query private var commands: [CDChatCommand]
 
     var body: some View {

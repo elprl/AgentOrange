@@ -34,10 +34,18 @@ protocol PersistentCommandDataManagerProtocol: Actor {
     func fetchCommand(for name: String) async -> ChatCommand?
 }
 
+protocol PersistentWorkflowDataManagerProtocol: Actor {
+    func add(workflow: Workflow)
+    func delete(workflow: Workflow)
+    func fetchAllWorkflows() async -> [Workflow]
+    func fetchWorkflow(for name: String) async -> Workflow?
+}
+
 protocol PersistentDataManagerProtocol: PersistentGroupDataManagerProtocol,
                                         PersistentChatDataManagerProtocol,
                                         PersistentCodeDataManagerProtocol,
-                                        PersistentCommandDataManagerProtocol {}
+                                        PersistentCommandDataManagerProtocol,
+                                        PersistentWorkflowDataManagerProtocol {}
 
 actor PersistentDataManager: PersistentDataManagerProtocol {
     private let container: ModelContainer
@@ -212,6 +220,54 @@ extension PersistentDataManager: PersistentCommandDataManagerProtocol {
             guard let container = self?.container else { return nil }
             let dataService = DataService<CDChatCommand, ChatCommand>(modelContainer: container)
             if let items: [ChatCommand] = try? await dataService.fetchDataVMs(predicate: #Predicate<CDChatCommand> { $0.name == name }, sortBy: [SortDescriptor(\.timestamp)]) {
+                return items.first
+            }
+            return nil
+        }.value
+        return vmItem
+    }
+}
+
+// MARK: - Workflow
+extension PersistentDataManager: PersistentWorkflowDataManagerProtocol {
+    func add(workflow: Workflow) {
+        Task.detached(priority: .userInitiated) { [weak self] in
+            guard let container = self?.container else { return }
+            let dataService = DataService<CDWorkflow, Workflow>(modelContainer: container)
+            await dataService.insert(data: workflow)
+        }
+    }
+    
+    func delete(workflow: Workflow) {
+        Task.detached(priority: .userInitiated) { [weak self] in
+            guard let container = self?.container else { return }
+            let dataService = DataService<CDWorkflow, Workflow>(modelContainer: container)
+            do {
+                let id: String = workflow.name
+                try await dataService.remove(predicate: #Predicate<CDWorkflow> { $0.name == id } )
+            } catch {
+                print(error.localizedDescription)
+            }
+        }
+    }
+    
+    func fetchAllWorkflows() async -> [Workflow] {
+        let vmItems: [Workflow] = await Task.detached(priority: .userInitiated) { [weak self] in
+            guard let container = self?.container else { return [] }
+            let dataService = DataService<CDWorkflow, Workflow>(modelContainer: container)
+            if let items: [Workflow] = try? await dataService.fetchDataVMs(predicate: nil, sortBy: [SortDescriptor(\.timestamp)]) {
+                return items
+            }
+            return []
+        }.value
+        return vmItems
+    }
+    
+    func fetchWorkflow(for name: String) async -> Workflow? {
+        let vmItem: Workflow? = await Task.detached(priority: .userInitiated) { [weak self] in
+            guard let container = self?.container else { return nil }
+            let dataService = DataService<CDWorkflow, Workflow>(modelContainer: container)
+            if let items: [Workflow] = try? await dataService.fetchDataVMs(predicate: #Predicate<CDWorkflow> { $0.name == name }, sortBy: [SortDescriptor(\.timestamp)]) {
                 return items.first
             }
             return nil

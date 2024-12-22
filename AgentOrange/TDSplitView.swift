@@ -50,6 +50,9 @@ struct TDSplitView: View {
             case .commandDetail(let command):
                 CommandDetailedView(command: command)
                     .environment(viewModel)
+            case .workflowDetail(let workflow):
+                WorkflowDetailedView(workflow: workflow)
+                    .environment(viewModel)
             default:
                 NavigationStack {
                     Text("Select an item")
