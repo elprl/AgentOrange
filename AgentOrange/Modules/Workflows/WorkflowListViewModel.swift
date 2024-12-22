@@ -37,12 +37,12 @@ final class WorkflowListViewModel {
                 await dataService.add(workflow: editingWorkflow)
             }
         } else {
-            errorMessage = "Name and prompt are required"
+            errorMessage = "Name, short description and commands are required"
         }
     }
     
     private func validateCommand() -> Bool {
-        return !editingWorkflow.name.isEmpty && !editingWorkflow.shortDescription.isEmpty
+        return !editingWorkflow.name.isEmpty && !editingWorkflow.shortDescription.isEmpty && !editingWorkflow.commands.isEmpty
     }
     
     func delete(workflow: Workflow) {
@@ -67,4 +67,32 @@ final class WorkflowListViewModel {
         editingWorkflow = workflow
         errorMessage = nil
     }
+    
+    func parallelTracks(from commands: [ChatCommand]) -> [String] {
+        var uniqueHosts = [String]()
+        commands.forEach {
+            if let host = $0.host, uniqueHosts.contains(host) == false {
+                uniqueHosts.append(host)
+            }
+        }
+        return uniqueHosts
+    }
+        
+    func commands(for host: String, commands: [ChatCommand]) -> [ChatCommand] {
+        return commands.filter { $0.host == host }
+    }
+    
+    func addCommand(command: ChatCommand) {
+        if !editingWorkflow.commands.contains(command) {
+            editingWorkflow.commands.append(command)
+        }
+    }
 }
+
+extension WorkflowListViewModel {
+    static func mock() -> WorkflowListViewModel {
+        let viewModel = WorkflowListViewModel(modelContext: PreviewController.workflowsPreviewContainer.mainContext)
+        return viewModel
+    }
+}
+

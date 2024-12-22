@@ -6,11 +6,13 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct WorkflowDetailedView: View {
     @Environment(WorkflowListViewModel.self) private var viewModel: WorkflowListViewModel
     let workflow: Workflow
-    
+    @Query private var commands: [CDChatCommand]
+
     var body: some View {
         Form {
             if viewModel.isEditing {
@@ -71,7 +73,45 @@ struct WorkflowDetailedView: View {
         }
         
         Section("Commands") {
-
+            HStack(alignment: .top) {
+                GroupBox {
+                    Text("Selected Commands")
+                        .lineLimit(1)
+                        .font(.title3)
+                        .foregroundStyle(.accent)
+                    List {
+                        ForEach(viewModel.editingWorkflow.commands, id: \.self) { command in
+                            CommandRowView(command: command, showMenu: false)
+                                .frame(width: 200, alignment: .center)
+                        }
+                        .onDelete { viewModel.editingWorkflow.commands.remove(atOffsets: $0) }
+                        .onMove { from, to in
+                            viewModel.editingWorkflow.commands.move(fromOffsets: from, toOffset: to)
+                        }
+                    }
+                    .environment(\.editMode, .constant(EditMode.active))
+                }
+                .padding(.vertical)
+                Spacer()
+                VStack {
+                    Text("Available Commands")
+                        .lineLimit(1)
+                        .font(.title3)
+                    ScrollView {
+                        LazyVStack {
+                            ForEach(commands) { command in
+                                Button {
+                                    viewModel.addCommand(command: command.sendableModel)
+                                } label: {
+                                    CommandRowView(command: command.sendableModel, showMenu: false)
+                                }
+                            }
+                        }
+                        .frame(width: 200, alignment: .center)
+                    }
+                }
+                .padding()
+            }
         }
     }
     
@@ -94,18 +134,73 @@ struct WorkflowDetailedView: View {
         
         Section("Commands") {
             ScrollView {
-                LazyVStack {
-                    ForEach(workflow.commands, id: \.self) { command in
-                        Button {
-                            
-                        } label: {
-                            HStack {
-                                Text(command.name)
-                                    .foregroundStyle(.accent)
+                VStack(alignment: .center, spacing: 0) {
+                    Text("Parallel Tracks")
+                        .lineLimit(1)
+                        .font(.title3)
+                        .foregroundStyle(.accent)
+                    Text("Based on hosts")
+                        .lineLimit(1)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Rectangle()
+                        .fill(Color.accent)
+                        .frame(width: 1, height: 20)
+                    Rectangle()
+                        .fill(Color.accent)
+                        .frame(height: 1)
+                        .padding(.horizontal, 108)
+                    HStack {
+                        ForEach(viewModel.parallelTracks(from: workflow.commands).indices, id: \.self) { index in
+                            Rectangle()
+                                .fill(Color.accent)
+                                .frame(width: 1, height: 20, alignment: .leading)
+                            if index != viewModel.parallelTracks(from: workflow.commands).count - 1 {
                                 Spacer()
-                                Image(systemName: "chevron.right")
-                                    .foregroundColor(.accent)
                             }
+                        }
+                    }
+                    .padding(.horizontal, 108)
+                    .padding(.bottom, -8)
+                }
+                HStack(alignment: .top) {
+                    ForEach(viewModel.parallelTracks(from: workflow.commands).indices, id: \.self) { trackIndex in
+                        let host = viewModel.parallelTracks(from: workflow.commands)[trackIndex]
+                        VStack(spacing: 0) {
+                            Text(host)
+                                .lineLimit(1)
+                                .font(.headline)
+                                .underline()
+                                .foregroundStyle(.secondary)
+                                .padding(.vertical)
+                            ForEach(viewModel.commands(for: host, commands: workflow.commands).indices, id: \.self) { index in
+                                Button {
+                                    
+                                } label: {
+                                    let command = viewModel.commands(for: host, commands: workflow.commands)[index]
+                                    CommandRowView(command: command, showMenu: false)
+                                        .frame(width: 200, alignment: .center)
+                                        .padding(.bottom, 10)
+                                        .background {
+                                            if index != viewModel.commands(for: host, commands: workflow.commands).count - 1 {
+                                                VStack {
+                                                    Spacer()
+                                                    Rectangle()
+                                                        .fill(Color.accent)
+                                                        .frame(width: 1, height: 10, alignment: .center)
+                                                }
+                                            }
+                                        }
+                                }
+                            }
+                        }
+                        .padding([.horizontal, .top], 8)
+                        .background {
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(.accent, lineWidth: 1)
+                        }
+                        if trackIndex != viewModel.parallelTracks(from: workflow.commands).count - 1 {
+                            Spacer()
                         }
                     }
                 }
@@ -115,5 +210,9 @@ struct WorkflowDetailedView: View {
 }
 
 #Preview {
-    WorkflowDetailedView(workflow: Workflow.mock())
+    NavigationStack {
+        WorkflowDetailedView(workflow: Workflow.mock())
+            .environment(WorkflowListViewModel.mock())
+            .modelContext(PreviewController.commandsPreviewContainer.mainContext)
+    }
 }

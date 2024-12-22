@@ -57,5 +57,8 @@ struct CommandListView: View {
 #Preview {
     NavigationStack {
         CommandListView()
+            .environment(NavigationViewModel.mock())
+            .environment(CommandListViewModel.mock())
+            .modelContext(PreviewController.commandsPreviewContainer.mainContext)
     }
 }

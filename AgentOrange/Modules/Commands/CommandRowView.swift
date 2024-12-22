@@ -9,7 +9,8 @@ import SwiftUI
 
 struct CommandRowView: View {
     let command: ChatCommand
-    let action: (RowEvent) -> Void
+    var showMenu: Bool = true
+    var action: ((RowEvent) -> Void)?
     
     var body: some View {
         GroupBox {
@@ -21,18 +22,20 @@ struct CommandRowView: View {
                         .lineLimit(1)
                         .font(.headline)
                     Spacer()
-                    Menu {
-                        Button {
-                            action(.deleted)
+                    if showMenu {
+                        Menu {
+                            Button {
+                                action?(.deleted)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
                         } label: {
-                            Label("Delete", systemImage: "trash")
+                            Image(systemName: "ellipsis.circle")
+                                .foregroundStyle(.accent)
                         }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                            .foregroundStyle(.accent)
+                        .menuOrder(.fixed)
+                        .highPriorityGesture(TapGesture())
                     }
-                    .menuOrder(.fixed)
-                    .highPriorityGesture(TapGesture())
                 }
                 Text(command.shortDescription)
                     .lineLimit(1)
@@ -65,6 +68,19 @@ struct CommandRowView: View {
                 CommandRowView(command: ChatCommand.mock()) { _ in
                     print("Command deleted")
                 }
+            }
+            .padding()
+        }
+    }
+    .tint(.accent)
+}
+
+#Preview("Without Menu") {
+    NavigationStack {
+        ScrollView {
+            LazyVStack {
+                CommandRowView(command: ChatCommand.mock(), showMenu: false)
+                .frame(width: 200)
             }
             .padding()
         }

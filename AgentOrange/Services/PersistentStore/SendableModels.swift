@@ -85,6 +85,10 @@ extension Workflow: SendableModelProtocol {
 
 extension Workflow {
     static func mock() -> Workflow {
-        return Workflow(name: UUID().uuidString, timestamp: Date.now, shortDescription: UUID().uuidString, commands: [ChatCommand.mock()])
+        var mock1 = ChatCommand.mock()
+        mock1.host = "openai"
+        var mock2 = ChatCommand.mock()
+        mock2.host = "claude"
+        return Workflow(name: UUID().uuidString, timestamp: Date.now, shortDescription: UUID().uuidString, commands: [mock1, mock1, ChatCommand.mock(), ChatCommand.mock(), ChatCommand.mock(), mock2, mock2])
     }
 }

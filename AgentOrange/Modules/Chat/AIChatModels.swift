@@ -76,7 +76,7 @@ enum AgentType: String, Codable {
 
 extension ChatCommand {
     static func mock() -> ChatCommand {
-        ChatCommand(name: "//correctness",
+        ChatCommand(name: String(UUID().uuidString.prefix(9)),
                     prompt: "Check the code carefully for correctness and security. Give helpful and constructive criticism for how to improve it.",
                     shortDescription: "Refactors the code",
                     role: "You are an expert reviewer of Swift 6 code.",

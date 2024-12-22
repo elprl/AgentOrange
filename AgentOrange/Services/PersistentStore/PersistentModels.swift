@@ -74,8 +74,9 @@ final class CDChatCommand {
     var type: AgentType?
     var inputCodeId: String?
     var dependencyIds: [String]?
+    @Relationship(inverse: \CDWorkflow.commands) var workflows: [CDWorkflow]
     
-    init(name: String, timestamp: Date = Date.now, prompt: String, shortDescription: String, role: String? = nil, model: String? = nil, host: String? = nil, type: AgentType? = .coder, inputCodeId: String? = nil, dependencyIds: [String]? = nil) {
+    init(name: String, timestamp: Date = Date.now, prompt: String, shortDescription: String, role: String? = nil, model: String? = nil, host: String? = nil, type: AgentType? = .coder, inputCodeId: String? = nil, dependencyIds: [String]? = nil, workflows: [CDWorkflow] = []) {
         self.name = name
         self.timestamp = timestamp
         self.prompt = prompt
@@ -86,6 +87,7 @@ final class CDChatCommand {
         self.type = type
         self.inputCodeId = inputCodeId
         self.dependencyIds = dependencyIds
+        self.workflows = workflows
     }
 }
 
@@ -198,7 +200,7 @@ class PreviewController {
     static let commandsPreviewContainer: ModelContainer = {
         do {
             let config = ModelConfiguration(isStoredInMemoryOnly: true)
-            let container = try ModelContainer(for: CDCodeSnippet.self, configurations: config)
+            let container = try ModelContainer(for: CDChatCommand.self, configurations: config)
             
             for i in 1..<10 {
                 let group = CDChatCommand(name: "Command \(i)", prompt: "Prompt \(i)", shortDescription: "Description \(i)")
