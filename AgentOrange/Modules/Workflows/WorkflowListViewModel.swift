@@ -54,8 +54,8 @@ final class WorkflowListViewModel {
     func editBtnPressed(workflow: Workflow) {
         selectedName = workflow.name
         if isEditing {
-            isEditing = false
             save()
+            isEditing = false
         } else {
             editingWorkflow = workflow
             isEditing = true
@@ -71,7 +71,8 @@ final class WorkflowListViewModel {
     func parallelTracks(from commands: [ChatCommand]) -> [String] {
         var uniqueHosts = [String]()
         commands.forEach {
-            if let host = $0.host, uniqueHosts.contains(host) == false {
+            let host = $0.host ?? UserDefaults.standard.customAIHost ?? "http://localhost:1234"
+            if uniqueHosts.contains(host) == false {
                 uniqueHosts.append(host)
             }
         }
@@ -79,7 +80,10 @@ final class WorkflowListViewModel {
     }
         
     func commands(for host: String, commands: [ChatCommand]) -> [ChatCommand] {
-        return commands.filter { $0.host == host }
+        return commands.filter {
+            let existingHost = $0.host ?? UserDefaults.standard.customAIHost ?? "http://localhost:1234"
+            return existingHost == host
+        }
     }
     
     func addCommand(command: ChatCommand) {

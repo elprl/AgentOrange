@@ -14,6 +14,7 @@ struct AIChatView: View {
     @FocusState private var isFocused: Bool
     @State private var isPresented = false
     @Query private var commands: [CDChatCommand]
+    @Query private var workflows: [CDWorkflow]
 
     var body: some View {
         VStack {
@@ -155,12 +156,12 @@ let _ = Self._printChanges()
                 }
                 Divider()
                 Text("WORKFLOWS")
-                ForEach(chatVM.workflowNames, id: \.self) { name in
+                ForEach(workflows, id: \.self) { workflow in
                     Button {
-                        chatVM.runWorkflow(name: name)
+                        chatVM.runWorkflow(name: workflow.name)
 //                        chatVM.runWorkflowInParallel(name: name)
                     } label: {
-                        Text(name)
+                        Text(workflow.name)
                     }
                 }
             } label: {

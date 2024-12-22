@@ -49,6 +49,7 @@ final class FileViewerViewModel {
             await self.dataService.add(code: snippet)
             self.selectTab(snippet: snippet)
             self.pastedCodeCount += 1
+            self.addToScope(snippet: snippet)
         }
     }
     
@@ -66,6 +67,7 @@ final class FileViewerViewModel {
                 let snippet = CodeSnippetSendable(title: filename, code: snippetCode, subTitle: "Original", groupId: groupId)
                 await self?.dataService.add(code: snippet)
                 self?.selectTab(snippet: snippet)
+                self?.addToScope(snippet: snippet)
             }
         }
     }

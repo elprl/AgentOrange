@@ -15,7 +15,7 @@ struct CommandRowView: View {
     var body: some View {
         GroupBox {
             VStack(alignment: .leading, spacing: 4) {
-                HStack(alignment: .top) {
+                HStack(alignment: .center) {
                     Image(systemName: "command")
                         .foregroundStyle(.accent)
                     Text(command.name)
@@ -42,14 +42,17 @@ struct CommandRowView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 HStack {
-                    Text("Model: \(Text(command.model ?? "default").foregroundStyle(.secondary))")
+                    Text("Model: \(Text(command.model ?? UserDefaults.standard.customAIModel ?? "qwen2.5-coder-32b-instruct").foregroundStyle(.secondary))")
+                        .lineLimit(1)
+                        .font(.caption)
+                    Text("|")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text("Host: \(Text(command.host ?? UserDefaults.standard.customAIHost ?? "http://localhost:1234").foregroundStyle(.secondary))")
                         .lineLimit(1)
                         .font(.caption)
                     Spacer()
-                    Text("Host: \(Text(command.host ?? "default").foregroundStyle(.secondary))")
-                        .lineLimit(1)
-                        .font(.caption)
-                }                
+                }
             }
             .tint(.primary)
         }

@@ -14,6 +14,9 @@ struct WorkflowListView: View {
     @Query private var workflows: [CDWorkflow]
 
     var body: some View {
+#if DEBUG
+let _ = Self._printChanges()
+#endif
         ScrollView {
             LazyVStack {
                 ForEach(workflows) { workflow in
@@ -51,6 +54,12 @@ struct WorkflowListView: View {
         .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbarBackground(.accent, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
+        .onChange(of: workflowVM.isEditing) { 
+            if case let .workflowDetail(selectedWorkflow) = navVM.selectedDetailedItem, let index = workflows.firstIndex(where: { $0.name == selectedWorkflow.name }) {
+                let workflow = workflows[index]
+                navVM.selectedDetailedItem = .workflowDetail(workflow: workflow.sendableModel)
+            }
+        }
     }
 }
 

@@ -44,7 +44,7 @@ struct WorkflowDetailedView: View {
                 }
             }
         }
-        .navigationBarTitle("Command Details")
+        .navigationBarTitle("Workflow Details")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbarBackground(.accent, for: .navigationBar)
@@ -82,7 +82,6 @@ struct WorkflowDetailedView: View {
                     List {
                         ForEach(viewModel.editingWorkflow.commands, id: \.self) { command in
                             CommandRowView(command: command, showMenu: false)
-                                .frame(width: 200, alignment: .center)
                         }
                         .onDelete { viewModel.editingWorkflow.commands.remove(atOffsets: $0) }
                         .onMove { from, to in
@@ -139,6 +138,7 @@ struct WorkflowDetailedView: View {
                         .lineLimit(1)
                         .font(.title3)
                         .foregroundStyle(.accent)
+                        .padding(.top)
                     Text("Based on hosts")
                         .lineLimit(1)
                         .font(.caption)
@@ -146,10 +146,12 @@ struct WorkflowDetailedView: View {
                     Rectangle()
                         .fill(Color.accent)
                         .frame(width: 1, height: 20)
-                    Rectangle()
-                        .fill(Color.accent)
-                        .frame(height: 1)
-                        .padding(.horizontal, 108)
+                    if viewModel.parallelTracks(from: workflow.commands).count > 1 {
+                        Rectangle()
+                            .fill(Color.accent)
+                            .frame(height: 1)
+                            .padding(.horizontal, 108)
+                    }
                     HStack {
                         ForEach(viewModel.parallelTracks(from: workflow.commands).indices, id: \.self) { index in
                             Rectangle()
@@ -163,6 +165,7 @@ struct WorkflowDetailedView: View {
                     .padding(.horizontal, 108)
                     .padding(.bottom, -8)
                 }
+                .frame(maxWidth: .infinity, alignment: .center)
                 HStack(alignment: .top) {
                     ForEach(viewModel.parallelTracks(from: workflow.commands).indices, id: \.self) { trackIndex in
                         let host = viewModel.parallelTracks(from: workflow.commands)[trackIndex]

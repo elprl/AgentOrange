@@ -14,7 +14,7 @@ struct WorkflowRowView: View {
     var body: some View {
         GroupBox {
             VStack(alignment: .leading, spacing: 4) {
-                HStack(alignment: .top) {
+                HStack(alignment: .center) {
                     Image(systemName: "arrow.trianglehead.swap")
                         .foregroundStyle(.accent)
                     Text(workflow.name)
@@ -45,11 +45,12 @@ struct WorkflowRowView: View {
                                 .lineLimit(1)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 2)
-                                .background(.ultraThinMaterial)
+                                .background(Color(UIColor.systemGray5))
                                 .clipShape(Capsule())
                         }
                     }
                 }
+                .padding(.top, 2)
             }
             .tint(.primary)
         }
