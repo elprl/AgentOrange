@@ -18,9 +18,7 @@ struct CommandListView: View {
             LazyVStack {
                 ForEach(commands, id: \.self) { command in
                     Button {
-                        navVM.selectedNavigationItem = .commandDetail(command: command.sendableModel)
-//                        CommandDetailedView(command: command.sendableModel)
-//                            .environment(viewModel)
+                        navVM.selectedDetailedItem = .commandDetail(command: command.sendableModel)
                     } label: {
                         CommandRowView(command: command.sendableModel) { event in
                             
@@ -32,8 +30,9 @@ struct CommandListView: View {
                             }
                         }
                     }
-//                    .isDetailLink(true)
                 }
+                .transition(.slide)
+                .animation(.default, value: commands.count)
             }
             .padding()
         }

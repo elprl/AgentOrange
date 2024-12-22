@@ -22,7 +22,7 @@ struct TDSplitView: View {
             SideBarSUI()
         } content: {
             /* Column 2 */
-            switch navVM.selectedNavigationItem {
+            switch navVM.selectedSidebarItem {
             case .chatGroup(_):
                 NavigationStack {
                     AIChatView()
@@ -40,8 +40,8 @@ struct TDSplitView: View {
             }
         } detail: {
             /* Column 3 */
-            switch navVM.selectedNavigationItem {
-            case .chatGroup(let group):
+            switch navVM.selectedDetailedItem {
+            case .fileViewer(let group):
                 NavigationStack {
                     FileViewerSUI(groupId: group.groupId)
                 }
@@ -90,4 +90,6 @@ struct TDSplitView: View {
 #Preview {
     TDSplitView()
         .environment(FileViewerViewModel.mock())
+        .environment(AIChatViewModel.mock())
+        .environment(NavigationViewModel.mock())
 }

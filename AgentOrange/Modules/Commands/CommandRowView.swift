@@ -52,9 +52,7 @@ struct CommandRowView: View {
         }
         .overlay {
             RoundedRectangle(cornerRadius: 8)
-                .strokeBorder(LinearGradient(colors: [.accent, .gray],
-                                             startPoint: .top,
-                                             endPoint: .bottom), style: StrokeStyle(lineWidth: 1, lineCap: .round, dash: []))
+                .strokeBorder(.accent, lineWidth: 1)
         }
         .backgroundStyle(.ultraThinMaterial)
     }

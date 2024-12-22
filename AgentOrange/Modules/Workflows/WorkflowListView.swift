@@ -18,7 +18,7 @@ struct WorkflowListView: View {
             LazyVStack {
                 ForEach(workflows) { workflow in
                     Button {
-                        navVM.selectedNavigationItem = .workflowDetail(workflow: workflow.sendableModel)
+                        navVM.selectedDetailedItem = .workflowDetail(workflow: workflow.sendableModel)
                     } label: {
                         WorkflowRowView(workflow: workflow.sendableModel) { event in
                             workflowVM.delete(workflow: workflow.sendableModel)

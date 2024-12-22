@@ -9,21 +9,6 @@
 import SwiftUI
 import SwiftData
 
-enum NavigationItem: Hashable {
-    case commandList
-    case commandDetail(command: ChatCommand)
-    case workflowList
-    case workflowDetail(workflow: Workflow)
-    case chatGroup(group: MessageGroupSendable)
-    case openAISettings
-    case openAIInputSettings
-    case geminiSettings
-    case geminiInputSettings
-    case customAISettings
-    case claudeSettings
-    case fileViewer
-}
-
 struct SideBarSUI: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(AIChatViewModel.self) private var chatVM: AIChatViewModel
@@ -38,7 +23,7 @@ struct SideBarSUI: View {
 #endif
         @Bindable var navVM = navVM
         @Bindable var chatVM = chatVM
-        List(selection: $navVM.selectedNavigationItem) {
+        List(selection: $navVM.selectedSidebarItem) {
             header
             dashboard
         }
@@ -80,9 +65,10 @@ struct SideBarSUI: View {
             }
             chatVM.groupName = chatVM.navTitle ?? ""
         }
-        .onChange(of: navVM.selectedNavigationItem) {
-            if case .chatGroup(let group) = navVM.selectedNavigationItem {
+        .onChange(of: navVM.selectedSidebarItem) {
+            if case .chatGroup(let group) = navVM.selectedSidebarItem {
                 fileVM.selectedGroupId = group.groupId
+                navVM.selectedDetailedItem = .fileViewer(group: group)
             }
         }
         .onChange(of: groups) {
