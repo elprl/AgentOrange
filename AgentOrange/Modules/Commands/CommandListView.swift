@@ -9,16 +9,23 @@ import SwiftUI
 import SwiftData
 
 struct CommandListView: View {
-    @Environment(CommandListViewModel.self) private var viewModel: CommandListViewModel
+    @State private var viewModel: CommandListViewModel
     @Environment(NavigationViewModel.self) private var navVM: NavigationViewModel
     @Query private var commands: [CDChatCommand]
+    
+    init(modelContext: ModelContext) {
+        self._viewModel = State(initialValue: CommandListViewModel(modelContext: modelContext))
+    }
 
     var body: some View {
         ScrollView {
             LazyVStack {
                 ForEach(commands, id: \.self) { command in
                     Button {
-                        navVM.selectedDetailedItem = .commandDetail(command: command.sendableModel)
+                        navVM.selectedDetailedItem = nil
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            navVM.selectedDetailedItem = .commandDetail(command: command.sendableModel)
+                        }
                     } label: {
                         CommandRowView(command: command.sendableModel) { event in
                             
@@ -56,9 +63,8 @@ struct CommandListView: View {
 
 #Preview {
     NavigationStack {
-        CommandListView()
+        CommandListView(modelContext: PreviewController.commandsPreviewContainer.mainContext)
             .environment(NavigationViewModel.mock())
-            .environment(CommandListViewModel.mock())
             .modelContext(PreviewController.commandsPreviewContainer.mainContext)
     }
 }

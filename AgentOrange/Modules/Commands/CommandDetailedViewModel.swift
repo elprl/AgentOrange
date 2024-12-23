@@ -1,8 +1,8 @@
 //
-//  CommandListViewModel.swift
+//  CommandDetailedViewModel.swift
 //  AgentOrange
 //
-//  Created by Paul Leo on 20/12/2024.
+//  Created by Paul Leo on 22/12/2024.
 //
 
 import Foundation
@@ -11,16 +11,17 @@ import SwiftData
 
 @Observable
 @MainActor
-final class CommandListViewModel {
+final class CommandDetailedViewModel {
     @Injected(\.commandService) @ObservationIgnored private var commandService
     /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: PersistentCommandDataManagerProtocol
-    var selectedName: String?
     var isEditing: Bool = false
-    var editableCommand: ChatCommand = ChatCommand.blank()
-    var selectedCommand: ChatCommand?
+    var editableCommand: ChatCommand
+    var selectedCommand: ChatCommand
     var errorMessage: String?
 
-    init(modelContext: ModelContext) {
+    init(modelContext: ModelContext, command: ChatCommand) {
+        self.selectedCommand = command
+        self.editableCommand = command
         self.dataService = Container.shared.dataService(modelContext.container) // Injected PersistentDataManager(container: modelContext.container)
 
         let hasLoadedDefaultCommand = UserDefaults.standard.bool(forKey: "hasLoadedDefaultCommand")
@@ -55,7 +56,6 @@ final class CommandListViewModel {
     }
     
     func editBtnPressed(command: ChatCommand) {
-        selectedName = command.name
         if isEditing {
             isEditing = false
             save()
@@ -73,10 +73,28 @@ final class CommandListViewModel {
         
 }
 
-extension CommandListViewModel {
-    static func mock() -> CommandListViewModel {
-        let viewModel = CommandListViewModel(modelContext: PreviewController.commandsPreviewContainer.mainContext)
+extension CommandDetailedViewModel {
+    static func mock() -> CommandDetailedViewModel {
+        let viewModel = CommandDetailedViewModel(modelContext: PreviewController.commandsPreviewContainer.mainContext, command: ChatCommand.mock())
         return viewModel
     }
 }
 
+extension Optional where Wrapped == String {
+    var _binding: String? {
+        get {
+            return self
+        }
+        set {
+            self = newValue
+        }
+    }
+    public var binding: String {
+        get {
+            return _binding ?? ""
+        }
+        set {
+            _binding = newValue.isEmpty ? nil : newValue
+        }
+    }
+}

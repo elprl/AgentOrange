@@ -13,82 +13,32 @@ import Factory
 @MainActor
 final class WorkflowListViewModel {
     /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: PersistentWorkflowDataManagerProtocol
-    var editingWorkflow: Workflow = Workflow(name: "", timestamp: Date.now, shortDescription: "", commands: [])
-    var selectedName: String?
-    var isEditing: Bool = false
     var errorMessage: String?
+    var workflows: [Workflow] = []
     
     init(modelContext: ModelContext) {
         self.dataService = Container.shared.dataService(modelContext.container) // Injected PersistentDataManager(container: modelContext.container)
     }
     
+    func load() {
+        Task {
+            workflows = await dataService.fetchAllWorkflows()
+        }
+    }
+
     func addWorkflow() {
         let newWorkflow = Workflow(name: "New Workflow", timestamp: Date.now, shortDescription: "New Workflow", commands:[])
-        editingWorkflow = newWorkflow
         Task {
             await dataService.add(workflow: newWorkflow)
         }
     }
     
-    func save() {
-        if validateCommand() {
-            errorMessage = nil
-            Task {
-                await dataService.add(workflow: editingWorkflow)
-            }
-        } else {
-            errorMessage = "Name, short description and commands are required"
-        }
-    }
-    
-    private func validateCommand() -> Bool {
-        return !editingWorkflow.name.isEmpty && !editingWorkflow.shortDescription.isEmpty && !editingWorkflow.commands.isEmpty
-    }
-    
     func delete(workflow: Workflow) {
         Task {
             await dataService.delete(workflow: workflow)
-        }
-    }
-    
-    func editBtnPressed(workflow: Workflow) {
-        selectedName = workflow.name
-        if isEditing {
-            save()
-            isEditing = false
-        } else {
-            editingWorkflow = workflow
-            isEditing = true
-        }
-    }
-    
-    func cancelBtnPressed(workflow: Workflow) {
-        isEditing = false
-        editingWorkflow = workflow
-        errorMessage = nil
-    }
-    
-    func parallelTracks(from commands: [ChatCommand]) -> [String] {
-        var uniqueHosts = [String]()
-        commands.forEach {
-            let host = $0.host ?? UserDefaults.standard.customAIHost ?? "http://localhost:1234"
-            if uniqueHosts.contains(host) == false {
-                uniqueHosts.append(host)
+            if let index = workflows.firstIndex(of: workflow) {
+                workflows.remove(at: index)
             }
-        }
-        return uniqueHosts
-    }
-        
-    func commands(for host: String, commands: [ChatCommand]) -> [ChatCommand] {
-        return commands.filter {
-            let existingHost = $0.host ?? UserDefaults.standard.customAIHost ?? "http://localhost:1234"
-            return existingHost == host
-        }
-    }
-    
-    func addCommand(command: ChatCommand) {
-        if !editingWorkflow.commands.contains(command) {
-            editingWorkflow.commands.append(command)
         }
     }
 }

@@ -9,11 +9,18 @@ import SwiftUI
 import SwiftData
 
 struct WorkflowDetailedView: View {
-    @Environment(WorkflowListViewModel.self) private var viewModel: WorkflowListViewModel
-    let workflow: Workflow
+    @State private var viewModel: WorkflowDetailedViewModel
     @Query private var commands: [CDChatCommand]
+    
+    init(workflow: Workflow, modelContext: ModelContext) {
+        self._viewModel = State(initialValue: WorkflowDetailedViewModel(modelContext: modelContext, workflow: workflow))
+    }
 
     var body: some View {
+#if DEBUG
+let _ = Self._printChanges()
+#endif
+        
         Form {
             if viewModel.isEditing {
                 editingView
@@ -29,14 +36,14 @@ struct WorkflowDetailedView: View {
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Button(action: {
-                    viewModel.editBtnPressed(workflow: workflow)
+                    viewModel.editBtnPressed()
                 }, label: {
                     Text(viewModel.isEditing ? "Save" :"Edit")
                         .foregroundStyle(.white)
                 })
                 if viewModel.isEditing {
                     Button(action: {
-                        viewModel.cancelBtnPressed(workflow: workflow)
+                        viewModel.cancelBtnPressed()
                     }, label: {
                         Text("Cancel")
                             .foregroundStyle(.white)
@@ -49,9 +56,6 @@ struct WorkflowDetailedView: View {
         .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbarBackground(.accent, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
-        .onChange(of: workflow.name) {
-            viewModel.selectedName = workflow.name
-        }
     }
     
     @ViewBuilder
@@ -120,13 +124,13 @@ struct WorkflowDetailedView: View {
             HStack(alignment: .top) {
                 Text("Name: ").foregroundStyle(.primary)
                 Spacer()
-                Text(workflow.name)
+                Text(viewModel.selectedWorkflow.name)
                     .foregroundStyle(.accent)
             }
             HStack(alignment: .top) {
                 Text("Short Description: ").foregroundStyle(.primary)
                 Spacer()
-                Text(workflow.shortDescription)
+                Text(viewModel.selectedWorkflow.shortDescription)
                     .foregroundStyle(.accent)
             }
         }
@@ -146,18 +150,18 @@ struct WorkflowDetailedView: View {
                     Rectangle()
                         .fill(Color.accent)
                         .frame(width: 1, height: 20)
-                    if viewModel.parallelTracks(from: workflow.commands).count > 1 {
+                    if viewModel.hosts.count > 1 {
                         Rectangle()
                             .fill(Color.accent)
                             .frame(height: 1)
                             .padding(.horizontal, 108)
                     }
                     HStack {
-                        ForEach(viewModel.parallelTracks(from: workflow.commands).indices, id: \.self) { index in
+                        ForEach(viewModel.hosts.indices, id: \.self) { index in
                             Rectangle()
                                 .fill(Color.accent)
                                 .frame(width: 1, height: 20, alignment: .leading)
-                            if index != viewModel.parallelTracks(from: workflow.commands).count - 1 {
+                            if index != viewModel.hosts.count - 1 {
                                 Spacer()
                             }
                         }
@@ -167,8 +171,8 @@ struct WorkflowDetailedView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .center)
                 HStack(alignment: .top) {
-                    ForEach(viewModel.parallelTracks(from: workflow.commands).indices, id: \.self) { trackIndex in
-                        let host = viewModel.parallelTracks(from: workflow.commands)[trackIndex]
+                    ForEach(viewModel.hosts.indices, id: \.self) { trackIndex in
+                        let host = viewModel.hosts[trackIndex]
                         VStack(spacing: 0) {
                             Text(host)
                                 .lineLimit(1)
@@ -176,16 +180,15 @@ struct WorkflowDetailedView: View {
                                 .underline()
                                 .foregroundStyle(.secondary)
                                 .padding(.vertical)
-                            ForEach(viewModel.commands(for: host, commands: workflow.commands).indices, id: \.self) { index in
+                            ForEach(viewModel.commands(for: host).indices, id: \.self) { index in
                                 Button {
                                     
                                 } label: {
-                                    let command = viewModel.commands(for: host, commands: workflow.commands)[index]
-                                    CommandRowView(command: command, showMenu: false)
+                                    CommandRowView(command: viewModel.commands(for: host)[index], showMenu: false)
                                         .frame(width: 200, alignment: .center)
                                         .padding(.bottom, 10)
                                         .background {
-                                            if index != viewModel.commands(for: host, commands: workflow.commands).count - 1 {
+                                            if index != viewModel.commands(for: host).count - 1 {
                                                 VStack {
                                                     Spacer()
                                                     Rectangle()
@@ -202,7 +205,7 @@ struct WorkflowDetailedView: View {
                             RoundedRectangle(cornerRadius: 8)
                                 .stroke(.accent, lineWidth: 1)
                         }
-                        if trackIndex != viewModel.parallelTracks(from: workflow.commands).count - 1 {
+                        if trackIndex != viewModel.hosts.count - 1 {
                             Spacer()
                         }
                     }
@@ -214,7 +217,7 @@ struct WorkflowDetailedView: View {
 
 #Preview {
     NavigationStack {
-        WorkflowDetailedView(workflow: Workflow.mock())
+        WorkflowDetailedView(workflow: Workflow.mock(), modelContext: PreviewController.commandsPreviewContainer.mainContext)
             .environment(WorkflowListViewModel.mock())
             .modelContext(PreviewController.commandsPreviewContainer.mainContext)
     }

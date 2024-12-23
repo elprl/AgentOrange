@@ -10,8 +10,11 @@ import SwiftData
 
 struct WorkflowListView: View {
     @Environment(NavigationViewModel.self) private var navVM: NavigationViewModel
-    @Environment(WorkflowListViewModel.self) private var workflowVM: WorkflowListViewModel
-    @Query private var workflows: [CDWorkflow]
+    @State private var viewModel: WorkflowListViewModel
+
+    init(modelContext: ModelContext) {
+        self._viewModel = State(initialValue: WorkflowListViewModel(modelContext: modelContext))
+    }
 
     var body: some View {
 #if DEBUG
@@ -19,12 +22,18 @@ let _ = Self._printChanges()
 #endif
         ScrollView {
             LazyVStack {
-                ForEach(workflows) { workflow in
+                ForEach(viewModel.workflows, id:\.name) { workflow in
                     Button {
-                        navVM.selectedDetailedItem = .workflowDetail(workflow: workflow.sendableModel)
+                        //                        viewModel.selected(workflow: workflow)
+                        // Force a state update by creating a new value
+                        navVM.selectedDetailedItem = nil
+                        // Slight delay to ensure state is cleared
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            navVM.selectedDetailedItem = .workflowDetail(workflow: workflow)
+                        }
                     } label: {
-                        WorkflowRowView(workflow: workflow.sendableModel) { event in
-                            workflowVM.delete(workflow: workflow.sendableModel)
+                        WorkflowRowView(workflow: workflow) { event in
+                            viewModel.delete(workflow: workflow)
                         }
                     }
                     .overlay {
@@ -35,14 +44,17 @@ let _ = Self._printChanges()
                     }
                 }
                 .transition(.slide)
-                .animation(.default, value: workflows.count)
+                .animation(.default, value: viewModel.workflows.count)
             }
             .padding()
+        }
+        .task {
+            viewModel.load()
         }
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Button(action: {
-                    workflowVM.addWorkflow()
+                    viewModel.addWorkflow()
                 }, label: {
                     Image(systemName: "plus")
                         .foregroundColor(.white)
@@ -54,18 +66,11 @@ let _ = Self._printChanges()
         .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbarBackground(.accent, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
-        .onChange(of: workflowVM.isEditing) { 
-            if case let .workflowDetail(selectedWorkflow) = navVM.selectedDetailedItem, let index = workflows.firstIndex(where: { $0.name == selectedWorkflow.name }) {
-                let workflow = workflows[index]
-                navVM.selectedDetailedItem = .workflowDetail(workflow: workflow.sendableModel)
-            }
-        }
     }
 }
 
 #Preview {
-    WorkflowListView()
-        .environment(NavigationViewModel())
-        .environment(WorkflowListViewModel(modelContext: PreviewController.workflowsPreviewContainer.mainContext))
+    WorkflowListView(modelContext: PreviewController.workflowsPreviewContainer.mainContext)
+        .environment(NavigationViewModel.mock())
         .modelContext(PreviewController.workflowsPreviewContainer.mainContext)
 }

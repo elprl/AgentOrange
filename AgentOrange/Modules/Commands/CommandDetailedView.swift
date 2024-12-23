@@ -6,10 +6,14 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct CommandDetailedView: View {
-    @Environment(CommandListViewModel.self) private var viewModel
-    let command: ChatCommand
+    @State private var viewModel: CommandDetailedViewModel
+    
+    init(command: ChatCommand, modelContext: ModelContext) {
+        self._viewModel = State(initialValue: CommandDetailedViewModel(modelContext: modelContext, command: command))
+    }
     
     var body: some View {
         Form {
@@ -27,14 +31,14 @@ struct CommandDetailedView: View {
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Button(action: {
-                    viewModel.editBtnPressed(command: command)
+                    viewModel.editBtnPressed(command: viewModel.selectedCommand)
                 }, label: {
                     Text(viewModel.isEditing ? "Save" :"Edit")
                         .foregroundStyle(.white)
                 })
                 if viewModel.isEditing {
                     Button(action: {
-                        viewModel.cancelBtnPressed(command: command)
+                        viewModel.cancelBtnPressed(command: viewModel.selectedCommand)
                     }, label: {
                         Text("Cancel")
                             .foregroundStyle(.white)
@@ -47,9 +51,6 @@ struct CommandDetailedView: View {
         .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbarBackground(.accent, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
-        .onChange(of: command.name) {
-            viewModel.selectedName = command.name
-        }            
     }
     
     @ViewBuilder
@@ -133,25 +134,25 @@ struct CommandDetailedView: View {
             HStack(alignment: .top) {
                 Text("Name: ").foregroundStyle(.primary)
                 Spacer()
-                Text(command.name)
+                Text(viewModel.selectedCommand.name)
                     .foregroundStyle(.accent)
             }
             HStack(alignment: .top) {
                 Text("Short Description: ").foregroundStyle(.primary)
                 Spacer()
-                Text(command.shortDescription)
+                Text(viewModel.selectedCommand.shortDescription)
                     .foregroundStyle(.accent)
             }
             HStack(alignment: .top) {
                 Text("Role: ").foregroundStyle(.primary)
                 Spacer()
-                Text(command.role ?? "")
+                Text(viewModel.selectedCommand.role ?? "")
                     .foregroundStyle(.accent)
             }
             HStack(alignment: .top) {
                 Text("Prompt: ").foregroundStyle(.primary)
                 Spacer()
-                Text(command.prompt)
+                Text(viewModel.selectedCommand.prompt)
                     .lineLimit(nil)
                     .foregroundStyle(.accent)
             }
@@ -161,19 +162,19 @@ struct CommandDetailedView: View {
             HStack {
                 Text("Host: ").foregroundStyle(.primary)
                 Spacer()
-                Text(command.host ?? "")
+                Text(viewModel.selectedCommand.host ?? "")
                     .foregroundStyle(.accent)
             }
             HStack {
                 Text("Model: ").foregroundStyle(.primary)
                 Spacer()
-                Text(command.model ?? "")
+                Text(viewModel.selectedCommand.model ?? "")
                     .foregroundStyle(.accent)
             }
             HStack {
                 Text("Type: ").foregroundStyle(.primary)
                 Spacer()
-                Text(command.type?.rawValue ?? "")
+                Text(viewModel.selectedCommand.type?.rawValue ?? "")
                     .foregroundStyle(.accent)
             }
         }
@@ -182,7 +183,6 @@ struct CommandDetailedView: View {
 
 #Preview {
     NavigationStack {
-        CommandDetailedView(command: ChatCommand.mock())
-            .environment(CommandListViewModel.mock())
+        CommandDetailedView(command: ChatCommand.mock(), modelContext: PreviewController.commandsPreviewContainer.mainContext)
     }
 }

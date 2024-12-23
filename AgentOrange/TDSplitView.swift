@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct TDSplitView: View {
+    @Environment(\.modelContext) private var modelContext
     @Environment(FileViewerViewModel.self) private var viewModel: FileViewerViewModel
     @Environment(AIChatViewModel.self) private var chatVM: AIChatViewModel
     @Environment(NavigationViewModel.self) private var navVM: NavigationViewModel
@@ -22,37 +23,32 @@ struct TDSplitView: View {
             SideBarSUI()
         } content: {
             /* Column 2 */
-            switch navVM.selectedSidebarItem {
-            case .chatGroup(_):
-                NavigationStack {
+            @Bindable var nav = navVM
+            NavigationStack {
+                switch navVM.selectedSidebarItem {
+                case .chatGroup(_):
                     AIChatView()
+                case .commandList:
+                    CommandListView(modelContext: modelContext)
+                case .workflowList:
+                    WorkflowListView(modelContext: modelContext)
+                default:
+                    selectSidedbarItem
                 }
-            case .commandList, .commandDetail:
-                NavigationStack {
-                    CommandListView()
-                }
-            case .workflowList, .workflowDetail:
-                NavigationStack {
-                    WorkflowListView()
-                }                
-            default:
-                selectSidedbarItem
             }
         } detail: {
             /* Column 3 */
-            switch navVM.selectedDetailedItem {
-            case .fileViewer(let group):
-                NavigationStack {
+            NavigationStack {
+                switch navVM.selectedDetailedItem {
+                case .fileViewer(let group):
                     FileViewerSUI(groupId: group.groupId)
+                case .commandDetail(let command):
+                    CommandDetailedView(command: command, modelContext: modelContext)
+                case .workflowDetail(let workflow):
+                    WorkflowDetailedView(workflow: workflow, modelContext: modelContext)
+                default:
+                    selectDetailedItem
                 }
-            case .commandDetail(let command):
-                CommandDetailedView(command: command)
-                    .environment(viewModel)
-            case .workflowDetail(let workflow):
-                WorkflowDetailedView(workflow: workflow)
-                    .environment(viewModel)
-            default:
-                selectDetailedItem
             }
         }
         .tint(.white)
@@ -60,30 +56,26 @@ struct TDSplitView: View {
     
     @ViewBuilder
     private var selectDetailedItem: some View {
-        NavigationStack {
-            VStack {
-                Text("Select an item")
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(.secondarySystemBackground))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarColorScheme(.dark, for: .navigationBar)
-            .toolbarBackground(.accent, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
+        VStack {
+            Text("Select an item")
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.secondarySystemBackground))
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbarBackground(.accent, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
     }
     
     @ViewBuilder
     private var selectSidedbarItem: some View {
-        NavigationStack {
-            VStack {
-                Text("Select sidebar menu item")
-            }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarColorScheme(.dark, for: .navigationBar)
-            .toolbarBackground(.accent, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
+        VStack {
+            Text("Select sidebar menu item")
         }
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbarBackground(.accent, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
     }
 }
 
