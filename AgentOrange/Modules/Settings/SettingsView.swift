@@ -154,6 +154,8 @@ struct SettingsView: View {
             try modelContext.delete(model: CDChatMessage.self)
             try modelContext.delete(model: CDMessageGroup.self)
             try modelContext.delete(model: CDCodeSnippet.self)
+            try modelContext.delete(model: CDChatCommand.self)
+            try modelContext.delete(model: CDWorkflow.self)
             try modelContext.save()
         } catch {
             print("Failed to delete students.")

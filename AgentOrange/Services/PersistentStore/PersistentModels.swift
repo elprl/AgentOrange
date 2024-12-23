@@ -103,7 +103,7 @@ final class CDWorkflow {
     var timestamp: Date
     var shortDescription: String
     var commands: [CDChatCommand]
-    
+
     init(name: String, timestamp: Date = Date.now, shortDescription: String, commands: [CDChatCommand]) {
         self.name = name
         self.timestamp = timestamp

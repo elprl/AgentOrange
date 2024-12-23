@@ -13,30 +13,21 @@ import Factory
 @MainActor
 final class WorkflowDetailedViewModel {
     /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: PersistentWorkflowDataManagerProtocol
-    var editingWorkflow: Workflow = Workflow(name: "", timestamp: Date.now, shortDescription: "", commands: [])
-    var selectedWorkflow: Workflow = Workflow(name: "", timestamp: Date.now, shortDescription: "", commands: [])
+    var editingWorkflow: Workflow
+    var selectedWorkflow: Workflow
     var isEditing: Bool = false
     var errorMessage: String?
-    var hosts: [String] = []
     
     init(modelContext: ModelContext, workflow: Workflow) {
         editingWorkflow = workflow
         selectedWorkflow = workflow
         self.dataService = Container.shared.dataService(modelContext.container) // Injected PersistentDataManager(container: modelContext.container)
-        load()
-    }
-    
-    func load() {
-        Task {
-            hosts = getHosts()
-        }
     }
     
     func selected(workflow: Workflow) {
         cancelBtnPressed()
         selectedWorkflow = workflow
         editingWorkflow = workflow
-        hosts = getHosts()
     }
     
     func addWorkflow() {
@@ -52,8 +43,8 @@ final class WorkflowDetailedViewModel {
             errorMessage = nil
             Task {
                 await dataService.add(workflow: editingWorkflow)
-                self.load()
                 self.selectedWorkflow = self.editingWorkflow
+                NotificationCenter.default.post(name: NSNotification.Name("refreshWorkflows"), object: nil)
             }
         } else {
             errorMessage = "Name, short description and commands are required"
@@ -87,7 +78,7 @@ final class WorkflowDetailedViewModel {
     
     func getHosts() -> [String] {
         var uniqueHosts = [String]()
-        selectedWorkflow.commands.forEach {
+        editingWorkflow.commands.forEach {
             let host = $0.host ?? UserDefaults.standard.customAIHost ?? "http://localhost:1234"
             if uniqueHosts.contains(host) == false {
                 uniqueHosts.append(host)
@@ -97,7 +88,7 @@ final class WorkflowDetailedViewModel {
     }
         
     func commands(for host: String) -> [ChatCommand] {
-        let filteredCommands = selectedWorkflow.commands.filter {
+        let filteredCommands = editingWorkflow.commands.filter {
             let existingHost = $0.host ?? UserDefaults.standard.customAIHost ?? "http://localhost:1234"
             return existingHost == host
         }

@@ -87,7 +87,9 @@ let _ = Self._printChanges()
                         ForEach(viewModel.editingWorkflow.commands, id: \.self) { command in
                             CommandRowView(command: command, showMenu: false)
                         }
-                        .onDelete { viewModel.editingWorkflow.commands.remove(atOffsets: $0) }
+                        .onDelete {
+                            viewModel.editingWorkflow.commands.remove(atOffsets: $0)
+                        }
                         .onMove { from, to in
                             viewModel.editingWorkflow.commands.move(fromOffsets: from, toOffset: to)
                         }
@@ -120,95 +122,113 @@ let _ = Self._printChanges()
     
     @ViewBuilder
     private var readOnlyView: some View {
+        basics
+        commandViewer
+    }
+    
+    @ViewBuilder
+    private var basics: some View {
         Section("Basics") {
             HStack(alignment: .top) {
                 Text("Name: ").foregroundStyle(.primary)
                 Spacer()
-                Text(viewModel.selectedWorkflow.name)
+                Text(viewModel.editingWorkflow.name)
                     .foregroundStyle(.accent)
             }
             HStack(alignment: .top) {
                 Text("Short Description: ").foregroundStyle(.primary)
                 Spacer()
-                Text(viewModel.selectedWorkflow.shortDescription)
+                Text(viewModel.editingWorkflow.shortDescription)
                     .foregroundStyle(.accent)
             }
         }
-        
+    }
+    
+    @ViewBuilder
+    private var commandViewer: some View {
         Section("Commands") {
             ScrollView {
-                VStack(alignment: .center, spacing: 0) {
-                    Text("Parallel Tracks")
-                        .lineLimit(1)
-                        .font(.title3)
-                        .foregroundStyle(.accent)
-                        .padding(.top)
-                    Text("Based on hosts")
-                        .lineLimit(1)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                tracks
+                hosts
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var tracks: some View {
+        VStack(alignment: .center, spacing: 0) {
+            Text("Parallel Tracks")
+                .lineLimit(1)
+                .font(.title3)
+                .foregroundStyle(.accent)
+                .padding(.top)
+            Text("Based on hosts")
+                .lineLimit(1)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Rectangle()
+                .fill(Color.accent)
+                .frame(width: 1, height: 20)
+            if viewModel.getHosts().count > 1 {
+                Rectangle()
+                    .fill(Color.accent)
+                    .frame(height: 1)
+                    .padding(.horizontal, 108)
+            }
+            HStack {
+                ForEach(viewModel.getHosts(), id: \.self) { host in
                     Rectangle()
                         .fill(Color.accent)
-                        .frame(width: 1, height: 20)
-                    if viewModel.hosts.count > 1 {
-                        Rectangle()
-                            .fill(Color.accent)
-                            .frame(height: 1)
-                            .padding(.horizontal, 108)
+                        .frame(width: 1, height: 20, alignment: .leading)
+                    if host != viewModel.getHosts().last {
+                        Spacer()
                     }
-                    HStack {
-                        ForEach(viewModel.hosts.indices, id: \.self) { index in
-                            Rectangle()
-                                .fill(Color.accent)
-                                .frame(width: 1, height: 20, alignment: .leading)
-                            if index != viewModel.hosts.count - 1 {
-                                Spacer()
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 108)
-                    .padding(.bottom, -8)
                 }
-                .frame(maxWidth: .infinity, alignment: .center)
-                HStack(alignment: .top) {
-                    ForEach(viewModel.hosts.indices, id: \.self) { trackIndex in
-                        let host = viewModel.hosts[trackIndex]
-                        VStack(spacing: 0) {
-                            Text(host)
-                                .lineLimit(1)
-                                .font(.headline)
-                                .underline()
-                                .foregroundStyle(.secondary)
-                                .padding(.vertical)
-                            ForEach(viewModel.commands(for: host).indices, id: \.self) { index in
-                                Button {
-                                    
-                                } label: {
-                                    CommandRowView(command: viewModel.commands(for: host)[index], showMenu: false)
-                                        .frame(width: 200, alignment: .center)
-                                        .padding(.bottom, 10)
-                                        .background {
-                                            if index != viewModel.commands(for: host).count - 1 {
-                                                VStack {
-                                                    Spacer()
-                                                    Rectangle()
-                                                        .fill(Color.accent)
-                                                        .frame(width: 1, height: 10, alignment: .center)
-                                                }
-                                            }
+            }
+            .padding(.horizontal, 108)
+            .padding(.bottom, -8)
+        }
+        .frame(maxWidth: .infinity, alignment: .center)
+    }
+    
+    @ViewBuilder
+    private var hosts: some View {
+        HStack(alignment: .top) {
+            ForEach(viewModel.getHosts(), id: \.self) { host in
+                VStack(spacing: 0) {
+                    Text(host)
+                        .lineLimit(1)
+                        .font(.headline)
+                        .underline()
+                        .foregroundStyle(.secondary)
+                        .padding(.vertical)
+                    ForEach(viewModel.commands(for: host), id: \.self) { command in
+                        Button {
+                            
+                        } label: {
+                            CommandRowView(command: command, showMenu: false)
+                                .frame(width: 200, alignment: .center)
+                                .padding(.bottom, 10)
+                                .background {
+                                    if command != viewModel.commands(for: host).last {
+                                        VStack {
+                                            Spacer()
+                                            Rectangle()
+                                                .fill(Color.accent)
+                                                .frame(width: 1, height: 10, alignment: .center)
                                         }
+                                    }
                                 }
-                            }
-                        }
-                        .padding([.horizontal, .top], 8)
-                        .background {
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(.accent, lineWidth: 1)
-                        }
-                        if trackIndex != viewModel.hosts.count - 1 {
-                            Spacer()
                         }
                     }
+                }
+                .padding([.horizontal, .top], 8)
+                .background {
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(.accent, lineWidth: 1)
+                }
+                if host != viewModel.getHosts().last {
+                    Spacer()
                 }
             }
         }
