@@ -38,7 +38,8 @@ final class WorkflowDetailedViewModel {
     }
     
     private func validateCommand() -> Bool {
-        return !editingWorkflow.name.isEmpty && !editingWorkflow.shortDescription.isEmpty && !editingWorkflow.commandIds.isEmpty
+        guard let commandIds = editingWorkflow.commandIds else { return false }
+        return !editingWorkflow.name.isEmpty && !editingWorkflow.shortDescription.isEmpty && !commandIds.isEmpty
     }
     
     func delete(workflow: Workflow) {
@@ -63,9 +64,7 @@ final class WorkflowDetailedViewModel {
     }
     
     func getHosts(commands: [CDChatCommand]) -> [String] {
-        // get commands where name is in editingWorkflow.commandIds
-        let workflowCommands = commands.filter { editingWorkflow.commandIds.contains($0.name) }
-        
+        let workflowCommands = filteredCommands(commands: commands)
         var uniqueHosts = [String]()
         workflowCommands.forEach {
             let host = $0.host ?? UserDefaults.standard.customAIHost ?? "http://localhost:1234"
@@ -77,7 +76,7 @@ final class WorkflowDetailedViewModel {
     }
         
     func commands(for host: String, commands: [CDChatCommand]) -> [CDChatCommand] {
-        let workflowCommands = commands.filter { editingWorkflow.commandIds.contains($0.name) }
+        let workflowCommands = filteredCommands(commands: commands)
 
         let filteredCommands = workflowCommands.filter {
             let existingHost = $0.host ?? UserDefaults.standard.customAIHost ?? "http://localhost:1234"
@@ -86,17 +85,44 @@ final class WorkflowDetailedViewModel {
         return filteredCommands
     }
     
-    func addCommand(command: ChatCommand) {
-        if !editingWorkflow.commandIds.contains(command.name) {
-            editingWorkflow.commandIds.append(command.name)
+    // get the ordered commands for the workflow based on the order of the commandIds
+    func filteredCommands(commands: [CDChatCommand]) -> [CDChatCommand] {
+        let workflowCommands = commands.filter { commandIds.contains($0.name) }
+        // reorder the commands based on the commandIds
+        let orderedCommands = commandIds.compactMap { commandId in
+            return workflowCommands.first { $0.name == commandId }
+        }
+        return orderedCommands
+    }
+    
+    func addToWorkflow(command: ChatCommand) {
+        var commandIds = commandIds
+        if !commandIds.contains(command.name) {
+            commandIds.append(command.name)
+            editingWorkflow.commandIds = commandIds.joined(separator: ",").trimmingCharacters(in: .whitespaces)
         }
     }
+    
+    func deleteFromWorkflow(command: ChatCommand) {
+        var commandIds = commandIds
+        if let index = commandIds.firstIndex(of: command.name) {
+            commandIds.remove(at: index)
+            let newCommandIds = commandIds.joined(separator: ",").trimmingCharacters(in: .whitespaces)
+            editingWorkflow.commandIds = newCommandIds
+        }
+    }
+    
+    var commandIds: [String] {
+        guard let commandIds = editingWorkflow.commandIds else { return [] }
+        return commandIds.components(separatedBy: ",")
+    }
+
 }
 
 extension WorkflowDetailedViewModel {
     static func mock() -> WorkflowDetailedViewModel {
         let viewModel = WorkflowDetailedViewModel(modelContext: PreviewController.workflowsPreviewContainer.mainContext,
-                                                  workflow: Workflow(name: "Workflow", timestamp: Date.now, shortDescription: "Workflow Description", commandIds: []))
+                                                  workflow: Workflow(name: "Workflow", timestamp: Date.now, shortDescription: "Workflow Description", commandIds: "command1,command2"))
         return viewModel
     }
 }

@@ -84,16 +84,22 @@ let _ = Self._printChanges()
                         .font(.title3)
                         .foregroundStyle(.accent)
                     List {
-                        ForEach(viewModel.editingWorkflow.commandIds, id: \.self) { commandIds in
-                            if let command = commands.first(where: { $0.name == commandIds }) {
-                                CommandRowView(command: command.sendableModel, showMenu: false)
+                        ForEach(viewModel.filteredCommands(commands: commands), id: \.self) { command in
+                            CommandRowView(command: command.sendableModel, showMenu: false)
+                        }
+                        .onDelete { indexSet in                            
+                            for offset in indexSet {
+                                if offset < viewModel.filteredCommands(commands: commands).count {
+                                    let command = viewModel.filteredCommands(commands: commands)[offset]
+                                    viewModel.deleteFromWorkflow(command: command.sendableModel)
+                                }
                             }
                         }
-                        .onDelete {
-                            viewModel.editingWorkflow.commandIds.remove(atOffsets: $0)
-                        }
                         .onMove { from, to in
-                            viewModel.editingWorkflow.commandIds.move(fromOffsets: from, toOffset: to)
+                            var arrayCopy = viewModel.filteredCommands(commands: commands)
+                            arrayCopy.move(fromOffsets: from, toOffset: to)
+                            let commandIds = arrayCopy.map { $0.name }.joined(separator: ",")
+                            viewModel.editingWorkflow.commandIds = commandIds
                         }
                     }
                     .environment(\.editMode, .constant(EditMode.active))
@@ -108,7 +114,7 @@ let _ = Self._printChanges()
                         LazyVStack {
                             ForEach(commands) { command in
                                 Button {
-                                    viewModel.addCommand(command: command.sendableModel)
+                                    viewModel.addToWorkflow(command: command.sendableModel)
                                 } label: {
                                     CommandRowView(command: command.sendableModel, showMenu: false)
                                 }

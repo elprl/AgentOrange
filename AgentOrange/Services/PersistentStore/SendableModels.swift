@@ -68,7 +68,7 @@ struct Workflow {
     var name: String
     var timestamp: Date
     var shortDescription: String
-    var commandIds: [String]
+    var commandIds: String?
 }
 
 extension Workflow: Identifiable, Hashable {
@@ -89,6 +89,6 @@ extension Workflow {
         mock1.host = "openai"
         var mock2 = ChatCommand.mock()
         mock2.host = "claude"
-        return Workflow(name: UUID().uuidString, timestamp: Date.now, shortDescription: UUID().uuidString, commandIds: [mock1.name, mock1.name, ChatCommand.mock().name, ChatCommand.mock().name, ChatCommand.mock().name, mock2.name, mock2.name])
+        return Workflow(name: UUID().uuidString, timestamp: Date.now, shortDescription: UUID().uuidString, commandIds: "\(mock1.name), \(mock2.name)")
     }
 }
