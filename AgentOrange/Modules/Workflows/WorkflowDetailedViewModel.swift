@@ -24,29 +24,11 @@ final class WorkflowDetailedViewModel {
         self.dataService = Container.shared.dataService(modelContext.container) // Injected PersistentDataManager(container: modelContext.container)
     }
     
-    func selected(workflow: Workflow) {
-        cancelBtnPressed()
-        selectedWorkflow = workflow
-        editingWorkflow = workflow
-    }
-    
     func save() {
         if validateCommand() {
             errorMessage = nil
             Task {
                 await dataService.add(workflow: editingWorkflow)
-//                let diff = editingWorkflow.commands.difference(from: selectedWorkflow.commands)
-//                for change in diff {
-//                    switch change {
-//                    case .remove(let offset, let command, _):
-//                        var editCommand = command
-//                        editCommand.workflows = []
-//                        await dataService.add(command: editCommand)
-//                    default:
-//                        break
-//                    }
-//                }
-                
                 self.selectedWorkflow = self.editingWorkflow
                 NotificationCenter.default.post(name: NSNotification.Name("refreshWorkflows"), object: nil)
             }
@@ -101,7 +83,6 @@ final class WorkflowDetailedViewModel {
             let existingHost = $0.host ?? UserDefaults.standard.customAIHost ?? "http://localhost:1234"
             return existingHost == host
         }
-        print("Filtered Commands for \(host): \(filteredCommands.map { $0.name })")
         return filteredCommands
     }
     
