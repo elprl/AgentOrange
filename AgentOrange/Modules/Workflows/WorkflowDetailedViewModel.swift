@@ -12,7 +12,7 @@ import Factory
 @Observable
 @MainActor
 final class WorkflowDetailedViewModel {
-    /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: PersistentWorkflowDataManagerProtocol
+    /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: PersistentWorkflowDataManagerProtocol & PersistentCommandDataManagerProtocol
     var editingWorkflow: Workflow
     var selectedWorkflow: Workflow
     var isEditing: Bool = false
@@ -30,19 +30,23 @@ final class WorkflowDetailedViewModel {
         editingWorkflow = workflow
     }
     
-    func addWorkflow() {
-        let newWorkflow = Workflow(name: "New Workflow", timestamp: Date.now, shortDescription: "New Workflow", commands:[])
-        editingWorkflow = newWorkflow
-        Task {
-            await dataService.add(workflow: newWorkflow)
-        }
-    }
-    
     func save() {
         if validateCommand() {
             errorMessage = nil
             Task {
                 await dataService.add(workflow: editingWorkflow)
+//                let diff = editingWorkflow.commands.difference(from: selectedWorkflow.commands)
+//                for change in diff {
+//                    switch change {
+//                    case .remove(let offset, let command, _):
+//                        var editCommand = command
+//                        editCommand.workflows = []
+//                        await dataService.add(command: editCommand)
+//                    default:
+//                        break
+//                    }
+//                }
+                
                 self.selectedWorkflow = self.editingWorkflow
                 NotificationCenter.default.post(name: NSNotification.Name("refreshWorkflows"), object: nil)
             }
@@ -52,7 +56,7 @@ final class WorkflowDetailedViewModel {
     }
     
     private func validateCommand() -> Bool {
-        return !editingWorkflow.name.isEmpty && !editingWorkflow.shortDescription.isEmpty && !editingWorkflow.commands.isEmpty
+        return !editingWorkflow.name.isEmpty && !editingWorkflow.shortDescription.isEmpty && !editingWorkflow.commandIds.isEmpty
     }
     
     func delete(workflow: Workflow) {
@@ -76,9 +80,12 @@ final class WorkflowDetailedViewModel {
         errorMessage = nil
     }
     
-    func getHosts() -> [String] {
+    func getHosts(commands: [CDChatCommand]) -> [String] {
+        // get commands where name is in editingWorkflow.commandIds
+        let workflowCommands = commands.filter { editingWorkflow.commandIds.contains($0.name) }
+        
         var uniqueHosts = [String]()
-        editingWorkflow.commands.forEach {
+        workflowCommands.forEach {
             let host = $0.host ?? UserDefaults.standard.customAIHost ?? "http://localhost:1234"
             if uniqueHosts.contains(host) == false {
                 uniqueHosts.append(host)
@@ -87,8 +94,10 @@ final class WorkflowDetailedViewModel {
         return uniqueHosts
     }
         
-    func commands(for host: String) -> [ChatCommand] {
-        let filteredCommands = editingWorkflow.commands.filter {
+    func commands(for host: String, commands: [CDChatCommand]) -> [CDChatCommand] {
+        let workflowCommands = commands.filter { editingWorkflow.commandIds.contains($0.name) }
+
+        let filteredCommands = workflowCommands.filter {
             let existingHost = $0.host ?? UserDefaults.standard.customAIHost ?? "http://localhost:1234"
             return existingHost == host
         }
@@ -97,15 +106,16 @@ final class WorkflowDetailedViewModel {
     }
     
     func addCommand(command: ChatCommand) {
-        if !editingWorkflow.commands.contains(command) {
-            editingWorkflow.commands.append(command)
+        if !editingWorkflow.commandIds.contains(command.name) {
+            editingWorkflow.commandIds.append(command.name)
         }
     }
 }
 
 extension WorkflowDetailedViewModel {
     static func mock() -> WorkflowDetailedViewModel {
-        let viewModel = WorkflowDetailedViewModel(modelContext: PreviewController.workflowsPreviewContainer.mainContext, workflow: Workflow(name: "Workflow", timestamp: Date.now, shortDescription: "Workflow Description", commands: []))
+        let viewModel = WorkflowDetailedViewModel(modelContext: PreviewController.workflowsPreviewContainer.mainContext,
+                                                  workflow: Workflow(name: "Workflow", timestamp: Date.now, shortDescription: "Workflow Description", commandIds: []))
         return viewModel
     }
 }

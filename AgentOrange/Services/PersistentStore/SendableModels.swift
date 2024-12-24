@@ -68,7 +68,7 @@ struct Workflow {
     var name: String
     var timestamp: Date
     var shortDescription: String
-    var commands: [ChatCommand]
+    var commandIds: [String]
 }
 
 extension Workflow: Identifiable, Hashable {
@@ -79,7 +79,7 @@ extension Workflow: Identifiable, Hashable {
 
 extension Workflow: SendableModelProtocol {
     var persistentModel: CDWorkflow {
-        return CDWorkflow(name: name, timestamp: timestamp, shortDescription: shortDescription, commands: commands.map({ $0.persistentModel }))
+        return CDWorkflow(name: name, timestamp: timestamp, shortDescription: shortDescription, commandIds: commandIds)
     }
 }
 
@@ -89,6 +89,6 @@ extension Workflow {
         mock1.host = "openai"
         var mock2 = ChatCommand.mock()
         mock2.host = "claude"
-        return Workflow(name: UUID().uuidString, timestamp: Date.now, shortDescription: UUID().uuidString, commands: [mock1, mock1, ChatCommand.mock(), ChatCommand.mock(), ChatCommand.mock(), mock2, mock2])
+        return Workflow(name: UUID().uuidString, timestamp: Date.now, shortDescription: UUID().uuidString, commandIds: [mock1.name, mock1.name, ChatCommand.mock().name, ChatCommand.mock().name, ChatCommand.mock().name, mock2.name, mock2.name])
     }
 }

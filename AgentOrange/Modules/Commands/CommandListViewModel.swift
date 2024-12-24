@@ -23,7 +23,7 @@ final class CommandListViewModel {
     init(modelContext: ModelContext) {
         self.dataService = Container.shared.dataService(modelContext.container) // Injected PersistentDataManager(container: modelContext.container)
 
-        let hasLoadedDefaultCommand = UserDefaults.standard.bool(forKey: "hasLoadedDefaultCommand")
+        let hasLoadedDefaultCommand = false //UserDefaults.standard.bool(forKey: "hasLoadedDefaultCommand")
         if !hasLoadedDefaultCommand {
             commandService.defaultCommands.forEach { command in
                 Task {

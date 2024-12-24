@@ -84,14 +84,16 @@ let _ = Self._printChanges()
                         .font(.title3)
                         .foregroundStyle(.accent)
                     List {
-                        ForEach(viewModel.editingWorkflow.commands, id: \.self) { command in
-                            CommandRowView(command: command, showMenu: false)
+                        ForEach(viewModel.editingWorkflow.commandIds, id: \.self) { commandIds in
+                            if let command = commands.first(where: { $0.name == commandIds }) {
+                                CommandRowView(command: command.sendableModel, showMenu: false)
+                            }
                         }
                         .onDelete {
-                            viewModel.editingWorkflow.commands.remove(atOffsets: $0)
+                            viewModel.editingWorkflow.commandIds.remove(atOffsets: $0)
                         }
                         .onMove { from, to in
-                            viewModel.editingWorkflow.commands.move(fromOffsets: from, toOffset: to)
+                            viewModel.editingWorkflow.commandIds.move(fromOffsets: from, toOffset: to)
                         }
                     }
                     .environment(\.editMode, .constant(EditMode.active))
@@ -169,18 +171,18 @@ let _ = Self._printChanges()
             Rectangle()
                 .fill(Color.accent)
                 .frame(width: 1, height: 20)
-            if viewModel.getHosts().count > 1 {
+            if viewModel.getHosts(commands: commands).count > 1 {
                 Rectangle()
                     .fill(Color.accent)
                     .frame(height: 1)
                     .padding(.horizontal, 108)
             }
             HStack {
-                ForEach(viewModel.getHosts(), id: \.self) { host in
+                ForEach(viewModel.getHosts(commands: commands), id: \.self) { host in
                     Rectangle()
                         .fill(Color.accent)
                         .frame(width: 1, height: 20, alignment: .leading)
-                    if host != viewModel.getHosts().last {
+                    if host != viewModel.getHosts(commands: commands).last {
                         Spacer()
                     }
                 }
@@ -194,7 +196,7 @@ let _ = Self._printChanges()
     @ViewBuilder
     private var hosts: some View {
         HStack(alignment: .top) {
-            ForEach(viewModel.getHosts(), id: \.self) { host in
+            ForEach(viewModel.getHosts(commands: commands), id: \.self) { host in
                 VStack(spacing: 0) {
                     Text(host)
                         .lineLimit(1)
@@ -202,15 +204,15 @@ let _ = Self._printChanges()
                         .underline()
                         .foregroundStyle(.secondary)
                         .padding(.vertical)
-                    ForEach(viewModel.commands(for: host), id: \.self) { command in
+                    ForEach(viewModel.commands(for: host, commands: commands), id: \.self) { command in
                         Button {
                             
                         } label: {
-                            CommandRowView(command: command, showMenu: false)
+                            CommandRowView(command: command.sendableModel, showMenu: false)
                                 .frame(width: 200, alignment: .center)
                                 .padding(.bottom, 10)
                                 .background {
-                                    if command != viewModel.commands(for: host).last {
+                                    if command != viewModel.commands(for: host, commands: commands).last {
                                         VStack {
                                             Spacer()
                                             Rectangle()
@@ -227,7 +229,7 @@ let _ = Self._printChanges()
                     RoundedRectangle(cornerRadius: 8)
                         .stroke(.accent, lineWidth: 1)
                 }
-                if host != viewModel.getHosts().last {
+                if host != viewModel.getHosts(commands: commands).last {
                     Spacer()
                 }
             }

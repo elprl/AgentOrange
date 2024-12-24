@@ -40,8 +40,8 @@ struct WorkflowRowView: View {
                     .foregroundStyle(.secondary)
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack {
-                        ForEach(workflow.commands) { command in
-                            Text(command.name)
+                        ForEach(workflow.commandIds, id: \.self) { name in
+                            Text(name)
                                 .lineLimit(1)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 2)

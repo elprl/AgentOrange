@@ -74,9 +74,8 @@ final class CDChatCommand {
     var type: AgentType?
     var inputCodeId: String?
     var dependencyIds: [String]?
-    @Relationship(inverse: \CDWorkflow.commands) var workflows: [CDWorkflow]
     
-    init(name: String, timestamp: Date = Date.now, prompt: String, shortDescription: String, role: String? = nil, model: String? = nil, host: String? = nil, type: AgentType? = .coder, inputCodeId: String? = nil, dependencyIds: [String]? = nil, workflows: [CDWorkflow] = []) {
+    init(name: String, timestamp: Date = Date.now, prompt: String, shortDescription: String, role: String? = nil, model: String? = nil, host: String? = nil, type: AgentType? = .coder, inputCodeId: String? = nil, dependencyIds: [String]? = nil) {
         self.name = name
         self.timestamp = timestamp
         self.prompt = prompt
@@ -87,7 +86,6 @@ final class CDChatCommand {
         self.type = type
         self.inputCodeId = inputCodeId
         self.dependencyIds = dependencyIds
-        self.workflows = workflows
     }
 }
 
@@ -102,19 +100,19 @@ final class CDWorkflow {
     @Attribute(.unique) var name: String
     var timestamp: Date
     var shortDescription: String
-    var commands: [CDChatCommand]
+    var commandIds: [String]
 
-    init(name: String, timestamp: Date = Date.now, shortDescription: String, commands: [CDChatCommand]) {
+    init(name: String, timestamp: Date = Date.now, shortDescription: String, commandIds: [String]) {
         self.name = name
         self.timestamp = timestamp
         self.shortDescription = shortDescription
-        self.commands = commands
+        self.commandIds = commandIds
     }
 }
 
 extension CDWorkflow: PersistentModelProtocol {
     var sendableModel: Workflow {
-        return Workflow(name: name, timestamp: timestamp, shortDescription: shortDescription, commands: commands.map({ $0.sendableModel }))
+        return Workflow(name: name, timestamp: timestamp, shortDescription: shortDescription, commandIds: commandIds)
     }
 }
 
@@ -219,7 +217,7 @@ class PreviewController {
             let container = try ModelContainer(for: CDWorkflow.self, configurations: config)
             
             for i in 1..<10 {
-                let group = CDWorkflow(name: "Workflow \(i)", shortDescription: "Description \(i)", commands: [CDChatCommand(name: "Command \(i)", prompt: "Prompt \(i)", shortDescription: "Description \(i)")])
+                let group = CDWorkflow(name: "Workflow \(i)", shortDescription: "Description \(i)", commandIds: ["Command \(i)"])
                 container.mainContext.insert(group)
             }
             try? container.mainContext.save()

@@ -9,34 +9,34 @@ import SwiftData
 import SwiftUI
 
 protocol PersistentGroupDataManagerProtocol: Actor {
-    func add(group: MessageGroupSendable)
-    func delete(group: MessageGroupSendable)
+    func add(group: MessageGroupSendable) async
+    func delete(group: MessageGroupSendable) async
 }
 
 protocol PersistentChatDataManagerProtocol: Actor {
-    func add(message: ChatMessage)
-    func delete(messages: [ChatMessage])
-    func delete(message: ChatMessage)
+    func add(message: ChatMessage) async
+    func delete(messages: [ChatMessage]) async
+    func delete(message: ChatMessage) async
     func fetchData(for groupId: String) async -> [ChatMessage]
 }
 
 protocol PersistentCodeDataManagerProtocol: Actor {
-    func add(code: CodeSnippetSendable)
-    func delete(code: CodeSnippetSendable)
+    func add(code: CodeSnippetSendable) async
+    func delete(code: CodeSnippetSendable) async
     func fetchData(for groupId: String) async -> [CodeSnippetSendable]
     func fetchSnippet(for codeId: String) async -> CodeSnippetSendable?
 }
 
 protocol PersistentCommandDataManagerProtocol: Actor {
-    func add(command: ChatCommand)
-    func delete(command: ChatCommand)
+    func add(command: ChatCommand) async
+    func delete(command: ChatCommand) async
     func fetchAllCommands() async -> [ChatCommand]
     func fetchCommand(for name: String) async -> ChatCommand?
 }
 
 protocol PersistentWorkflowDataManagerProtocol: Actor {
-    func add(workflow: Workflow)
-    func delete(workflow: Workflow)
+    func add(workflow: Workflow) async
+    func delete(workflow: Workflow) async
     func fetchAllWorkflows() async -> [Workflow]
     func fetchWorkflow(for name: String) async -> Workflow?
 }
@@ -48,230 +48,176 @@ protocol PersistentDataManagerProtocol: PersistentGroupDataManagerProtocol,
                                         PersistentWorkflowDataManagerProtocol {}
 
 actor PersistentDataManager: PersistentDataManagerProtocol {
-    private let container: ModelContainer
+    let chatDataService: DataService<CDChatMessage, ChatMessage>
+    let messageGroupDataService: DataService<CDMessageGroup, MessageGroupSendable>
+    let codeSnippetDataService: DataService<CDCodeSnippet, CodeSnippetSendable>
+    let commandDataService: DataService<CDChatCommand, ChatCommand>
+    let workflowDataService: DataService<CDWorkflow, Workflow>
     
     /// pass nil for previews or unit testing
     init(container: ModelContainer) {
-        self.container = container
+        chatDataService = DataService(modelContainer: container)
+        messageGroupDataService = DataService(modelContainer: container)
+        codeSnippetDataService = DataService(modelContainer: container)
+        commandDataService = DataService(modelContainer: container)
+        workflowDataService = DataService(modelContainer: container)
     }
 }
 
 // MARK: - ChatMessage
 extension PersistentDataManager: PersistentChatDataManagerProtocol {
     
-    func add(message: ChatMessage) {
-        Task.detached(priority: .userInitiated) { [weak self] in
-            guard let container = self?.container else { return }
-            let dataService = DataService<CDChatMessage, ChatMessage>(modelContainer: container)
-            await dataService.insert(data: message)
+    func add(message: ChatMessage) async {
+        await self.chatDataService.insert(data: message)
+    }
+    
+    func delete(messages: [ChatMessage]) async {
+        do {
+            for message in messages {
+                let id = message.id
+                try await self.chatDataService.remove(predicate: #Predicate<CDChatMessage> { $0.messageId == id } )
+            }
+        } catch {
+            print(error.localizedDescription)
         }
     }
     
-    func delete(messages: [ChatMessage]) {
-        Task.detached(priority: .userInitiated) { [weak self] in
-            guard let container = self?.container else { return }
-            let dataService = DataService<CDChatMessage, ChatMessage>(modelContainer: container)
-            do {
-                for message in messages {
-                    let id = message.id
-                    try await dataService.remove(predicate: #Predicate<CDChatMessage> { $0.messageId == id } )
-                }
-            } catch {
-                print(error.localizedDescription)
-            }
-        }
-    }
-    
-    func delete(message: ChatMessage) {
-        Task.detached(priority: .userInitiated) { [weak self] in
-            guard let container = self?.container else { return }
-            let dataService = DataService<CDChatMessage, ChatMessage>(modelContainer: container)
-            do {
-                let id: String = message.id
-                try await dataService.remove(predicate: #Predicate<CDChatMessage> { $0.messageId == id } )
-            } catch {
-                print(error.localizedDescription)
-            }
+    func delete(message: ChatMessage) async {
+        do {
+            let id: String = message.id
+            try await self.chatDataService.remove(predicate: #Predicate<CDChatMessage> { $0.messageId == id } )
+        } catch {
+            print(error.localizedDescription)
         }
     }
     
     func fetchData(for groupId: String) async -> [ChatMessage] {
-        let vmItems: [ChatMessage] = await Task.detached(priority: .userInitiated) { [weak self] in
-            guard let container = self?.container else { return [] }
-            let dataService = DataService<CDChatMessage, ChatMessage>(modelContainer: container)
-            if let items: [ChatMessage] = try? await dataService.fetchDataVMs(predicate: #Predicate<CDChatMessage> { $0.groupId == groupId }, sortBy: [SortDescriptor(\.timestamp)]) {
-                return items
-            }
-            return []
-        }.value
-        return vmItems
+        if let items: [ChatMessage] = try? await self.chatDataService.fetchDataVMs(predicate: #Predicate<CDChatMessage> { $0.groupId == groupId }, sortBy: [SortDescriptor(\.timestamp)]) {
+            return items
+        }
+        return []
     }
 }
 
 // MARK: - Message Groups
 extension PersistentDataManager: PersistentGroupDataManagerProtocol {
-    func add(group: MessageGroupSendable) {
-        Task.detached(priority: .userInitiated) { [weak self] in
-            guard let container = self?.container else { return }
-            let dataService = DataService<CDMessageGroup, MessageGroupSendable>(modelContainer: container)
-            await dataService.insert(data: group)
-        }
+    func add(group: MessageGroupSendable) async {
+        await self.messageGroupDataService.insert(data: group)
     }
     
-    func delete(group: MessageGroupSendable) {
-        Task.detached(priority: .userInitiated) { [weak self] in
-            guard let container = self?.container else { return }
-            let dataService = DataService<CDMessageGroup, MessageGroupSendable>(modelContainer: container)
-            do {
-                let id: String = group.groupId
-                try await dataService.remove(predicate: #Predicate<CDMessageGroup> { $0.groupId == id } )
-            } catch {
-                print(error.localizedDescription)
-            }
+    func delete(group: MessageGroupSendable) async {
+        do {
+            let id: String = group.groupId
+            try await self.messageGroupDataService.remove(predicate: #Predicate<CDMessageGroup> { $0.groupId == id } )
+        } catch {
+            print(error.localizedDescription)
         }
     }
 }
 
 // MARK: - Code Snippets
 extension PersistentDataManager: PersistentCodeDataManagerProtocol {
-    func add(code: CodeSnippetSendable) {
-        Task.detached(priority: .userInitiated) { [weak self] in
-            guard let container = self?.container else { return }
-            let dataService = DataService<CDCodeSnippet, CodeSnippetSendable>(modelContainer: container)
-            await dataService.insert(data: code)
-        }
+    func add(code: CodeSnippetSendable) async {
+        await self.codeSnippetDataService.insert(data: code)
     }
     
-    func delete(code: CodeSnippetSendable) {
-        Task.detached(priority: .userInitiated) { [weak self] in
-            guard let container = self?.container else { return }
-            let dataService = DataService<CDCodeSnippet, CodeSnippetSendable>(modelContainer: container)
-            do {
-                let id: String = code.id
-                try await dataService.remove(predicate: #Predicate<CDCodeSnippet> { $0.codeId == id } )
-            } catch {
-                print(error.localizedDescription)
-            }
+    func delete(code: CodeSnippetSendable) async {
+        do {
+            let id: String = code.id
+            try await self.codeSnippetDataService.remove(predicate: #Predicate<CDCodeSnippet> { $0.codeId == id } )
+        } catch {
+            print(error.localizedDescription)
         }
     }
     
     func fetchData(for groupId: String) async -> [CodeSnippetSendable] {
-        let vmItems: [CodeSnippetSendable] = await Task.detached(priority: .userInitiated) { [weak self] in
-            guard let container = self?.container else { return [] }
-            let dataService = DataService<CDCodeSnippet, CodeSnippetSendable>(modelContainer: container)
-            if let items: [CodeSnippetSendable] = try? await dataService.fetchDataVMs(predicate: #Predicate<CDCodeSnippet> { $0.groupId == groupId }, sortBy: [SortDescriptor(\.timestamp)]) {
-                return items
-            }
-            return []
-        }.value
-        return vmItems
+        if let items: [CodeSnippetSendable] = try? await self.codeSnippetDataService.fetchDataVMs(predicate: #Predicate<CDCodeSnippet> { $0.groupId == groupId }, sortBy: [SortDescriptor(\.timestamp)]) {
+            return items
+        }
+        return []
     }
     
     func fetchSnippet(for codeId: String) async -> CodeSnippetSendable? {
-        let vmItem: CodeSnippetSendable? = await Task.detached(priority: .userInitiated) { [weak self] in
-            guard let container = self?.container else { return nil }
-            let dataService = DataService<CDCodeSnippet, CodeSnippetSendable>(modelContainer: container)
-            if let items: [CodeSnippetSendable] = try? await dataService.fetchDataVMs(predicate: #Predicate<CDCodeSnippet> { $0.codeId == codeId }, sortBy: [SortDescriptor(\.timestamp)]) {
-                return items.first
-            }
-            return nil
-        }.value
-        return vmItem
+        if let items: [CodeSnippetSendable] = try? await self.codeSnippetDataService.fetchDataVMs(predicate: #Predicate<CDCodeSnippet> { $0.codeId == codeId }, sortBy: [SortDescriptor(\.timestamp)]) {
+            return items.first
+        }
+        return nil
     }
 }
 
 // MARK: - Command
 extension PersistentDataManager: PersistentCommandDataManagerProtocol {
-    func add(command: ChatCommand) {
-        Task.detached(priority: .userInitiated) { [weak self] in
-            guard let container = self?.container else { return }
-            let dataService = DataService<CDChatCommand, ChatCommand>(modelContainer: container)
-            await dataService.insert(data: command)
-        }
+    func add(command: ChatCommand) async {
+        await self.commandDataService.insert(data: command)
     }
     
-    func delete(command: ChatCommand) {
-        Task.detached(priority: .userInitiated) { [weak self] in
-            guard let container = self?.container else { return }
-            let dataService = DataService<CDChatCommand, ChatCommand>(modelContainer: container)
-            do {
-                let id: String = command.name
-                try await dataService.remove(predicate: #Predicate<CDChatCommand> { $0.name == id } )
-            } catch {
-                print(error.localizedDescription)
-            }
+    func delete(command: ChatCommand) async {
+        do {
+            let id: String = command.name
+            try await self.commandDataService.remove(predicate: #Predicate<CDChatCommand> { $0.name == id } )
+        } catch {
+            print(error.localizedDescription)
         }
     }
     
     func fetchAllCommands() async -> [ChatCommand] {
-        let vmItems: [ChatCommand] = await Task.detached(priority: .userInitiated) { [weak self] in
-            guard let container = self?.container else { return [] }
-            let dataService = DataService<CDChatCommand, ChatCommand>(modelContainer: container)
-            if let items: [ChatCommand] = try? await dataService.fetchDataVMs(predicate: nil, sortBy: [SortDescriptor(\.timestamp)]) {
-                return items
-            }
-            return []
-        }.value
-        return vmItems
+        if let items: [ChatCommand] = try? await self.commandDataService.fetchDataVMs(predicate: nil, sortBy: [SortDescriptor(\.timestamp)]) {
+            return items
+        }
+        return []
     }
     
     func fetchCommand(for name: String) async -> ChatCommand? {
-        let vmItem: ChatCommand? = await Task.detached(priority: .userInitiated) { [weak self] in
-            guard let container = self?.container else { return nil }
-            let dataService = DataService<CDChatCommand, ChatCommand>(modelContainer: container)
-            if let items: [ChatCommand] = try? await dataService.fetchDataVMs(predicate: #Predicate<CDChatCommand> { $0.name == name }, sortBy: [SortDescriptor(\.timestamp)]) {
-                return items.first
-            }
-            return nil
-        }.value
-        return vmItem
+        if let items: [ChatCommand] = try? await self.commandDataService.fetchDataVMs(predicate: #Predicate<CDChatCommand> { $0.name == name }, sortBy: [SortDescriptor(\.timestamp)]) {
+            return items.first
+        }
+        return nil
     }
 }
 
 // MARK: - Workflow
 extension PersistentDataManager: PersistentWorkflowDataManagerProtocol {
-    func add(workflow: Workflow) {
-        Task.detached(priority: .userInitiated) { [weak self] in
-            guard let container = self?.container else { return }
-            let dataService = DataService<CDWorkflow, Workflow>(modelContainer: container)
-            await dataService.insert(data: workflow)
-        }
+    func add(workflow: Workflow) async {
+        Log.data.debug("Adding or updating Workflow: \(workflow.name)")
+        await self.workflowDataService.insert(data: workflow)
     }
     
-    func delete(workflow: Workflow) {
-        Task.detached(priority: .userInitiated) { [weak self] in
-            guard let container = self?.container else { return }
-            let dataService = DataService<CDWorkflow, Workflow>(modelContainer: container)
-            do {
-                let id: String = workflow.name
-                try await dataService.remove(predicate: #Predicate<CDWorkflow> { $0.name == id } )
-            } catch {
-                print(error.localizedDescription)
-            }
+//    func update(workflow: Workflow) async {
+//        Log.data.debug("Updating Workflow: \(workflow.name)")
+//        do {
+//        let existingWorkflow = try await self.workflowDataService.fetchData(predicate: #Predicate<CDWorkflow> { $0.name == workflow.name }, sortBy: [SortDescriptor(\.timestamp)])
+//        if let existing = existingWorkflow.first {
+//            existing.name = workflow.name
+//            existing.timestamp = workflow.timestamp
+//            existing.shortDescription = workflow.shortDescription
+//            existing.commands = workflow.commands.map { $0.persistentModel }
+//                try await self.workflowDataService.save()
+//        }
+//        } catch {
+//            Log.data.error("Failed to update Workflow: \(workflow.name)")
+//        }
+//    }
+    
+    func delete(workflow: Workflow) async {
+        do {
+            let id: String = workflow.name
+            try await self.workflowDataService.remove(predicate: #Predicate<CDWorkflow> { $0.name == id } )
+        } catch {
+            print(error.localizedDescription)
         }
     }
     
     func fetchAllWorkflows() async -> [Workflow] {
-        let vmItems: [Workflow] = await Task.detached(priority: .userInitiated) { [weak self] in
-            guard let container = self?.container else { return [] }
-            let dataService = DataService<CDWorkflow, Workflow>(modelContainer: container)
-            if let items: [Workflow] = try? await dataService.fetchDataVMs(predicate: nil, sortBy: [SortDescriptor(\.timestamp)]) {
-                return items
-            }
-            return []
-        }.value
-        return vmItems
+        if let items: [Workflow] = try? await self.workflowDataService.fetchDataVMs(predicate: nil, sortBy: [SortDescriptor(\.timestamp)]) {
+            return items
+        }
+        return []
     }
     
     func fetchWorkflow(for name: String) async -> Workflow? {
-        let vmItem: Workflow? = await Task.detached(priority: .userInitiated) { [weak self] in
-            guard let container = self?.container else { return nil }
-            let dataService = DataService<CDWorkflow, Workflow>(modelContainer: container)
-            if let items: [Workflow] = try? await dataService.fetchDataVMs(predicate: #Predicate<CDWorkflow> { $0.name == name }, sortBy: [SortDescriptor(\.timestamp)]) {
-                return items.first
-            }
-            return nil
-        }.value
-        return vmItem
+        if let items: [Workflow] = try? await self.workflowDataService.fetchDataVMs(predicate: #Predicate<CDWorkflow> { $0.name == name }, sortBy: [SortDescriptor(\.timestamp)]) {
+            return items.first
+        }
+        return nil
     }
 }
