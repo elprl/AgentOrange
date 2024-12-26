@@ -12,8 +12,7 @@ import SwiftData
 @Observable
 @MainActor
 final class CommandDetailedViewModel {
-    @Injected(\.commandService) @ObservationIgnored private var commandService
-    /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: PersistentCommandDataManagerProtocol
+    /* @Injected(\.commandService) */ @ObservationIgnored private var commandService: CommandServiceProtocol
     var isEditing: Bool = false
     var editableCommand: ChatCommand
     var selectedCommand: ChatCommand
@@ -22,24 +21,15 @@ final class CommandDetailedViewModel {
     init(modelContext: ModelContext, command: ChatCommand) {
         self.selectedCommand = command
         self.editableCommand = command
-        self.dataService = Container.shared.dataService(modelContext.container) // Injected PersistentDataManager(container: modelContext.container)
-
-        let hasLoadedDefaultCommand = UserDefaults.standard.bool(forKey: "hasLoadedDefaultCommand")
-        if !hasLoadedDefaultCommand {
-            commandService.defaultCommands.forEach { command in
-                Task {
-                    await dataService.add(command: command)
-                }
-            }
-            UserDefaults.standard.set(true, forKey: "hasLoadedDefaultCommand")
-        }
+        self.commandService = Container.shared.commandService(modelContext.container) // Injected CommandService(container: modelContext.container)
     }
     
     func save() {
         if validateCommand() {
             errorMessage = nil
             Task {
-                await dataService.add(command: editableCommand)
+                await commandService.save(command: editableCommand)
+                selectedCommand = editableCommand
             }
         } else {
             errorMessage = "Name and prompt are required"
@@ -95,6 +85,39 @@ extension Optional where Wrapped == String {
         }
         set {
             _binding = newValue.isEmpty ? nil : newValue
+        }
+    }
+    var _bindableHost: String? {
+        get {
+            return self
+        }
+        set {
+            self = newValue
+        }
+    }
+    public var bindableHost: String {
+        get {
+            return _bindableHost ?? UserDefaults.standard.customAIHost ?? "http://localhost:1234"
+        }
+        set {
+            _bindableHost = newValue.isEmpty ? nil : newValue
+        }
+    }
+    
+    var _bindableModel: String? {
+        get {
+            return self
+        }
+        set {
+            self = newValue
+        }
+    }
+    public var bindableModel: String {
+        get {
+            return _bindableModel ?? UserDefaults.standard.customAIModel ?? "qwen2.5-coder-32b-instruct"
+        }
+        set {
+            _bindableModel = newValue.isEmpty ? nil : newValue
         }
     }
 }

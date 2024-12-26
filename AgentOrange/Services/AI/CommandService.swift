@@ -4,14 +4,25 @@
 //
 //  Created by Paul Leo on 11/12/2024.
 //
+import Factory
+import SwiftData
+import Foundation
+
 typealias Workflows = [String: [String]]
 
-protocol CommandServiceProtocol {
+protocol CommandServiceProtocol: Actor {
     var defaultCommands: [ChatCommand] { get }
-    var workflows: Workflows { get set }
+    var commands: [ChatCommand] { get set }
+    func loadCommands() async
+    var workflows: [Workflow] { get set }
+    var defaultWorkflows: Workflows { get set }
+    func loadWorkflows() async
+    func save(command: ChatCommand) async
 }
 
-struct CommandService: CommandServiceProtocol {
+actor CommandService: CommandServiceProtocol {
+    /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: PersistentDataManagerProtocol
+    
     let defaultCommands: [ChatCommand] = [
         ChatCommand(name: "//correctness",
                     prompt: "Check the code carefully for correctness and security. Give helpful and constructive criticism for how to improve it.",
@@ -79,12 +90,41 @@ struct CommandService: CommandServiceProtocol {
                     type: .coder),
 
     ]
-    var workflows: Workflows = [
+    var commands: [ChatCommand] = []
+    
+    init(container: ModelContainer) {
+        self.dataService = Container.shared.dataService(container) // Injected PersistentDataManager(container: modelContext.container)
+        
+        let hasLoadedDefaultCommand = UserDefaults.standard.bool(forKey: "hasLoadedDefaultCommand")
+        if !hasLoadedDefaultCommand {
+            defaultCommands.forEach { command in
+                Task {
+                    await dataService.add(command: command)
+                }
+            }
+            UserDefaults.standard.set(true, forKey: "hasLoadedDefaultCommand")
+        }
+    }
+    
+    func loadCommands() async {
+        self.commands = await dataService.fetchAllCommands()
+    }
+    
+    var workflows: [Workflow] = []
+    var defaultWorkflows: Workflows = [
         "All": ["//correctness", "//styleReview", "//performance", "//comments", "//docC", "//printlogs", "//refactor", "//mocks", "//unittests", "//quickNimble"],
         "Testing" : ["//mocks", "//unittests", "//quickNimble"],
         "Documentation" : ["//comments", "//docC", "//printlogs"],
         "Correctness" : ["//correctness", "//styleReview", "//performance"],
         "ParallelTest" : ["//correctness", "//mocks"],
     ]
+    
+    func loadWorkflows() async {
+        self.workflows = await dataService.fetchAllWorkflows()
+    }
+
+    func save(command: ChatCommand) async {
+        await dataService.add(command: command)
+    }
 }
 

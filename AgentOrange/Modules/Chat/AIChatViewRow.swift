@@ -18,7 +18,7 @@ enum RowEvent {
 
 struct AIChatViewRow: View {
     @Environment(\.colorScheme) private var colorScheme
-    @Binding var chat: ChatMessage
+    var chat: ChatMessage
     let action: (RowEvent) -> Void
     var isFullScreen = false
 
@@ -280,8 +280,8 @@ struct MessageContentView: View {
 
 #Preview {
     List {
-        AIChatViewRow(chat: .constant(ChatMessage(role: .user, content: "blah blah", groupId: "1"))) { _ in }
-        AIChatViewRow(chat: .constant(ChatMessage(role: .assistant, content: "blah blah", tag: "CodeGen1", groupId: "1"))) { _ in }
+        AIChatViewRow(chat: ChatMessage(role: .user, content: "blah blah", groupId: "1")) { _ in }
+        AIChatViewRow(chat: ChatMessage(role: .assistant, content: "blah blah", tag: "CodeGen1", groupId: "1")) { _ in }
     }
     .listStyle(.plain)
     .environment(FileViewerViewModel(modelContext: PreviewController.chatsPreviewContainer.mainContext))

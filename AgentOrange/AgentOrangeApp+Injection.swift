@@ -17,6 +17,11 @@ extension Container {
     var dataService: ParameterFactory<ModelContainer, PersistentDataManagerProtocol> {
         self { PersistentDataManager(container: $0) }.singleton
     }
-    var commandService: Factory<CommandServiceProtocol> { self { CommandService() }.shared }
+    var commandService: ParameterFactory<ModelContainer, CommandServiceProtocol> {
+        self { CommandService(container: $0) }.shared
+    }
     var keychainService: Factory<KeychainProtocol> { self { KeychainService() }.shared }
+    var workflowManager: ParameterFactory<ModelContainer, WorkflowManagerProtocol> {
+        self { WorkflowManager(container: $0) }.shared
+    }
 }

@@ -10,7 +10,9 @@ import SwiftData
 
 struct CommandDetailedView: View {
     @State private var viewModel: CommandDetailedViewModel
-    
+    @AppStorage(UserDefaults.Keys.customAIModel) var customAIModel: String = "qwen2.5-coder-32b-instruct"
+    @AppStorage(UserDefaults.Keys.customAIHost) var customAIHost: String = "http://localhost:1234"
+
     init(command: ChatCommand, modelContext: ModelContext) {
         self._viewModel = State(initialValue: CommandDetailedViewModel(modelContext: modelContext, command: command))
     }
@@ -90,17 +92,26 @@ struct CommandDetailedView: View {
                 Text(AGIServiceChoice.openai.name).tag(AGIServiceChoice.openai.name)
                 Text(AGIServiceChoice.gemini.name).tag(AGIServiceChoice.gemini.name)
                 Text(AGIServiceChoice.claude.name).tag(AGIServiceChoice.claude.name)
-                Text(AGIServiceChoice.customAI.name).tag(viewModel.editableCommand.host)
+                if (viewModel.editableCommand.host ?? customAIHost).hasPrefix("http") {
+                    Text(AGIServiceChoice.customAI.name).tag(vm.editableCommand.host)
+                } else {
+                    Text(AGIServiceChoice.customAI.name).tag(customAIHost)
+                }
             }
             .tint(.secondary)
-            if (viewModel.editableCommand.host ?? "").hasPrefix("http") {
-                TextField("Enter URL", text: $vm.editableCommand.host.binding)
+            if (viewModel.editableCommand.host ?? customAIHost).hasPrefix("http") {
+                TextField(customAIHost, text: $vm.editableCommand.host.bindableHost)
                     .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.trailing)
+                    .frame(alignment: .trailing)
                 HStack {
                     Text("Model: ").foregroundStyle(.primary)
                     Spacer()
-                    TextField("Enter role", text: $vm.editableCommand.model.binding)
+                    TextField(customAIModel, text: $vm.editableCommand.model.bindableModel)
                         .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.trailing)
+                        .frame(alignment: .trailing)
+
                 }
             } else {
                 Picker("Model", selection: $vm.editableCommand.model) {
@@ -116,6 +127,9 @@ struct CommandDetailedView: View {
                         ForEach(ClaudeModel.allCases) { model in
                             Text("\(model.id) (\(model.maxTokens) tokens)").tag(model.id)
                         }
+                    } else {
+                        TextField(customAIModel, text: $vm.editableCommand.model.bindableModel)
+                            .foregroundStyle(.secondary)
                     }
                 }
                 .tint(.secondary)
@@ -162,13 +176,13 @@ struct CommandDetailedView: View {
             HStack {
                 Text("Host: ").foregroundStyle(.primary)
                 Spacer()
-                Text(viewModel.selectedCommand.host ?? "")
+                Text(viewModel.selectedCommand.host ?? customAIHost)
                     .foregroundStyle(.accent)
             }
             HStack {
                 Text("Model: ").foregroundStyle(.primary)
                 Spacer()
-                Text(viewModel.selectedCommand.model ?? "")
+                Text(viewModel.selectedCommand.model ?? customAIModel)
                     .foregroundStyle(.accent)
             }
             HStack {

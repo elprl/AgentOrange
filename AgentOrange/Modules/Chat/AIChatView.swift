@@ -15,6 +15,11 @@ struct AIChatView: View {
     @State private var isPresented = false
     @Query private var commands: [CDChatCommand]
     @Query private var workflows: [CDWorkflow]
+    @Query private var chats: [CDChatMessage]
+
+    init(groupId: String) {
+        _chats = Query(filter: #Predicate<CDChatMessage> { $0.groupId == groupId }, sort: \CDChatMessage.timestamp, order: .forward)
+    }
 
     var body: some View {
         VStack {
@@ -75,15 +80,15 @@ let _ = Self._printChanges()
             NavigationStack {
                 @Bindable var vm = chatVM
                 ScrollView {
-                    if let id = vm.selectedChatId, let index = vm.chats.firstIndex(where: { $0.id == id }) {
-                        AIChatViewRow(chat: $vm.chats[index]) { action in
+                    if let id = vm.selectedChatId, let chat = chats.first(where: { $0.messageId == id }) {
+                        AIChatViewRow(chat: chat.sendableModel) { action in
                             switch action {
                             case .deleted:
-                                chatVM.delete(message: vm.chats[index])
+                                chatVM.delete(message: chat.sendableModel)
                             case .selected:
-                                fileVM.didSelectCode(id: vm.chats[index].codeId)
+                                fileVM.didSelectCode(id: chat.codeId)
                             case .stopped:
-                                chatVM.stop(chatId: id)
+                                chatVM.stop(chatId: chat.messageId)
                             case .fullscreen:
                                 isPresented = false
                             }
@@ -116,17 +121,17 @@ let _ = Self._printChanges()
         @Bindable var vm = chatVM
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
-                ForEach(chatVM.chats.indices, id: \.self) { index in
-                    AIChatViewRow(chat: $vm.chats[index]) { action in
+                ForEach(chats, id: \.self) { chat in
+                    AIChatViewRow(chat: chat.sendableModel) { action in
                         switch action {
                         case .deleted:
-                            chatVM.delete(message: vm.chats[index])
+                            chatVM.delete(message: chat.sendableModel)
                         case .selected:
-                            fileVM.didSelectCode(id: vm.chats[index].codeId)
+                            fileVM.didSelectCode(id: chat.codeId)
                         case .stopped:
-                            chatVM.stop(chatId: vm.chats[index].id)
+                            chatVM.stop(chatId: chat.messageId)
                         case .fullscreen:
-                            vm.selectedChatId = vm.chats[index].id
+                            vm.selectedChatId = chat.messageId
                             isPresented = true
                         }
                     }
@@ -213,7 +218,7 @@ let _ = Self._printChanges()
 }
 
 #Preview("Empty") {
-    AIChatView()
+    AIChatView(groupId: "1")
         .environment(AIChatViewModel.mock())
         .environment(FileViewerViewModel(modelContext: PreviewController.chatsPreviewContainer.mainContext))
 }

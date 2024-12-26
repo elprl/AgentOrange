@@ -18,6 +18,8 @@ protocol PersistentChatDataManagerProtocol: Actor {
     func delete(messages: [ChatMessage]) async
     func delete(message: ChatMessage) async
     func fetchData(for groupId: String) async -> [ChatMessage]
+    func fetchMessages(with messageIds: [String]) async -> [ChatMessage]
+    func fetchMessage(with messageId: String) async -> ChatMessage?
 }
 
 protocol PersistentCodeDataManagerProtocol: Actor {
@@ -93,6 +95,20 @@ extension PersistentDataManager: PersistentChatDataManagerProtocol {
     
     func fetchData(for groupId: String) async -> [ChatMessage] {
         if let items: [ChatMessage] = try? await self.chatDataService.fetchDataVMs(predicate: #Predicate<CDChatMessage> { $0.groupId == groupId }, sortBy: [SortDescriptor(\.timestamp)]) {
+            return items
+        }
+        return []
+    }
+    
+    func fetchMessage(with messageId: String) async -> ChatMessage? {
+        if let items: [ChatMessage] = try? await self.chatDataService.fetchDataVMs(predicate: #Predicate<CDChatMessage> { $0.messageId == messageId }, sortBy: [SortDescriptor(\.timestamp)]) {
+            return items.first
+        }
+        return nil
+    }
+    
+    func fetchMessages(with messageIds: [String]) async -> [ChatMessage] {
+        if let items: [ChatMessage] = try? await self.chatDataService.fetchDataVMs(predicate: #Predicate<CDChatMessage> { messageIds.contains($0.messageId) }, sortBy: [SortDescriptor(\.timestamp)]) {
             return items
         }
         return []

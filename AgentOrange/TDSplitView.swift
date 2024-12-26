@@ -9,8 +9,6 @@ import SwiftUI
 
 struct TDSplitView: View {
     @Environment(\.modelContext) private var modelContext
-    @Environment(FileViewerViewModel.self) private var viewModel: FileViewerViewModel
-    @Environment(AIChatViewModel.self) private var chatVM: AIChatViewModel
     @Environment(NavigationViewModel.self) private var navVM: NavigationViewModel
     @State private var columnVisibility = NavigationSplitViewVisibility.all
     
@@ -26,8 +24,8 @@ struct TDSplitView: View {
             @Bindable var nav = navVM
             NavigationStack {
                 switch navVM.selectedSidebarItem {
-                case .chatGroup(_):
-                    AIChatView()
+                case .chatGroup(let group):
+                    AIChatView(groupId: group.groupId)
                 case .commandList:
                     CommandListView(modelContext: modelContext)
                 case .workflowList:
@@ -81,7 +79,5 @@ struct TDSplitView: View {
 
 #Preview {
     TDSplitView()
-        .environment(FileViewerViewModel.mock())
-        .environment(AIChatViewModel.mock())
         .environment(NavigationViewModel.mock())
 }

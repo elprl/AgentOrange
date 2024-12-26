@@ -12,65 +12,20 @@ import SwiftData
 @Observable
 @MainActor
 final class CommandListViewModel {
-    @Injected(\.commandService) @ObservationIgnored private var commandService
-    /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: PersistentCommandDataManagerProtocol
-    var selectedName: String?
+    /* @Injected(\.commandService) */ @ObservationIgnored private var commandService: CommandServiceProtocol
     var isEditing: Bool = false
     var editableCommand: ChatCommand = ChatCommand.blank()
     var selectedCommand: ChatCommand?
     var errorMessage: String?
 
     init(modelContext: ModelContext) {
-        self.dataService = Container.shared.dataService(modelContext.container) // Injected PersistentDataManager(container: modelContext.container)
-
-        let hasLoadedDefaultCommand = false //UserDefaults.standard.bool(forKey: "hasLoadedDefaultCommand")
-        if !hasLoadedDefaultCommand {
-            commandService.defaultCommands.forEach { command in
-                Task {
-                    await dataService.add(command: command)
-                }
-            }
-            UserDefaults.standard.set(true, forKey: "hasLoadedDefaultCommand")
-        }
-    }
-    
-    func save() {
-        if validateCommand() {
-            errorMessage = nil
-            Task {
-                await dataService.add(command: editableCommand)
-            }
-        } else {
-            errorMessage = "Name and prompt are required"
-        }
+        self.commandService = Container.shared.commandService(modelContext.container) // Injected CommandService(container: modelContext.container)
     }
     
     func createNewCommand() {
         isEditing = true
         editableCommand = ChatCommand.blank()
     }
-    
-    private func validateCommand() -> Bool {
-        return !editableCommand.name.isEmpty && !editableCommand.prompt.isEmpty
-    }
-    
-    func editBtnPressed(command: ChatCommand) {
-        selectedName = command.name
-        if isEditing {
-            isEditing = false
-            save()
-        } else {
-            editableCommand = command
-            isEditing = true
-        }
-    }
-    
-    func cancelBtnPressed(command: ChatCommand) {
-        isEditing = false
-        editableCommand = command
-        errorMessage = nil
-    }
-        
 }
 
 extension CommandListViewModel {

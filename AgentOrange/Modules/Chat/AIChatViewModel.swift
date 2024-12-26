@@ -14,9 +14,10 @@ import Combine
 @MainActor
 final class AIChatViewModel {
     @Injected(\.parserService) @ObservationIgnored private var parserService
-    @Injected(\.commandService) @ObservationIgnored private var commandService
-    @Injected(\.keychainService) @ObservationIgnored private var keychainService
+    /* @Injected(\.commandService) */ @ObservationIgnored private var commandService: CommandServiceProtocol
     /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: PersistentDataManagerProtocol
+    /* @Injected(\.workflowManager) */ @ObservationIgnored private var workflowManager: WorkflowManagerProtocol
+    @Injected(\.keychainService) @ObservationIgnored private var keychainService
     @ObservationIgnored private var sessionIndex: Int = 0
     var isPresented = false
     var selectedChatId: String?
@@ -26,15 +27,6 @@ final class AIChatViewModel {
     var hasScrolledOffBottom: Bool = false
     var groupName: String = ""
     var shouldShowRenameDialog: Bool = false
-    var commands: [ChatCommand] {
-        commandService.defaultCommands
-    }
-    var workflows: Workflows {
-        commandService.workflows
-    }
-    var workflowNames: [String] {
-        commandService.workflows.keys.map { $0 }
-    }
     var isAnyGenerating: Bool {
         isGenerating.values.contains(true)
     }
@@ -64,6 +56,8 @@ final class AIChatViewModel {
     /// pass nil for previews or unit testing
     init(modelContext: ModelContext) {
         self.dataService = Container.shared.dataService(modelContext.container) // Injected PersistentDataManager(container: modelContext.container)
+        self.commandService = Container.shared.commandService(modelContext.container) // Injected CommandService(container: modelContext.container)
+        self.workflowManager = Container.shared.workflowManager(modelContext.container) // Injected CommandService(container: modelContext.container)
     }
     
     func loadMessages() {
@@ -193,33 +187,20 @@ final class AIChatViewModel {
     }
     
     // the following function loops over the commands array and calls one at a time to the respondToPrompt function
+    @MainActor
     func runWorkflow(name: String) {
-        if let cmdNames = workflows[name] {
-            for command in commandService.defaultCommands {
-                if cmdNames.contains(command.name) {
-                    runCommand(command: command)
-                }
-            }
+        let groupId = selectedGroupId ?? "1"
+        let history = generateHistory()
+        Task { [weak self] in
+            await self?.workflowManager.runWorkflow(name: name, groupId: groupId, history: history)
         }
     }
     
     func runCommand(command: ChatCommand) {
-        Task { @MainActor in
-            let chatId = UUID().uuidString
-            start(chatId: chatId)
-            let history = generateHistory()
-            let subTitle = UserDefaults.standard.string(forKey: UserDefaults.Keys.selectedCodeTitle)
-            let host = command.host ?? UserDefaults.standard.customAIHost ?? "http://localhost:1234"
-            let model = command.model ?? UserDefaults.standard.customAIModel ?? "qwen2.5-coder-32b-instruct"
-            await respondToPrompt(id: chatId,
-                                  prompt: command.prompt,
-                                  tag: command.name,
-                                  isCmd: true,
-                                  history: history,
-                                  subTitle: subTitle,
-                                  host: host,
-                                  model: model)
-            stop(chatId: chatId)
+        let groupId = selectedGroupId ?? "1"
+        let history = generateHistory()
+        Task { [weak self] in
+            await self?.workflowManager.runCommand(command: command, groupId: groupId, history: history)
         }
     }
     
@@ -258,6 +239,9 @@ final class AIChatViewModel {
     
     func stop(chatId: String) {
         isGenerating[chatId] = false
+        Task { [weak self] in
+            await self?.workflowManager.stop(chatId: chatId)
+        }
     }
     
     @MainActor

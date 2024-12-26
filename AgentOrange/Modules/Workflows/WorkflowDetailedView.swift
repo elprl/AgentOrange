@@ -215,7 +215,7 @@ let _ = Self._printChanges()
                             
                         } label: {
                             CommandRowView(command: command.sendableModel, showMenu: false)
-                                .frame(width: 200, alignment: .center)
+//                                .frame(width: 200, alignment: .center)
                                 .padding(.bottom, 10)
                                 .background {
                                     if command != viewModel.commands(for: host, commands: commands).last {
@@ -235,6 +235,7 @@ let _ = Self._printChanges()
                     RoundedRectangle(cornerRadius: 8)
                         .stroke(.accent, lineWidth: 1)
                 }
+                .padding(.horizontal, 8)
                 if host != viewModel.getHosts(commands: commands).last {
                     Spacer()
                 }
