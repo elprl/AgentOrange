@@ -94,7 +94,7 @@ actor WorkflowManager: WorkflowManagerProtocol {
             let finalOutput = tempOutput // await removeMarkdown(from: tempOutput)
             Log.pres.debug("AI Generated: \(tempOutput)")
             
-            if UserDefaults.standard.scopeGenCode {
+            if command.type == .coder {
                 let codeSnippet: CodeSnippetSendable
                 let subTitle = UserDefaults.standard.string(forKey: UserDefaults.Keys.selectedCodeTitle) ?? "Generated"
                 

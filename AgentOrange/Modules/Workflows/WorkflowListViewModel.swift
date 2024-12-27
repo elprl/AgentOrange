@@ -14,32 +14,28 @@ import Factory
 final class WorkflowListViewModel {
     /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: PersistentWorkflowDataManagerProtocol
     var errorMessage: String?
-    var workflows: [Workflow] = []
+    var showAlert: Bool = false
     
     init(modelContext: ModelContext) {
         self.dataService = Container.shared.dataService(modelContext.container) // Injected PersistentDataManager(container: modelContext.container)
-    }
-    
-    func load() {
-        Task {
-            workflows = await dataService.fetchAllWorkflows()
-        }
     }
 
     func addWorkflow() {
         let newWorkflow = Workflow(name: "New Workflow", timestamp: Date.now, shortDescription: "New Workflow", commandIds: nil)
         Task {
             await dataService.add(workflow: newWorkflow)
-            workflows = await dataService.fetchAllWorkflows()
         }
     }
     
     func delete(workflow: Workflow) {
         Task {
             await dataService.delete(workflow: workflow)
-            if let index = workflows.firstIndex(of: workflow) {
-                workflows.remove(at: index)
-            }
+        }
+    }
+    
+    func deleteAllWorkflows() {
+        Task {
+            await dataService.deleteAllWorkflows()
         }
     }
 }

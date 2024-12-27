@@ -32,6 +32,7 @@ protocol PersistentCodeDataManagerProtocol: Actor {
 protocol PersistentCommandDataManagerProtocol: Actor {
     func add(command: ChatCommand) async
     func delete(command: ChatCommand) async
+    func deleteAllCommands() async
     func fetchAllCommands() async -> [ChatCommand]
     func fetchCommand(for name: String) async -> ChatCommand?
 }
@@ -39,6 +40,7 @@ protocol PersistentCommandDataManagerProtocol: Actor {
 protocol PersistentWorkflowDataManagerProtocol: Actor {
     func add(workflow: Workflow) async
     func delete(workflow: Workflow) async
+    func deleteAllWorkflows() async
     func fetchAllWorkflows() async -> [Workflow]
     func fetchWorkflow(for name: String) async -> Workflow?
 }
@@ -55,9 +57,11 @@ actor PersistentDataManager: PersistentDataManagerProtocol {
     let codeSnippetDataService: DataService<CDCodeSnippet, CodeSnippetSendable>
     let commandDataService: DataService<CDChatCommand, ChatCommand>
     let workflowDataService: DataService<CDWorkflow, Workflow>
+    let container: ModelContainer
     
     /// pass nil for previews or unit testing
     init(container: ModelContainer) {
+        self.container = container
         chatDataService = DataService(modelContainer: container)
         messageGroupDataService = DataService(modelContainer: container)
         codeSnippetDataService = DataService(modelContainer: container)
@@ -176,6 +180,14 @@ extension PersistentDataManager: PersistentCommandDataManagerProtocol {
         }
     }
     
+    func deleteAllCommands() async {
+        do {
+            try await self.commandDataService.removeAll()
+        } catch {
+            print(error.localizedDescription)
+        }
+    }
+    
     func fetchAllCommands() async -> [ChatCommand] {
         if let items: [ChatCommand] = try? await self.commandDataService.fetchDataVMs(predicate: nil, sortBy: [SortDescriptor(\.timestamp)]) {
             return items
@@ -218,6 +230,14 @@ extension PersistentDataManager: PersistentWorkflowDataManagerProtocol {
         do {
             let id: String = workflow.name
             try await self.workflowDataService.remove(predicate: #Predicate<CDWorkflow> { $0.name == id } )
+        } catch {
+            print(error.localizedDescription)
+        }
+    }
+    
+    func deleteAllWorkflows() async {
+        do {
+            try await self.workflowDataService.removeAll()
         } catch {
             print(error.localizedDescription)
         }

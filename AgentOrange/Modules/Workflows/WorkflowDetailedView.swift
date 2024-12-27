@@ -10,7 +10,7 @@ import SwiftData
 
 struct WorkflowDetailedView: View {
     @State private var viewModel: WorkflowDetailedViewModel
-    @Query private var commands: [CDChatCommand]
+    @Query(sort: \CDChatCommand.timestamp, order: .reverse) private var commands: [CDChatCommand]
     
     init(workflow: Workflow, modelContext: ModelContext) {
         self._viewModel = State(initialValue: WorkflowDetailedViewModel(modelContext: modelContext, workflow: workflow))

@@ -11,7 +11,7 @@ import SwiftData
 struct CommandListView: View {
     @State private var viewModel: CommandListViewModel
     @Environment(NavigationViewModel.self) private var navVM: NavigationViewModel
-    @Query private var commands: [CDChatCommand]
+    @Query(sort: \CDChatCommand.timestamp, order: .reverse) private var commands: [CDChatCommand]
     
     init(modelContext: ModelContext) {
         self._viewModel = State(initialValue: CommandListViewModel(modelContext: modelContext))
@@ -20,6 +20,11 @@ struct CommandListView: View {
     var body: some View {
         ScrollView {
             LazyVStack {
+                if commands.isEmpty {
+                    Text("No commands found.\nTap + to add a new command.")
+                        .foregroundStyle(.secondary)
+                        .padding()
+                }
                 ForEach(commands, id: \.self) { command in
                     Button {
                         navVM.selectedDetailedItem = nil
@@ -28,7 +33,11 @@ struct CommandListView: View {
                         }
                     } label: {
                         CommandRowView(command: command.sendableModel) { event in
-                            
+                            switch event {
+                            case .deleted:
+                                viewModel.delete(command: command.sendableModel)
+                            default: break
+                            }
                         }
                         .overlay {
                             if case let .commandDetail(selectedCommand) = navVM.selectedDetailedItem, selectedCommand.name == command.name {
@@ -39,9 +48,19 @@ struct CommandListView: View {
                     }
                 }
                 .transition(.slide)
-                .animation(.default, value: commands.count)
+                .animation(.easeInOut, value: commands.count)
             }
             .padding()
+        }
+        .alert("Are you sure?", isPresented: $viewModel.showAlert) {
+            Button("Delete", role: .destructive, action: {
+                Task { @MainActor in
+                    viewModel.deleteAllCommands()
+                }
+            })
+            Button("Cancel", role: .cancel, action: {})
+        } message: {
+            Text("Delete ALL commands?")
         }
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
@@ -51,6 +70,25 @@ struct CommandListView: View {
                     Image(systemName: "plus")
                         .foregroundColor(.white)
                 })
+                Menu {
+                    Button(action: {
+                        viewModel.resetDefaults()
+                    }, label: {
+                        Label("Reset to Defaults", systemImage: "arrow.3.trianglepath")
+                            .foregroundColor(.white)
+                    })
+                    Button(action: {
+                        viewModel.showAlert = true
+                    }, label: {
+                        Label("Delete All", systemImage: "trash")
+                            .foregroundColor(.white)
+                    })
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .foregroundStyle(.white)
+                }
+                .menuOrder(.fixed)
+                .highPriorityGesture(TapGesture())
             }
         }
         .navigationBarTitle("Commands")
@@ -58,6 +96,14 @@ struct CommandListView: View {
         .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbarBackground(.accent, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
+        .onChange(of: viewModel.selectedCommand) {
+            navVM.selectedDetailedItem = nil
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                if let command = viewModel.selectedCommand {
+                    navVM.selectedDetailedItem = .commandDetail(command: command)
+                }
+            }
+        }
     }
 }
 

@@ -25,6 +25,7 @@ protocol DataServiceProtocol: ModelActor {
     func fetchDataIds(predicate: Predicate<Model>?, sortBy: [SortDescriptor<Model>]) async throws -> [PersistentIdentifier]
     func remove(predicate: Predicate<Model>?) async throws
     func remove(id: PersistentIdentifier) async
+    func removeAll() async throws
     func save() async throws
     func saveAndInsertIfNeeded(data: Model, predicate: Predicate<Model>) async throws
 }
@@ -69,6 +70,11 @@ extension DataServiceProtocol {
             modelContext.delete(item)
         }
         try? modelContext.save()
+    }
+    
+    func removeAll() async throws {
+        try modelContext.delete(model: Model.self)
+        try modelContext.save()
     }
     
     func save() async throws {

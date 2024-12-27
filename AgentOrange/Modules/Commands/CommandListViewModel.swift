@@ -13,18 +13,34 @@ import SwiftData
 @MainActor
 final class CommandListViewModel {
     /* @Injected(\.commandService) */ @ObservationIgnored private var commandService: CommandServiceProtocol
-    var isEditing: Bool = false
-    var editableCommand: ChatCommand = ChatCommand.blank()
     var selectedCommand: ChatCommand?
     var errorMessage: String?
+    var showAlert: Bool = false
 
     init(modelContext: ModelContext) {
         self.commandService = Container.shared.commandService(modelContext.container) // Injected CommandService(container: modelContext.container)
     }
     
     func createNewCommand() {
-        isEditing = true
-        editableCommand = ChatCommand.blank()
+        selectedCommand = ChatCommand.blank()
+    }
+    
+    func resetDefaults() {
+        Task {
+            await commandService.resetToDefaults()
+        }
+    }
+    
+    func deleteAllCommands() {
+        Task {
+            await commandService.deleteAllCommands()
+        }
+    }
+    
+    func delete(command: ChatCommand) {
+        Task {
+            await commandService.delete(command: command)
+        }
     }
 }
 

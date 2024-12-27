@@ -14,10 +14,13 @@ protocol CommandServiceProtocol: Actor {
     var defaultCommands: [ChatCommand] { get }
     var commands: [ChatCommand] { get set }
     func loadCommands() async
+    func resetToDefaults() async
     var workflows: [Workflow] { get set }
     var defaultWorkflows: Workflows { get set }
     func loadWorkflows() async
     func save(command: ChatCommand) async
+    func delete(command: ChatCommand) async
+    func deleteAllCommands() async
 }
 
 actor CommandService: CommandServiceProtocol {
@@ -94,7 +97,6 @@ actor CommandService: CommandServiceProtocol {
     
     init(container: ModelContainer) {
         self.dataService = Container.shared.dataService(container) // Injected PersistentDataManager(container: modelContext.container)
-        
         let hasLoadedDefaultCommand = UserDefaults.standard.bool(forKey: "hasLoadedDefaultCommand")
         if !hasLoadedDefaultCommand {
             defaultCommands.forEach { command in
@@ -108,6 +110,14 @@ actor CommandService: CommandServiceProtocol {
     
     func loadCommands() async {
         self.commands = await dataService.fetchAllCommands()
+    }
+    
+    func resetToDefaults() {
+        defaultCommands.forEach { command in
+            Task {
+                await dataService.add(command: command)
+            }
+        }
     }
     
     var workflows: [Workflow] = []
@@ -125,6 +135,14 @@ actor CommandService: CommandServiceProtocol {
 
     func save(command: ChatCommand) async {
         await dataService.add(command: command)
+    }
+    
+    func delete(command: ChatCommand) async {
+        await dataService.delete(command: command)
+    }
+    
+    func deleteAllCommands() async {
+        await dataService.deleteAllCommands()
     }
 }
 

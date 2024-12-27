@@ -11,8 +11,7 @@ import SwiftData
 struct WorkflowListView: View {
     @Environment(NavigationViewModel.self) private var navVM: NavigationViewModel
     @State private var viewModel: WorkflowListViewModel
-    
-    let pub = NotificationCenter.default.publisher(for: NSNotification.Name("refreshWorkflows"))
+    @Query(sort: \CDWorkflow.timestamp, order: .reverse) private var workflows: [CDWorkflow]
 
     init(modelContext: ModelContext) {
         self._viewModel = State(initialValue: WorkflowListViewModel(modelContext: modelContext))
@@ -24,17 +23,22 @@ let _ = Self._printChanges()
 #endif
         ScrollView {
             LazyVStack {
-                ForEach(viewModel.workflows, id:\.name) { workflow in
+                if workflows.isEmpty {
+                    Text("No workflows found.\nTap + to add a new workflow.")
+                        .foregroundStyle(.secondary)
+                        .padding()
+                }
+                ForEach(workflows, id:\.name) { workflow in
                     Button {
                         // Force a state update by creating a new value
                         navVM.selectedDetailedItem = nil
                         // Bug workaround: add slight delay to ensure state is cleared
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                            navVM.selectedDetailedItem = .workflowDetail(workflow: workflow)
+                            navVM.selectedDetailedItem = .workflowDetail(workflow: workflow.sendableModel)
                         }
                     } label: {
-                        WorkflowRowView(workflow: workflow) { event in
-                            viewModel.delete(workflow: workflow)
+                        WorkflowRowView(workflow: workflow.sendableModel) { event in
+                            viewModel.delete(workflow: workflow.sendableModel)
                         }
                     }
                     .overlay {
@@ -45,15 +49,19 @@ let _ = Self._printChanges()
                     }
                 }
                 .transition(.slide)
-                .animation(.default, value: viewModel.workflows.count)
+                .animation(.easeInOut, value: workflows.count)
             }
             .padding()
         }
-        .task {
-            viewModel.load()
-        }
-        .onReceive(pub) { _ in
-            viewModel.load()
+        .alert("Are you sure?", isPresented: $viewModel.showAlert) {
+            Button("Delete", role: .destructive, action: {
+                Task { @MainActor in
+                    viewModel.deleteAllWorkflows()
+                }
+            })
+            Button("Cancel", role: .cancel, action: {})
+        } message: {
+            Text("Delete ALL workflows?")
         }
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
@@ -63,6 +71,19 @@ let _ = Self._printChanges()
                     Image(systemName: "plus")
                         .foregroundColor(.white)
                 })
+                Menu {
+                    Button(action: {
+                        viewModel.showAlert = true
+                    }, label: {
+                        Label("Delete All", systemImage: "trash")
+                            .foregroundColor(.white)
+                    })
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .foregroundStyle(.white)
+                }
+                .menuOrder(.fixed)
+                .highPriorityGesture(TapGesture())
             }
         }
         .navigationBarTitle("Workflows")

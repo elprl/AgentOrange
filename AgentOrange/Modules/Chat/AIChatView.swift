@@ -13,9 +13,9 @@ struct AIChatView: View {
     @Environment(FileViewerViewModel.self) private var fileVM: FileViewerViewModel
     @FocusState private var isFocused: Bool
     @State private var isPresented = false
-    @Query private var commands: [CDChatCommand]
-    @Query private var workflows: [CDWorkflow]
-    @Query private var chats: [CDChatMessage]
+    @Query(sort: \CDChatCommand.timestamp, order: .reverse) private var commands: [CDChatCommand]
+    @Query(sort: \CDWorkflow.timestamp, order: .reverse) private var workflows: [CDWorkflow]
+    @Query(sort: \CDChatMessage.timestamp, order: .forward) private var chats: [CDChatMessage]
 
     init(groupId: String) {
         _chats = Query(filter: #Predicate<CDChatMessage> { $0.groupId == groupId }, sort: \CDChatMessage.timestamp, order: .forward)
