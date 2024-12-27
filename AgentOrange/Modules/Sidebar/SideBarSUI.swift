@@ -8,6 +8,7 @@
 
 import SwiftUI
 import SwiftData
+import Foundation
 
 struct SideBarSUI: View {
     @Environment(\.colorScheme) private var colorScheme
@@ -71,11 +72,21 @@ struct SideBarSUI: View {
                 navVM.selectedDetailedItem = .fileViewer(group: group)
             }
         }
-        .onChange(of: groups) {
+        .onChange(of: groups.count) {
             if groups.isEmpty {
                 fileVM.selectedGroupId = nil
                 chatVM.selectedGroupId = nil
                 chatVM.selectedGroup = nil
+            }
+        }
+        .onChange(of: chatVM.selectedGroup) {
+            fileVM.selectedGroupId = chatVM.selectedGroup?.groupId
+            chatVM.groupName = chatVM.navTitle ?? ""
+            if let group = chatVM.selectedGroup {
+                navVM.selectedSidebarItem = nil
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    navVM.selectedSidebarItem = .chatGroup(group: group)
+                }
             }
         }
         .alert("Rename", isPresented: $chatVM.shouldShowRenameDialog) {

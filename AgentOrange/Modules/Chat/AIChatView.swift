@@ -78,9 +78,8 @@ let _ = Self._printChanges()
         }
         .fullScreenCover(isPresented: $isPresented) {
             NavigationStack {
-                @Bindable var vm = chatVM
                 ScrollView {
-                    if let id = vm.selectedChatId, let chat = chats.first(where: { $0.messageId == id }) {
+                    if let id = chatVM.selectedChatId, let chat = chats.first(where: { $0.messageId == id }) {
                         AIChatViewRow(chat: chat.sendableModel) { action in
                             switch action {
                             case .deleted:
@@ -118,7 +117,6 @@ let _ = Self._printChanges()
     
     @ViewBuilder
     private var messages: some View {
-        @Bindable var vm = chatVM
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
                 ForEach(chats, id: \.self) { chat in
@@ -131,7 +129,7 @@ let _ = Self._printChanges()
                         case .stopped:
                             chatVM.stop(chatId: chat.messageId)
                         case .fullscreen:
-                            vm.selectedChatId = chat.messageId
+                            chatVM.selectedChatId = chat.messageId
                             isPresented = true
                         }
                     }
@@ -164,7 +162,6 @@ let _ = Self._printChanges()
                 ForEach(workflows, id: \.self) { workflow in
                     Button {
                         chatVM.runWorkflow(name: workflow.name)
-//                        chatVM.runWorkflowInParallel(name: name)
                     } label: {
                         Text(workflow.name)
                     }

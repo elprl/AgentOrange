@@ -303,9 +303,6 @@ final class AIChatViewModel {
         Task {
             await dataService.delete(group: groupSendable)
         }
-        if groupSendable.groupId == selectedGroupId {
-            addGroup()
-        }
     }
     
     @MainActor
