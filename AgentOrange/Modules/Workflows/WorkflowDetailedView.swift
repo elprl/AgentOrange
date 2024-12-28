@@ -20,7 +20,6 @@ struct WorkflowDetailedView: View {
 #if DEBUG
 let _ = Self._printChanges()
 #endif
-        
         Form {
             if viewModel.isEditing {
                 editingView
@@ -83,26 +82,41 @@ let _ = Self._printChanges()
                         .lineLimit(1)
                         .font(.title3)
                         .foregroundStyle(.accent)
-                    List {
-                        ForEach(viewModel.filteredCommands(commands: commands), id: \.self) { command in
-                            CommandRowView(command: command.sendableModel, showMenu: false)
-                        }
-                        .onDelete { indexSet in                            
-                            for offset in indexSet {
-                                if offset < viewModel.filteredCommands(commands: commands).count {
-                                    let command = viewModel.filteredCommands(commands: commands)[offset]
-                                    viewModel.deleteFromWorkflow(command: command.sendableModel)
+                    tracks
+                    HStack(alignment: .top) {
+                        ForEach(viewModel.getHosts(commands: commands), id: \.self) { host in
+                            VStack(spacing: 0) {
+                                Text(host)
+                                    .lineLimit(1)
+                                    .font(.headline)
+                                    .underline()
+                                    .foregroundStyle(.secondary)
+                                    .padding(.vertical)
+                                
+                                List {
+                                    ForEach(viewModel.commands(for: host, commands: commands), id: \.self) { command in
+                                        CommandRowView(command: command.sendableModel, showMenu: false)
+                                    }
+                                    .onDelete { indexSet in
+                                        for offset in indexSet {
+                                            if offset < viewModel.commands(for: host, commands: commands).count {
+                                                let command = viewModel.commands(for: host, commands: commands)[offset]
+                                                viewModel.deleteFromWorkflow(command: command.sendableModel)
+                                            }
+                                        }
+                                    }
+                                    .onMove { from, to in
+                                        var arrayCopy = viewModel.commands(for: host, commands: commands)
+                                        arrayCopy.move(fromOffsets: from, toOffset: to)
+                                        let commandIds = arrayCopy.map { $0.name }.joined(separator: ",")
+//                                        viewModel.editingWorkflow.commandIds = commandIds
+                                    }
                                 }
+                                .environment(\.editMode, .constant(EditMode.active))
                             }
                         }
-                        .onMove { from, to in
-                            var arrayCopy = viewModel.filteredCommands(commands: commands)
-                            arrayCopy.move(fromOffsets: from, toOffset: to)
-                            let commandIds = arrayCopy.map { $0.name }.joined(separator: ",")
-                            viewModel.editingWorkflow.commandIds = commandIds
-                        }
                     }
-                    .environment(\.editMode, .constant(EditMode.active))
+                    Spacer()
                 }
                 .padding(.vertical)
                 Spacer()
@@ -117,6 +131,12 @@ let _ = Self._printChanges()
                                     viewModel.addToWorkflow(command: command.sendableModel)
                                 } label: {
                                     CommandRowView(command: command.sendableModel, showMenu: false)
+                                        .overlay {
+                                            if viewModel.editingWorkflow.commandIds?.contains(command.name) ?? false {
+                                                RoundedRectangle(cornerRadius: 8)
+                                                    .stroke(Color.accent, lineWidth: 2)
+                                            }
+                                        }
                                 }
                             }
                         }
@@ -177,23 +197,34 @@ let _ = Self._printChanges()
             Rectangle()
                 .fill(Color.accent)
                 .frame(width: 1, height: 20)
-            if viewModel.getHosts(commands: commands).count > 1 {
-                Rectangle()
-                    .fill(Color.accent)
-                    .frame(height: 1)
-                    .padding(.horizontal, 108)
-            }
-            HStack {
-                ForEach(viewModel.getHosts(commands: commands), id: \.self) { host in
+            GeometryReader { geometry in
+                let width = geometry.frame(in: .local).width
+                if viewModel.getHosts(commands: commands).count > 1 {
                     Rectangle()
                         .fill(Color.accent)
-                        .frame(width: 1, height: 20, alignment: .leading)
+                        .frame(height: 1, alignment: .center)
+                        .padding(.horizontal, ((width / CGFloat(viewModel.getHosts(commands: commands).count)) * 0.5))
+                        .transition(.scale)
+                        .animation(.easeInOut, value: viewModel.getHosts(commands: commands).count)
+                }
+            }
+            .frame(height: 1, alignment: .center)
+            .padding(.bottom, -10)
+            .padding(.horizontal, -4)
+
+            HStack(alignment: .top) {
+                ForEach(viewModel.getHosts(commands: commands), id: \.self) { host in
+                        Rectangle()
+                            .fill(Color.accent)
+                            .frame(width: 1, height: 20, alignment: .center)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .transition(.scale)
+                            .animation(.easeInOut, value: viewModel.getHosts(commands: commands).count)
                     if host != viewModel.getHosts(commands: commands).last {
                         Spacer()
                     }
                 }
             }
-            .padding(.horizontal, 108)
             .padding(.bottom, -8)
         }
         .frame(maxWidth: .infinity, alignment: .center)
