@@ -17,6 +17,7 @@ protocol PersistentChatDataManagerProtocol: Actor {
     func add(message: ChatMessage) async
     func delete(messages: [ChatMessage]) async
     func delete(message: ChatMessage) async
+    func delete(for groupId: String) async
     func fetchData(for groupId: String) async -> [ChatMessage]
     func fetchMessages(with messageIds: [String]) async -> [ChatMessage]
     func fetchMessage(with messageId: String) async -> ChatMessage?
@@ -92,6 +93,14 @@ extension PersistentDataManager: PersistentChatDataManagerProtocol {
         do {
             let id: String = message.id
             try await self.chatDataService.remove(predicate: #Predicate<CDChatMessage> { $0.messageId == id } )
+        } catch {
+            print(error.localizedDescription)
+        }
+    }
+    
+    func delete(for groupId: String) async {
+        do {
+            try await self.chatDataService.remove(predicate: #Predicate<CDChatMessage> { $0.groupId == groupId } )
         } catch {
             print(error.localizedDescription)
         }

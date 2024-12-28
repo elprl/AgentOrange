@@ -152,7 +152,7 @@ let _ = Self._printChanges()
                 Text("COMMANDS")
                 ForEach(commands, id: \.self) { command in
                     Button {
-                        chatVM.runCommand(command: command.sendableModel)
+                        chatVM.run(command: command.sendableModel)
                     } label: {
                         Text(command.name)
                     }
@@ -161,7 +161,7 @@ let _ = Self._printChanges()
                 Text("WORKFLOWS")
                 ForEach(workflows, id: \.self) { workflow in
                     Button {
-                        chatVM.runWorkflow(name: workflow.name)
+                        chatVM.run(workflow: workflow.sendableModel)
                     } label: {
                         Text(workflow.name)
                     }

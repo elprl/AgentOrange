@@ -113,7 +113,7 @@ final class AIChatViewModel {
             do {
                 guard let self else { return }
                 var agiService: AGIStreamingServiceProtocol & AGIHistoryServiceProtocol
-                switch host {
+                switch host.lowercased() {
                 case "gemini":
                     let key = await self.geminiAPIKey
                     agiService = GeminiAPIService(apiKey: key)
@@ -188,19 +188,19 @@ final class AIChatViewModel {
     
     // the following function loops over the commands array and calls one at a time to the respondToPrompt function
     @MainActor
-    func runWorkflow(name: String) {
+    func run(workflow: Workflow) {
         let groupId = selectedGroupId ?? "1"
         let history = generateHistory()
         Task { [weak self] in
-            await self?.workflowManager.runWorkflow(name: name, groupId: groupId, history: history)
+            await self?.workflowManager.run(workflow: workflow, groupId: groupId, history: history)
         }
     }
     
-    func runCommand(command: ChatCommand) {
+    func run(command: ChatCommand) {
         let groupId = selectedGroupId ?? "1"
         let history = generateHistory()
         Task { [weak self] in
-            await self?.workflowManager.runCommand(command: command, groupId: groupId, history: history)
+            await self?.workflowManager.run(command: command, groupId: groupId, history: history)
         }
     }
     
@@ -282,7 +282,7 @@ final class AIChatViewModel {
     @MainActor
     func deleteAll() {
         Task { @MainActor in
-            await dataService.delete(messages: chats)
+            await dataService.delete(for: selectedGroupId ?? "1")
             chats.removeAll()
         }
     }

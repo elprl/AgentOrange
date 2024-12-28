@@ -108,8 +108,19 @@ let _ = Self._printChanges()
                                     .onMove { from, to in
                                         var arrayCopy = viewModel.commands(for: host, commands: commands)
                                         arrayCopy.move(fromOffsets: from, toOffset: to)
-                                        let commandIds = arrayCopy.map { $0.name }.joined(separator: ",")
-//                                        viewModel.editingWorkflow.commandIds = commandIds
+                                        var commandIds = [String]()
+                                        for moveHost in viewModel.getHosts(commands: commands) {
+                                            if moveHost != host {
+                                                for command in viewModel.commands(for: moveHost, commands: commands) {
+                                                    commandIds.append(command.name)
+                                                }
+                                            } else {
+                                                commandIds.append(contentsOf: arrayCopy.map { $0.name })
+                                            }
+                                        }
+                                        let idsString = commandIds.joined(separator: ",")
+                                        print("idsString: \(idsString)")
+                                        viewModel.editingWorkflow.commandIds = idsString
                                     }
                                 }
                                 .environment(\.editMode, .constant(EditMode.active))
@@ -176,8 +187,14 @@ let _ = Self._printChanges()
     private var commandViewer: some View {
         Section("Commands") {
             ScrollView {
-                tracks
-                hosts
+                if (viewModel.selectedWorkflow.commandIds ?? "").isEmpty {
+                    Text("No commands selected")
+                        .foregroundStyle(.secondary)
+                        .padding()
+                } else {
+                    tracks
+                    hosts
+                }
             }
         }
     }

@@ -74,7 +74,7 @@ struct CommandDetailedView: View {
             HStack(alignment: .top) {
                 Text("Role: ").foregroundStyle(.primary)
                 Spacer()
-                TextField("Enter role", text: $vm.editableCommand.role.binding)
+                TextField("Enter role", text: $vm.editableCommand.role)
                     .foregroundStyle(.secondary)
                 
             }
@@ -92,22 +92,22 @@ struct CommandDetailedView: View {
                 Text(AGIServiceChoice.openai.name).tag(AGIServiceChoice.openai.name)
                 Text(AGIServiceChoice.gemini.name).tag(AGIServiceChoice.gemini.name)
                 Text(AGIServiceChoice.claude.name).tag(AGIServiceChoice.claude.name)
-                if (viewModel.editableCommand.host ?? customAIHost).hasPrefix("http") {
+                if (viewModel.editableCommand.host).hasPrefix("http") {
                     Text(AGIServiceChoice.customAI.name).tag(vm.editableCommand.host)
                 } else {
                     Text(AGIServiceChoice.customAI.name).tag(customAIHost)
                 }
             }
             .tint(.secondary)
-            if (viewModel.editableCommand.host ?? customAIHost).hasPrefix("http") {
-                TextField(customAIHost, text: $vm.editableCommand.host.bindableHost)
+            if (viewModel.editableCommand.host).hasPrefix("http") {
+                TextField(customAIHost, text: $vm.editableCommand.host)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.trailing)
                     .frame(alignment: .trailing)
                 HStack {
                     Text("Model: ").foregroundStyle(.primary)
                     Spacer()
-                    TextField(customAIModel, text: $vm.editableCommand.model.bindableModel)
+                    TextField(customAIModel, text: $vm.editableCommand.model)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.trailing)
                         .frame(alignment: .trailing)
@@ -128,7 +128,7 @@ struct CommandDetailedView: View {
                             Text("\(model.id) (\(model.maxTokens) tokens)").tag(model.id)
                         }
                     } else {
-                        TextField(customAIModel, text: $vm.editableCommand.model.bindableModel)
+                        TextField(customAIModel, text: $vm.editableCommand.model)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -160,7 +160,7 @@ struct CommandDetailedView: View {
             HStack(alignment: .top) {
                 Text("Role: ").foregroundStyle(.primary)
                 Spacer()
-                Text(viewModel.selectedCommand.role ?? "")
+                Text(viewModel.selectedCommand.role)
                     .foregroundStyle(.accent)
             }
             HStack(alignment: .top) {
@@ -176,19 +176,19 @@ struct CommandDetailedView: View {
             HStack {
                 Text("Host: ").foregroundStyle(.primary)
                 Spacer()
-                Text(viewModel.selectedCommand.host ?? customAIHost)
+                Text(viewModel.selectedCommand.host)
                     .foregroundStyle(.accent)
             }
             HStack {
                 Text("Model: ").foregroundStyle(.primary)
                 Spacer()
-                Text(viewModel.selectedCommand.model ?? customAIModel)
+                Text(viewModel.selectedCommand.model)
                     .foregroundStyle(.accent)
             }
             HStack {
                 Text("Type: ").foregroundStyle(.primary)
                 Spacer()
-                Text(viewModel.selectedCommand.type?.rawValue ?? "")
+                Text(viewModel.selectedCommand.type.rawValue)
                     .foregroundStyle(.accent)
             }
         }

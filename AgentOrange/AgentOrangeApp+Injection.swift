@@ -15,7 +15,7 @@ extension Container {
     var parserService: Factory<CodeParserServiceProtocol> { self { CodeParserService() }.shared }
     var agiService: Factory<AGIStreamingServiceProtocol & AGIHistoryServiceProtocol> { self { LMStudioAPIService() }.shared }
     var dataService: ParameterFactory<ModelContainer, PersistentDataManagerProtocol> {
-        self { PersistentDataManager(container: $0) }.singleton
+        self { PersistentDataManager(container: $0) }.shared
     }
     var commandService: ParameterFactory<ModelContainer, CommandServiceProtocol> {
         self { CommandService(container: $0) }.shared

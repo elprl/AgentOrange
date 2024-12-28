@@ -45,12 +45,34 @@ struct ChatCommand {
     var prompt: String
     var shortDescription: String
     
-    var role: String?
-    var model: String?
-    var host: String?
-    var type: AgentType?
+    var role: String
+    var model: String
+    var host: String
+    var type: AgentType
     var inputCodeId: String?
-    var dependencyIds: [String]?
+    var dependencyIds: [String]
+    
+    init(name: String,
+         timestamp: Foundation.Date = Date.now,
+         prompt: String,
+         shortDescription: String,
+         role: String = UserDefaults.standard.agiRole ?? "You are a helpful AI assistant.",
+         model: String = UserDefaults.standard.agiModel ?? "qwen2.5-coder-32b-instruct",
+         host: String = UserDefaults.standard.customAIHost ?? "http://localhost:1234",
+         type: AgentType = .reviewer,
+         inputCodeId: String? = nil,
+         dependencyIds: [String] = []) {
+        self.name = name
+        self.timestamp = timestamp
+        self.prompt = prompt
+        self.shortDescription = shortDescription
+        self.role = role
+        self.model = model
+        self.host = host
+        self.type = type
+        self.inputCodeId = inputCodeId
+        self.dependencyIds = dependencyIds
+    }
 }
 
 extension ChatCommand: Identifiable, Hashable {

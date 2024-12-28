@@ -21,7 +21,7 @@ final class WorkflowListViewModel {
     }
 
     func addWorkflow() {
-        let newWorkflow = Workflow(name: "New Workflow", timestamp: Date.now, shortDescription: "New Workflow", commandIds: nil)
+        let newWorkflow = Workflow(name: "", timestamp: Date.now, shortDescription: "", commandIds: nil)
         Task {
             await dataService.add(workflow: newWorkflow)
         }

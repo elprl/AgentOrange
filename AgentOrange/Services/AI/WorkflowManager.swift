@@ -11,8 +11,8 @@ import Factory
 import SwiftData
 
 protocol WorkflowManagerProtocol: Actor {
-    func runWorkflow(name: String, groupId: String, history: [ChatMessage]) async
-    func runCommand(command: ChatCommand, groupId: String, history: [ChatMessage]) async
+    func run(workflow: Workflow, groupId: String, history: [ChatMessage]) async
+    func run(command: ChatCommand, groupId: String, history: [ChatMessage]) async
     func stop(chatId: String)
 }
 
@@ -34,24 +34,23 @@ actor WorkflowManager: WorkflowManagerProtocol {
     
     // this function will run the commands in the workflow. It will run in
     // in parallel the commands from different hosts. It will run serially if the commands on the same host.
-    func runWorkflow(name: String, groupId: String, history: [ChatMessage]) async {
-        guard let workflow = await commandService.workflows.first(where: { $0.name == name }) else { return }
+    func run(workflow: Workflow, groupId: String, history: [ChatMessage]) async {
         guard let cmdNames: [String] = workflow.commandIds?.components(separatedBy: ",") else { return }
         let commands = await commandService.commands.filter { cmdNames.contains($0.name) }
         
-        let uniqueHosts = Set(commands.compactMap { $0.host ?? UserDefaults.standard.customAIHost ?? "http://localhost:1234" })
+        let uniqueHosts = Set(commands.compactMap { $0.host })
         
         for host in uniqueHosts {
-            let commandsForHost = commands.filter { ($0.host ?? UserDefaults.standard.customAIHost ?? "http://localhost:1234") == host }
+            let commandsForHost = commands.filter { $0.host == host }
             Task {
                 for command in commandsForHost {
-                    await self.runCommand(command: command, groupId: groupId, history: history)
+                    await self.run(command: command, groupId: groupId, history: history)
                 }
             }
         }
     }
     
-    func runCommand(command: ChatCommand, groupId: String, history: [ChatMessage]) async {
+    func run(command: ChatCommand, groupId: String, history: [ChatMessage]) async {
         let chatId = UUID().uuidString
         start(chatId: chatId)
         
@@ -61,11 +60,11 @@ actor WorkflowManager: WorkflowManagerProtocol {
         let responseMessage = await addChatMessage(id: chatId, role: .assistant, content: "", model: command.model, host: command.host, groupId: groupId)
         
         do {
-            let host = command.host ?? UserDefaults.standard.customAIHost ?? "http://localhost:1234"
-            let model = command.model ?? UserDefaults.standard.customAIModel ?? "qwen2.5-coder-32b-instruct"
+            let host = command.host
+            let model = command.model
             
             var agiService: AGIStreamingServiceProtocol & AGIHistoryServiceProtocol
-            switch host {
+            switch host.lowercased() {
             case "gemini":
                 let key = await getGeminiAPIKey()
                 agiService = GeminiAPIService(apiKey: key)
@@ -92,7 +91,7 @@ actor WorkflowManager: WorkflowManagerProtocol {
             }
             
             let finalOutput = tempOutput // await removeMarkdown(from: tempOutput)
-            Log.pres.debug("AI Generated: \(tempOutput)")
+            Log.pres.debug("AI Generated: \(finalOutput)")
             
             if command.type == .coder {
                 let codeSnippet: CodeSnippetSendable

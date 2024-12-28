@@ -67,7 +67,7 @@ final class WorkflowDetailedViewModel {
         let workflowCommands = filteredCommands(commands: commands)
         var uniqueHosts = [String]()
         workflowCommands.forEach {
-            let host = $0.host ?? UserDefaults.standard.customAIHost ?? "http://localhost:1234"
+            let host = $0.host
             if uniqueHosts.contains(host) == false {
                 uniqueHosts.append(host)
             }
@@ -79,7 +79,7 @@ final class WorkflowDetailedViewModel {
         let workflowCommands = filteredCommands(commands: commands)
 
         let filteredCommands = workflowCommands.filter {
-            let existingHost = $0.host ?? UserDefaults.standard.customAIHost ?? "http://localhost:1234"
+            let existingHost = $0.host
             return existingHost == host
         }
         return filteredCommands

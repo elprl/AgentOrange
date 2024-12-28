@@ -68,15 +68,24 @@ final class CDChatCommand {
     var prompt: String
     var shortDescription: String
     
-    var role: String?
-    var model: String?
-    var host: String?
-    var type: AgentType?
+    var role: String
+    var model: String
+    var host: String
+    var type: AgentType
     var inputCodeId: String?
-    var dependencyIds: [String]?
+    var dependencyIds: [String]
     // @Relationship(deleteRule: .nullify, inverse: \CDWorkflow.commands) var workflows: [CDWorkflow]? // unordered set under the hood
     
-    init(name: String, timestamp: Date = Date.now, prompt: String, shortDescription: String, role: String? = nil, model: String? = nil, host: String? = nil, type: AgentType? = .coder, inputCodeId: String? = nil, dependencyIds: [String]? = nil) {
+    init(name: String,
+         timestamp: Date = Date.now,
+         prompt: String,
+         shortDescription: String,
+         role: String = UserDefaults.standard.agiRole ?? "You are a helpful AI assistant.",
+         model: String = UserDefaults.standard.agiModel ?? "qwen2.5-coder-32b-instruct",
+         host: String = UserDefaults.standard.customAIHost ?? "http://localhost:1234",
+         type: AgentType = .reviewer,
+         inputCodeId: String? = nil,
+         dependencyIds: [String] = []) {
         self.name = name
         self.timestamp = timestamp
         self.prompt = prompt
