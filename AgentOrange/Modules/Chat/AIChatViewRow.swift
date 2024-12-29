@@ -10,10 +10,11 @@ import MarkdownUI
 import Splash
 
 enum RowEvent {
-    case deleted
-    case selected
-    case stopped
+    case delete
+    case select
+    case stop
     case fullscreen
+    case duplicate
 }
 
 struct AIChatViewRow: View {
@@ -45,13 +46,48 @@ struct AIChatViewRow: View {
     
     @ViewBuilder
     private var userMessage: some View {
-        HStack(alignment: .top) {
-            MessageContentView(content: chat.content)
-                .padding(.trailing)
-            UserMenuButton(chat: chat) {
-                action($0)
+        switch chat.type {
+        case .command:
+            VStack {
+                HStack(alignment: .top) {
+                    Image(systemName: "command")
+                        .foregroundStyle(.accent)
+                    Text(chat.tag ?? "Command")
+                        .bold()
+                        .foregroundStyle(.white)
+                    Spacer()
+                    UserMenuButton(chat: chat) {
+                        action($0)
+                    }
+                    .offset(x: 4)
+                }
+                MessageContentView(content: chat.content)
             }
-            .offset(x: 4)
+        case .workflow:
+            VStack {
+                HStack(alignment: .top) {
+                    Image(systemName: "arrow.trianglehead.swap")
+                        .foregroundStyle(.accent)
+                    Text(chat.tag ?? "Command")
+                        .bold()
+                        .foregroundStyle(.white)
+                    Spacer()
+                    UserMenuButton(chat: chat) {
+                        action($0)
+                    }
+                    .offset(x: 4)
+                }
+                MessageContentView(content: chat.content)
+            }
+        default:
+            HStack(alignment: .top) {
+                MessageContentView(content: chat.content)
+                    .padding(.trailing)
+                UserMenuButton(chat: chat) {
+                    action($0)
+                }
+                .offset(x: 4)
+            }
         }
     }
     
@@ -65,7 +101,7 @@ struct AIChatViewRow: View {
                 MessageContentView(content: chat.content)
             } label: {
                 Button {
-                    action(.selected)
+                    action(.select)
                 } label: {
                     GroupBox {
                         HStack {
@@ -108,7 +144,7 @@ struct UserMenuButton: View {
     var body: some View {
         Menu {
             Button {
-                action(.deleted)
+                action(.delete)
             } label: {
                 Label("Delete", systemImage: "trash")
             }
@@ -180,7 +216,7 @@ let _ = Self._printChanges()
 #endif
         Menu {
             Button {
-                action(.deleted)
+                action(.delete)
             } label: {
                 Label("Delete", systemImage: "trash")
             }
@@ -190,7 +226,7 @@ let _ = Self._printChanges()
                 Label("Copy", systemImage: "document.on.document.fill")
             }
             Button {
-                action(.stopped)
+                action(.stop)
             } label: {
                 Label("Stop", systemImage: "stop.circle")
             }

@@ -33,6 +33,14 @@ final class WorkflowListViewModel {
         }
     }
     
+    func duplicate(workflow: Workflow) {
+        var newWorkflow = workflow
+        newWorkflow.name += " Copy"
+        Task {
+            await dataService.add(workflow: newWorkflow)
+        }
+    }
+    
     func deleteAllWorkflows() {
         Task {
             await dataService.deleteAllWorkflows()

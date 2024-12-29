@@ -34,8 +34,10 @@ struct CommandListView: View {
                     } label: {
                         CommandRowView(command: command.sendableModel) { event in
                             switch event {
-                            case .deleted:
+                            case .delete:
                                 viewModel.delete(command: command.sendableModel)
+                            case .duplicate:
+                                viewModel.duplicate(command: command.sendableModel)
                             default: break
                             }
                         }

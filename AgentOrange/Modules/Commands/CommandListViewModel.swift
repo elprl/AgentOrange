@@ -37,6 +37,14 @@ final class CommandListViewModel {
         }
     }
     
+    func duplicate(command: ChatCommand) {
+        var newCommand = command
+        newCommand.name += " Copy"
+        Task {
+            await commandService.add(command: newCommand)
+        }
+    }
+    
     func delete(command: ChatCommand) {
         Task {
             await commandService.delete(command: command)

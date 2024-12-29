@@ -26,6 +26,7 @@ struct GPTMessage: Codable, Identifiable {
 }
 
 enum GPTModel {
+    case o1(model: String, tokens: Int)
     case gpt4(model: String, tokens: Int)
     case gpt3(model: String, tokens: Int)
     case custom(model: String, tokens: Int)
@@ -39,8 +40,8 @@ extension GPTModel: Hashable, Identifiable, Codable {
     static var allCases: [GPTModel] {
         return [
             .custom(model: "CUSTOM", tokens: 128000),
-            .gpt4(model: "o1-preview", tokens: 128000),
-            .gpt4(model: "o1-mini", tokens: 128000),
+            .o1(model: "o1-preview", tokens: 128000),
+            .o1(model: "o1-mini", tokens: 128000),
             .gpt4(model: "gpt-4o-2024-05-13", tokens: 128000),
             .gpt4(model: "gpt-4o", tokens: 128000),
             .gpt4(model: "gpt-4-turbo", tokens: 128000),
@@ -58,7 +59,7 @@ extension GPTModel: Hashable, Identifiable, Codable {
     
     var id: String {
         switch self {
-        case .gpt4(let model, _), .gpt3(let model, _), .custom(let model, _):
+        case .o1(let model, _), .gpt4(let model, _), .gpt3(let model, _), .custom(let model, _):
             return model
         }
     }
@@ -72,7 +73,7 @@ extension GPTModel: Hashable, Identifiable, Codable {
         // Iterate through all cases to find a match
         for caseItem in allCases {
             switch caseItem {
-            case .gpt4(let model, _), .gpt3(let model, _), .custom(let model, _):
+            case .o1(let model, _), .gpt4(let model, _), .gpt3(let model, _), .custom(let model, _):
                 if model == modelString {
                     return caseItem
                 }
@@ -85,7 +86,7 @@ extension GPTModel: Hashable, Identifiable, Codable {
     
     var maxTokens: Int {
         switch self {
-        case .gpt4(_, let tokens), .gpt3(_, let tokens), .custom(_, let tokens):
+        case .o1(_, let tokens), .gpt4(_, let tokens), .gpt3(_, let tokens), .custom(_, let tokens):
             return tokens
         }
     }

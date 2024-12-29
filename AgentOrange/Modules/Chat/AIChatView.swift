@@ -82,14 +82,15 @@ let _ = Self._printChanges()
                     if let id = chatVM.selectedChatId, let chat = chats.first(where: { $0.messageId == id }) {
                         AIChatViewRow(chat: chat.sendableModel) { action in
                             switch action {
-                            case .deleted:
+                            case .delete:
                                 chatVM.delete(message: chat.sendableModel)
-                            case .selected:
+                            case .select:
                                 fileVM.didSelectCode(id: chat.codeId)
-                            case .stopped:
+                            case .stop:
                                 chatVM.stop(chatId: chat.messageId)
                             case .fullscreen:
                                 isPresented = false
+                            default: break
                             }
                         }
                         .padding()
@@ -122,15 +123,16 @@ let _ = Self._printChanges()
                 ForEach(chats, id: \.self) { chat in
                     AIChatViewRow(chat: chat.sendableModel) { action in
                         switch action {
-                        case .deleted:
+                        case .delete:
                             chatVM.delete(message: chat.sendableModel)
-                        case .selected:
+                        case .select:
                             fileVM.didSelectCode(id: chat.codeId)
-                        case .stopped:
+                        case .stop:
                             chatVM.stop(chatId: chat.messageId)
                         case .fullscreen:
                             chatVM.selectedChatId = chat.messageId
                             isPresented = true
+                        default: break
                         }
                     }
                     .padding(.horizontal)

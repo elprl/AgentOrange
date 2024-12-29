@@ -114,13 +114,13 @@ final class AIChatViewModel {
                 guard let self else { return }
                 var agiService: AGIStreamingServiceProtocol & AGIHistoryServiceProtocol
                 switch host.lowercased() {
-                case "gemini":
+                case AGIServiceChoice.gemini.name.lowercased():
                     let key = await self.geminiAPIKey
                     agiService = GeminiAPIService(apiKey: key)
-                case "openai":
+                case AGIServiceChoice.openai.name.lowercased():
                     let key = await self.openaiAPIKey
                     agiService = ChatGPTAPIService(apiKey: key)
-                case "claude":
+                case AGIServiceChoice.claude.name.lowercased():
                     let key = await self.claudeAPIKey
                     agiService = ClaudeAPIService(apiKey: key)
                 default:

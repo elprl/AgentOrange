@@ -25,9 +25,14 @@ struct CommandRowView: View {
                     if showMenu {
                         Menu {
                             Button {
-                                action?(.deleted)
+                                action?(.delete)
                             } label: {
                                 Label("Delete", systemImage: "trash")
+                            }
+                            Button {
+                                action?(.duplicate)
+                            } label: {
+                                Label("Duplicate", systemImage: "plus.rectangle.on.rectangle")
                             }
                         } label: {
                             Image(systemName: "ellipsis.circle")

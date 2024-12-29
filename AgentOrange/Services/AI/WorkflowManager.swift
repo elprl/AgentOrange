@@ -35,9 +35,16 @@ actor WorkflowManager: WorkflowManagerProtocol {
     // this function will run the commands in the workflow. It will run in
     // in parallel the commands from different hosts. It will run serially if the commands on the same host.
     func run(workflow: Workflow, groupId: String, history: [ChatMessage]) async {
-        guard let cmdNames: [String] = workflow.commandIds?.components(separatedBy: ",") else { return }
-        let commands = await commandService.commands.filter { cmdNames.contains($0.name) }
+        await addChatMessage(content: workflow.shortDescription, type: .workflow, tag: workflow.name, groupId: groupId)
         
+        guard let cmdNames: [String] = workflow.commandIds?.components(separatedBy: ",") else { return }
+        var commands: [ChatCommand] = []
+        for cmdName in cmdNames {
+            if let command = await commandService.commands.first(where: { $0.name == cmdName }) {
+                commands.append(command)
+            }
+        }
+                    
         let uniqueHosts = Set(commands.compactMap { $0.host })
         
         for host in uniqueHosts {
@@ -54,8 +61,10 @@ actor WorkflowManager: WorkflowManagerProtocol {
         let chatId = UUID().uuidString
         start(chatId: chatId)
         
-        let content = "### **Command**: \n" + command.name + "\n### **Prompt**: \n" + command.prompt
-        await addChatMessage(content: content, groupId: groupId)
+        let content = """
+**Host**: \(command.host) \n\n **Model**: \(command.model) \n\n **Prompt**: \n\n \(command.prompt)
+"""
+        await addChatMessage(content: content, type: .command, tag: command.name, groupId: groupId)
         
         let responseMessage = await addChatMessage(id: chatId, role: .assistant, content: "", model: command.model, host: command.host, groupId: groupId)
         
@@ -65,13 +74,13 @@ actor WorkflowManager: WorkflowManagerProtocol {
             
             var agiService: AGIStreamingServiceProtocol & AGIHistoryServiceProtocol
             switch host.lowercased() {
-            case "gemini":
+            case AGIServiceChoice.gemini.name.lowercased():
                 let key = await getGeminiAPIKey()
                 agiService = GeminiAPIService(apiKey: key)
-            case "openai":
+            case AGIServiceChoice.openai.name.lowercased():
                 let key = await getOpenAIAPIKey()
                 agiService = ChatGPTAPIService(apiKey: key)
-            case "claude":
+            case AGIServiceChoice.claude.name.lowercased():
                 let key = await getClaudeAPIKey()
                 agiService = ClaudeAPIService(apiKey: key)
             default:

@@ -38,7 +38,13 @@ let _ = Self._printChanges()
                         }
                     } label: {
                         WorkflowRowView(workflow: workflow.sendableModel) { event in
-                            viewModel.delete(workflow: workflow.sendableModel)
+                            switch event {
+                            case .delete:
+                                viewModel.delete(workflow: workflow.sendableModel)
+                            case .duplicate:
+                                viewModel.duplicate(workflow: workflow.sendableModel)
+                            default: break
+                            }
                         }
                     }
                     .overlay {

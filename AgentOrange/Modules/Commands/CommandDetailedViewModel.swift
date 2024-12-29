@@ -28,7 +28,7 @@ final class CommandDetailedViewModel {
         if validateCommand() {
             errorMessage = nil
             Task {
-                await commandService.save(command: editableCommand)
+                await commandService.add(command: editableCommand)
                 selectedCommand = editableCommand
             }
         } else {

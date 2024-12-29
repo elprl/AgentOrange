@@ -152,6 +152,13 @@ final class FileViewerViewModel {
     }
     
     @MainActor
+    func delete(snippet: CodeSnippetSendable) {
+        Task { [weak self] in
+            await self?.dataService.delete(code: snippet)
+        }
+    }
+    
+    @MainActor
     func unhide(snippet: CodeSnippetSendable) {
         Task { [weak self] in
             let newSnippet = CodeSnippetSendable(codeId: snippet.codeId,

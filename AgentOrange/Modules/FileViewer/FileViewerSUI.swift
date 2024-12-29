@@ -294,6 +294,12 @@ struct FileViewerSUI: View {
                                         Label("Export", systemImage: "document.badge.arrow.up")
                                             .foregroundStyle(.white)
                                     })
+                                    Button(action: {
+                                        viewModel.delete(snippet: snippet.sendableModel)
+                                    }, label: {
+                                        Label("Delete", systemImage: "trash")
+                                            .foregroundStyle(.white)
+                                    })
                                 } label: {
                                     Image(systemName: "ellipsis")
                                         .resizable()

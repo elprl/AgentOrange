@@ -69,7 +69,9 @@ struct SideBarSUI: View {
         .onChange(of: navVM.selectedSidebarItem) {
             if case .chatGroup(let group) = navVM.selectedSidebarItem {
                 fileVM.selectedGroupId = group.groupId
+                chatVM.selectedGroup = group
                 navVM.selectedDetailedItem = .fileViewer(group: group)
+                chatVM.groupName = chatVM.navTitle ?? ""
             }
         }
         .onChange(of: groups.count) {
