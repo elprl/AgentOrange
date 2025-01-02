@@ -54,9 +54,9 @@ actor ClaudeAPIService {
         var orderedMessages = [GPTMessage]()
         messages.forEach {
             if !$0.content.isEmpty {
-                if var lastClaudeMessage = orderedMessages.last {
-                    if $0.role == lastClaudeMessage.role {
-                        lastClaudeMessage.content = String(lastClaudeMessage.content + "\n" + $0.content)
+                if let index = orderedMessages.indices.last {
+                    if $0.role == orderedMessages[index].role {
+                        orderedMessages[index].content = String(orderedMessages[index].content + "\n" + $0.content)
                     } else {
                         orderedMessages.append($0)
                     }
@@ -99,6 +99,7 @@ extension ClaudeAPIService: AGIStreamingServiceProtocol {
                 do {
                     let gptMessages = await generateMessages(from: text)
                     let messages = await processClaudeMessages(messages: gptMessages)
+                    Log.agi.debug("Sending messages \(messages)")
                     let parameters = MessageParameter(model: Model.other(model), messages: messages, maxTokens: 1024)
                     guard let service = await self.service else { throw APIError.requestFailed(description: "Claude service has not been setup") }
                     let stream = try await service.streamMessage(parameters)
