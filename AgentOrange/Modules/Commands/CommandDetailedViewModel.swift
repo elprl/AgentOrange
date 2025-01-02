@@ -61,6 +61,17 @@ final class CommandDetailedViewModel {
         errorMessage = nil
     }
         
+    func addDependency(id: String) {
+        if !editableCommand.dependencyIds.contains(id) {
+            editableCommand.dependencyIds.append(id)
+            save()
+        }
+    }
+    
+    func deleteDependency(id: String) {
+        editableCommand.dependencyIds.removeAll { $0 == id }
+        save()
+    }
 }
 
 extension CommandDetailedViewModel {

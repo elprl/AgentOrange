@@ -15,6 +15,7 @@ enum RowEvent {
     case stop
     case fullscreen
     case duplicate
+    case removeCommands
 }
 
 struct AIChatViewRow: View {

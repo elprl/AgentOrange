@@ -202,15 +202,23 @@ let _ = Self._printChanges()
     @ViewBuilder
     private var tracks: some View {
         VStack(alignment: .center, spacing: 0) {
-            Text("Parallel Tracks")
+            if viewModel.getHosts(commands: commands).count > 1 {
+                Text("Parallel Tracks")
                 .lineLimit(1)
                 .font(.title3)
                 .foregroundStyle(.accent)
                 .padding(.top)
-            Text("Based on hosts")
+                Text("Based on hosts")
                 .lineLimit(1)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+            } else {
+                Text("Sequential Track")
+                .lineLimit(1)
+                .font(.title3)
+                .foregroundStyle(.accent)
+                .padding(.top)
+            }
             Rectangle()
                 .fill(Color.accent)
                 .frame(width: 1, height: 20)
@@ -295,7 +303,6 @@ let _ = Self._printChanges()
 #Preview {
     NavigationStack {
         WorkflowDetailedView(workflow: Workflow.mock(), modelContext: PreviewController.commandsPreviewContainer.mainContext)
-            .environment(WorkflowListViewModel.mock())
             .modelContext(PreviewController.commandsPreviewContainer.mainContext)
     }
 }

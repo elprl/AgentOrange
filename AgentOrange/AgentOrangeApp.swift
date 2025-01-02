@@ -20,7 +20,15 @@ struct AgentOrangeApp: App {
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+#if DEBUG
+            let urlApp = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).last
+            let url = urlApp!.appendingPathComponent("default.store")
+            if FileManager.default.fileExists(atPath: url.path) {
+                print("swiftdata db at \(url.absoluteString)")
+                fatalError("Error: could not create ModelContainer in AgentOrangeApp for db at \(url.absoluteString): \(error)")
+            }
+#endif
+            fatalError("Error: could not create ModelContainer in AgentOrangeApp: \(error)")
         }
     }()
     @State private var navVM: NavigationViewModel

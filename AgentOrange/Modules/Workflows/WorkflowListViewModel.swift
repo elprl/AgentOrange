@@ -41,6 +41,14 @@ final class WorkflowListViewModel {
         }
     }
     
+    func removeCommands(workflow: Workflow) {
+        var newWorkflow = workflow
+        newWorkflow.commandIds = nil
+        Task {
+            await dataService.add(workflow: newWorkflow)
+        }
+    }
+    
     func deleteAllWorkflows() {
         Task {
             await dataService.deleteAllWorkflows()

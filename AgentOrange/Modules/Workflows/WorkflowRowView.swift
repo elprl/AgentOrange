@@ -32,6 +32,11 @@ struct WorkflowRowView: View {
                         } label: {
                             Label("Duplicate", systemImage: "plus.rectangle.on.rectangle")
                         }
+                        Button {
+                            action(.removeCommands)
+                        } label: {
+                            Label("Remove Commands", systemImage: "pip.remove")
+                        }
                     } label: {
                         Image(systemName: "ellipsis.circle")
                             .foregroundStyle(.accent)

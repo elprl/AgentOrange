@@ -43,6 +43,8 @@ let _ = Self._printChanges()
                                 viewModel.delete(workflow: workflow.sendableModel)
                             case .duplicate:
                                 viewModel.duplicate(workflow: workflow.sendableModel)
+                            case .removeCommands:
+                                viewModel.removeCommands(workflow: workflow.sendableModel)
                             default: break
                             }
                         }

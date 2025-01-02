@@ -10,6 +10,13 @@ import Combine
 import Factory
 import SwiftData
 
+enum ExecutionState {
+    case pending
+    case running
+    case completed
+    case failed
+}
+
 protocol WorkflowManagerProtocol: Actor {
     func run(workflow: Workflow, groupId: String, history: [ChatMessage]) async
     func run(command: ChatCommand, groupId: String, history: [ChatMessage]) async
@@ -21,40 +28,76 @@ actor WorkflowManager: WorkflowManagerProtocol {
     /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: PersistentDataManagerProtocol
     @Injected(\.keychainService) @ObservationIgnored private var keychainService
     var isGenerating: [String: Bool] = [:]
+    var commandStates: [ChatCommand: ExecutionState] = [:]
 
     // Inject any other services as needed
     init(container: ModelContainer) {
         self.dataService = Container.shared.dataService(container) // Injected PersistentDataManager(container: modelContext.container)
         self.commandService = Container.shared.commandService(container) // Injected CommandService(container: modelContext.container)
-        Task {
-            await commandService.loadCommands()
-            await commandService.loadWorkflows()
-        }
     }
     
     // this function will run the commands in the workflow. It will run in
     // in parallel the commands from different hosts. It will run serially if the commands on the same host.
     func run(workflow: Workflow, groupId: String, history: [ChatMessage]) async {
+        commandStates = [:]
+        await commandService.loadCommands()
+        
         await addChatMessage(content: workflow.shortDescription, type: .workflow, tag: workflow.name, groupId: groupId)
         
         guard let cmdNames: [String] = workflow.commandIds?.components(separatedBy: ",") else { return }
-        var commands: [ChatCommand] = []
         for cmdName in cmdNames {
+            if let command = await commandService.commands.first(where: { $0.name == cmdName }) {
+                commandStates[command] = .pending
+            }
+        }
+        
+        let uniqueHosts = Set(commandStates.keys.compactMap { $0.host })
+        
+        // Process commands for each host
+        await withTaskGroup(of: Void.self) { group in
+            for host in uniqueHosts {
+                group.addTask {
+                    await self.processCommands(for: host, groupId: groupId, history: history)
+                }
+            }
+        }
+    }
+    
+    private func processCommands(for host: String, groupId: String, history: [ChatMessage]) async {
+        let commandsForHost = commandStates.keys.filter { $0.host == host }
+        
+        while commandStates.values.contains(.pending) || commandStates.values.contains(.running) {
+            for command in commandsForHost {
+                let depCommands = await dependentCommands(command: command)
+                if await canExecute(command: command, depCommands: depCommands) {
+                    commandStates[command] = .running
+                    await run(command: command, groupId: groupId, history: history)
+                    commandStates[command] = .completed
+                }
+            }
+            // Avoid busy waiting
+            try? await Task.sleep(nanoseconds: 100_000_000_000) // Sleep for 100ms
+        }
+    }
+    
+    private func canExecute(command: ChatCommand, depCommands: [ChatCommand]) async -> Bool {
+        // Check if all dependencies are completed
+        for depCommand in depCommands {
+            if commandStates[depCommand] != .completed {
+                return false
+            }
+        }
+        return true
+    }
+    
+    private func dependentCommands(command: ChatCommand) async -> [ChatCommand] {
+        var commands: [ChatCommand] = []
+        for cmdName in command.dependencyIds {
             if let command = await commandService.commands.first(where: { $0.name == cmdName }) {
                 commands.append(command)
             }
         }
-                    
-        let uniqueHosts = Set(commands.compactMap { $0.host })
-        
-        for host in uniqueHosts {
-            let commandsForHost = commands.filter { $0.host == host }
-            Task {
-                for command in commandsForHost {
-                    await self.run(command: command, groupId: groupId, history: history)
-                }
-            }
-        }
+        return commands
     }
     
     func run(command: ChatCommand, groupId: String, history: [ChatMessage]) async {

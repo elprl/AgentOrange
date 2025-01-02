@@ -80,4 +80,7 @@ struct TDSplitView: View {
 #Preview {
     TDSplitView()
         .environment(NavigationViewModel.mock())
+        .environment(AIChatViewModel.mock())
+        .environment(FileViewerViewModel.mock())
+        .modelContainer(PreviewController.workflowsPreviewContainer)
 }
