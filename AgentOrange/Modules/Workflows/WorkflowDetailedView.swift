@@ -84,46 +84,40 @@ let _ = Self._printChanges()
                         .foregroundStyle(.accent)
                     tracks
                     HStack(alignment: .top) {
-                        ForEach(viewModel.getHosts(commands: commands), id: \.self) { host in
-                            VStack(spacing: 0) {
-                                Text(host)
-                                    .lineLimit(1)
-                                    .font(.headline)
-                                    .underline()
-                                    .foregroundStyle(.secondary)
-                                    .padding(.vertical)
-                                
-                                List {
-                                    ForEach(viewModel.commands(for: host, commands: commands), id: \.self) { command in
+                        ForEach(0..<viewModel.tracks, id: \.self) { column in
+                            List {
+                                Section(content: {
+                                    ForEach(viewModel.getCommands(for: column, commands: commands), id: \.self) { command in
                                         CommandRowView(command: command.sendableModel, showMenu: false)
                                     }
                                     .onDelete { indexSet in
-                                        for offset in indexSet {
-                                            if offset < viewModel.commands(for: host, commands: commands).count {
-                                                let command = viewModel.commands(for: host, commands: commands)[offset]
-                                                viewModel.deleteFromWorkflow(command: command.sendableModel)
-                                            }
-                                        }
+                                        viewModel.deleteCommand(column: column, indexSet: indexSet)
                                     }
                                     .onMove { from, to in
-                                        var arrayCopy = viewModel.commands(for: host, commands: commands)
-                                        arrayCopy.move(fromOffsets: from, toOffset: to)
-                                        var commandIds = [String]()
-                                        for moveHost in viewModel.getHosts(commands: commands) {
-                                            if moveHost != host {
-                                                for command in viewModel.commands(for: moveHost, commands: commands) {
-                                                    commandIds.append(command.name)
-                                                }
-                                            } else {
-                                                commandIds.append(contentsOf: arrayCopy.map { $0.name })
-                                            }
-                                        }
-                                        let idsString = commandIds.joined(separator: ",")
-                                        print("idsString: \(idsString)")
-                                        viewModel.editingWorkflow.commandIds = idsString
+                                        viewModel.moveCommand(column: column, from: from, to: to)
                                     }
-                                }
-                                .environment(\.editMode, .constant(EditMode.active))
+                                    .listRowSeparator(.hidden)
+                                }, header: {
+                                    Button {
+                                        viewModel.selectedColumn = column
+                                    } label: {
+                                        Text("Track \(column + 1)")
+                                            .lineLimit(1)
+                                            .font(.subheadline)
+                                            .foregroundStyle(.white)
+                                            .padding(.horizontal)
+                                            .padding(.vertical, 2)
+                                            .background(column == viewModel.selectedColumn ? Color.accent : Color.gray)
+                                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                                            .shadow(radius: 1)
+                                            .frame(maxWidth: .infinity, alignment: .center)
+                                    }
+                                })
+                            }
+                            .environment(\.editMode, .constant(column == viewModel.selectedColumn ? EditMode.active : EditMode.inactive))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(column == viewModel.selectedColumn ? Color.accent : Color.gray, lineWidth: 1)
                             }
                         }
                     }
@@ -137,17 +131,27 @@ let _ = Self._printChanges()
                         .font(.title3)
                     ScrollView {
                         LazyVStack {
+                            Button {
+                                viewModel.addWaitStep()
+                            } label: {
+                                GroupBox {
+                                    Text("Wait Step")
+                                        .lineLimit(1)
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                        .frame(maxWidth: .infinity, alignment: .center)
+                                }
+                                .overlay {
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .strokeBorder(Color(UIColor.systemGray4), lineWidth: 1)
+                                }
+                                .backgroundStyle(.ultraThinMaterial)
+                            }
                             ForEach(commands) { command in
                                 Button {
                                     viewModel.addToWorkflow(command: command.sendableModel)
                                 } label: {
                                     CommandRowView(command: command.sendableModel, showMenu: false)
-                                        .overlay {
-                                            if viewModel.editingWorkflow.commandIds?.contains(command.name) ?? false {
-                                                RoundedRectangle(cornerRadius: 8)
-                                                    .stroke(Color.accent, lineWidth: 2)
-                                            }
-                                        }
                                 }
                             }
                         }
@@ -187,13 +191,13 @@ let _ = Self._printChanges()
     private var commandViewer: some View {
         Section("Commands") {
             ScrollView {
-                if (viewModel.selectedWorkflow.commandIds ?? "").isEmpty {
+                if (viewModel.selectedWorkflow.commandArrangement ?? "").isEmpty {
                     Text("No commands selected")
                         .foregroundStyle(.secondary)
                         .padding()
                 } else {
                     tracks
-                    hosts
+                    commandList
                 }
             }
         }
@@ -202,50 +206,63 @@ let _ = Self._printChanges()
     @ViewBuilder
     private var tracks: some View {
         VStack(alignment: .center, spacing: 0) {
-            if viewModel.getHosts(commands: commands).count > 1 {
-                Text("Parallel Tracks")
-                .lineLimit(1)
-                .font(.title3)
-                .foregroundStyle(.accent)
-                .padding(.top)
-                Text("Based on hosts")
-                .lineLimit(1)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            } else {
-                Text("Sequential Track")
-                .lineLimit(1)
-                .font(.title3)
-                .foregroundStyle(.accent)
-                .padding(.top)
+            HStack(alignment: .center) {
+                if viewModel.isEditing {
+                    Button {
+                        if viewModel.tracks > 1 {
+                            viewModel.tracks -= 1
+                        }
+                    } label: {
+                        Image(systemName: "minus.rectangle")
+                            .foregroundStyle(.accent)
+                    }
+                    Text("^[\(viewModel.tracks) Execution Track](inflect: true)")
+                        .lineLimit(1)
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                    Button {
+                        if viewModel.tracks < 5 {
+                            viewModel.tracks += 1
+                        }
+                    } label: {
+                        Image(systemName: "plus.rectangle")
+                            .foregroundStyle(.accent)
+                    }
+                } else {
+                    Text("^[\(viewModel.tracks) Execution Track](inflect: true)")
+                        .lineLimit(1)
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                }
             }
+            .padding(.top)
             Rectangle()
                 .fill(Color.accent)
                 .frame(width: 1, height: 20)
             GeometryReader { geometry in
                 let width = geometry.frame(in: .local).width
-                if viewModel.getHosts(commands: commands).count > 1 {
+                if viewModel.tracks > 1 {
                     Rectangle()
                         .fill(Color.accent)
                         .frame(height: 1, alignment: .center)
-                        .padding(.horizontal, ((width / CGFloat(viewModel.getHosts(commands: commands).count)) * 0.5))
+                        .padding(.horizontal, ((width / CGFloat(viewModel.tracks)) * 0.5))
                         .transition(.scale)
-                        .animation(.easeInOut, value: viewModel.getHosts(commands: commands).count)
+                        .animation(.easeInOut, value: viewModel.tracks)
                 }
             }
             .frame(height: 1, alignment: .center)
             .padding(.bottom, -10)
             .padding(.horizontal, -4)
-
+            
             HStack(alignment: .top) {
-                ForEach(viewModel.getHosts(commands: commands), id: \.self) { host in
-                        Rectangle()
-                            .fill(Color.accent)
-                            .frame(width: 1, height: 20, alignment: .center)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .transition(.scale)
-                            .animation(.easeInOut, value: viewModel.getHosts(commands: commands).count)
-                    if host != viewModel.getHosts(commands: commands).last {
+                ForEach(0..<viewModel.tracks, id: \.self) { column in
+                    Rectangle()
+                        .fill(Color.accent)
+                        .frame(width: 1, height: 20, alignment: .center)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .transition(.scale)
+                        .animation(.easeInOut, value: viewModel.tracks)
+                    if column != (viewModel.tracks - 1)  {
                         Spacer()
                     }
                 }
@@ -256,25 +273,18 @@ let _ = Self._printChanges()
     }
     
     @ViewBuilder
-    private var hosts: some View {
+    private var commandList: some View {
         HStack(alignment: .top) {
-            ForEach(viewModel.getHosts(commands: commands), id: \.self) { host in
+            ForEach(0..<viewModel.tracks, id: \.self) { column in
                 VStack(spacing: 0) {
-                    Text(host)
-                        .lineLimit(1)
-                        .font(.headline)
-                        .underline()
-                        .foregroundStyle(.secondary)
-                        .padding(.vertical)
-                    ForEach(viewModel.commands(for: host, commands: commands), id: \.self) { command in
+                    ForEach(viewModel.getCommands(for: column, commands: commands), id: \.self) { command in
                         Button {
                             
                         } label: {
                             CommandRowView(command: command.sendableModel, showMenu: false)
-//                                .frame(width: 200, alignment: .center)
                                 .padding(.bottom, 10)
                                 .background {
-                                    if command != viewModel.commands(for: host, commands: commands).last {
+                                    if command != viewModel.getCommands(for: column, commands: commands).last {
                                         VStack {
                                             Spacer()
                                             Rectangle()
@@ -292,7 +302,7 @@ let _ = Self._printChanges()
                         .stroke(.accent, lineWidth: 1)
                 }
                 .padding(.horizontal, 8)
-                if host != viewModel.getHosts(commands: commands).last {
+                if column != (viewModel.tracks - 1) {
                     Spacer()
                 }
             }

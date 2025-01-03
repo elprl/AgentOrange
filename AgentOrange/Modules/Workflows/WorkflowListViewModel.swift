@@ -21,7 +21,7 @@ final class WorkflowListViewModel {
     }
 
     func addWorkflow() {
-        let newWorkflow = Workflow(name: "", timestamp: Date.now, shortDescription: "", commandIds: nil)
+        let newWorkflow = Workflow(name: "", timestamp: Date.now, shortDescription: "", commandArrangement: nil)
         Task {
             await dataService.add(workflow: newWorkflow)
         }
@@ -43,7 +43,7 @@ final class WorkflowListViewModel {
     
     func removeCommands(workflow: Workflow) {
         var newWorkflow = workflow
-        newWorkflow.commandIds = nil
+        newWorkflow.commandArrangement = nil
         Task {
             await dataService.add(workflow: newWorkflow)
         }

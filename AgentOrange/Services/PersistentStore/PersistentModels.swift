@@ -123,7 +123,7 @@ final class CDWorkflow {
 
 extension CDWorkflow: PersistentModelProtocol {
     var sendableModel: Workflow {
-        return Workflow(name: name, timestamp: timestamp, shortDescription: shortDescription, commandIds: commandIds)
+        return Workflow(name: name, timestamp: timestamp, shortDescription: shortDescription, commandArrangement: commandIds)
     }
 }
 

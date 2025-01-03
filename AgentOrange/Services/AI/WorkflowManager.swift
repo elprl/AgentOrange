@@ -44,7 +44,7 @@ actor WorkflowManager: WorkflowManagerProtocol {
         
         await addChatMessage(content: workflow.shortDescription, type: .workflow, tag: workflow.name, groupId: groupId)
         
-        guard let cmdNames: [String] = workflow.commandIds?.components(separatedBy: ",") else { return }
+        guard let cmdNames: [String] = workflow.commandArrangement?.components(separatedBy: ",") else { return }
         for cmdName in cmdNames {
             if let command = await commandService.commands.first(where: { $0.name == cmdName }) {
                 commandStates[command] = .pending
