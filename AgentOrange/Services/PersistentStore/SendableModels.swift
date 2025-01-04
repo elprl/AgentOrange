@@ -81,6 +81,18 @@ extension Workflow: SendableModelProtocol {
     var persistentModel: CDWorkflow {
         return CDWorkflow(name: name, timestamp: timestamp, shortDescription: shortDescription, commandIds: commandArrangement)
     }
+    
+    var commandNames: [String] {
+        if let commandArrangement {
+            let regex = try! NSRegularExpression(pattern: "\"(\\w+)\"")
+            let matches = regex.matches(in: commandArrangement, options: [], range: NSRange(commandArrangement.startIndex..., in: commandArrangement))
+            let words = matches.map {
+                String(commandArrangement[Range($0.range(at: 1), in: commandArrangement)!])
+            }
+            return words
+        }
+        return []
+    }
 }
 
 extension Workflow {

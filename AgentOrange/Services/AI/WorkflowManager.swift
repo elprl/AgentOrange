@@ -19,7 +19,7 @@ enum ExecutionState {
 
 protocol WorkflowManagerProtocol: Actor {
     func run(workflow: Workflow, groupId: String, history: [ChatMessage]) async
-    func run(command: ChatCommand, groupId: String, history: [ChatMessage]) async
+    func run(command: ChatCommand, groupId: String, history: [ChatMessage]) async -> ChatMessage?
     func stop(chatId: String)
 }
 
@@ -47,20 +47,29 @@ actor WorkflowManager: WorkflowManagerProtocol {
         if let arrangement = workflow.commandArrangement {
             let (commandIds, commands) = await getCommands(for: arrangement)
             let rowOrientedIds = process(commandIds: commandIds)
+            var newChats: [ChatMessage] = []
             for (index, rowGroup) in rowOrientedIds.enumerated() {
                 // the commands in this loop must complete before moving to the next row
                 Log.agi.debug("Starting rowGroup: \(index)")
-                await withTaskGroup(of: Void.self) { taskGroup in
+                await withTaskGroup(of: ChatMessage?.self) { taskGroup in
                     for column in rowGroup {
                         if let command = commands.first(where: { $0.name == column }) {
                             let commandCopy = command
                             let groupIdCopy = groupId
-                            let historyCopy = history
+                            let historyCopy = history + newChats
                             taskGroup.addTask {
                                 Log.agi.debug("Starting command: \(commandCopy.name)")
-                                await self.run(command: commandCopy, groupId: groupIdCopy, history: historyCopy)
+                                let newChat = await self.run(command: commandCopy, groupId: groupIdCopy, history: historyCopy)
                                 Log.agi.debug("Finished command: \(commandCopy.name)")
+                                return newChat
                             }
+                        }
+                    }
+                    
+                    // Collect results from the tasks
+                    for await result in taskGroup {
+                        if let newChat = result {
+                            newChats.append(newChat)
                         }
                     }
                 }
@@ -144,7 +153,7 @@ actor WorkflowManager: WorkflowManagerProtocol {
         return commands
     }
     
-    func run(command: ChatCommand, groupId: String, history: [ChatMessage]) async {
+    @discardableResult func run(command: ChatCommand, groupId: String, history: [ChatMessage]) async -> ChatMessage? {
         let chatId = UUID().uuidString
         start(chatId: chatId)
         
@@ -188,6 +197,7 @@ actor WorkflowManager: WorkflowManagerProtocol {
             
             let finalOutput = tempOutput // await removeMarkdown(from: tempOutput)
             Log.pres.debug("AI Generated: \(finalOutput)")
+            let finalChat = await updateMessage(message: responseMessage, content: tempOutput)
             
             if command.type == .coder {
                 let codeSnippet: CodeSnippetSendable
@@ -197,11 +207,15 @@ actor WorkflowManager: WorkflowManagerProtocol {
                 // Add the code snippet to your data service or wherever needed
                 await dataService.add(code: codeSnippet)
             }
+            
+            stop(chatId: chatId)
+            return finalChat
         } catch {
             Log.pres.error("Error: \(error.localizedDescription)")
         }
         
         stop(chatId: chatId)
+        return nil
     }
     
     @discardableResult private func addChatMessage(id: String = UUID().uuidString, role: GPTRole = .user, content: String, type: MessageType = .message, tag: String? = nil, model: String? = nil, host: String? = nil, groupId: String) async -> ChatMessage {
@@ -210,7 +224,7 @@ actor WorkflowManager: WorkflowManagerProtocol {
         return chatMessage
     }
     
-    private func updateMessage(message: ChatMessage, content: String, tag: String? = nil, codeId: String? = nil) async {
+    @discardableResult private func updateMessage(message: ChatMessage, content: String, tag: String? = nil, codeId: String? = nil) async -> ChatMessage {
         var chat = message
         chat.content = content
         if let tag {
@@ -220,6 +234,7 @@ actor WorkflowManager: WorkflowManagerProtocol {
             chat.codeId = codeId
         }
         await persistChat(message: chat)
+        return chat
     }
     
     private func persistChat(message: ChatMessage) async {
