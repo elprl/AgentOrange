@@ -60,6 +60,7 @@ struct CommandRowView: View {
                 }
             }
             .tint(.primary)
+            .frame(height: 60)
         }
         .overlay {
             RoundedRectangle(cornerRadius: 8)

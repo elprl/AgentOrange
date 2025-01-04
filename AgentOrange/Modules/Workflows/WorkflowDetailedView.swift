@@ -32,6 +32,8 @@ let _ = Self._printChanges()
                     .padding()
             }
         }
+        .transition(.slide)
+        .animation(.easeInOut, value: viewModel.isEditing)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Button(action: {
@@ -88,7 +90,11 @@ let _ = Self._printChanges()
                             List {
                                 Section(content: {
                                     ForEach(viewModel.getCommands(for: column, commands: commands), id: \.self) { command in
-                                        CommandRowView(command: command.sendableModel, showMenu: false)
+                                        if command.name == "<wait>" {
+                                            waitStep
+                                        } else {
+                                            CommandRowView(command: command.sendableModel, showMenu: false)
+                                        }
                                     }
                                     .onDelete { indexSet in
                                         viewModel.deleteCommand(column: column, indexSet: indexSet)
@@ -209,9 +215,7 @@ let _ = Self._printChanges()
             HStack(alignment: .center) {
                 if viewModel.isEditing {
                     Button {
-                        if viewModel.tracks > 1 {
-                            viewModel.tracks -= 1
-                        }
+                        viewModel.removeTrack()
                     } label: {
                         Image(systemName: "minus.rectangle")
                             .foregroundStyle(.accent)
@@ -221,9 +225,7 @@ let _ = Self._printChanges()
                         .font(.headline)
                         .foregroundStyle(.secondary)
                     Button {
-                        if viewModel.tracks < 5 {
-                            viewModel.tracks += 1
-                        }
+                        viewModel.addTrack()
                     } label: {
                         Image(systemName: "plus.rectangle")
                             .foregroundStyle(.accent)
@@ -281,18 +283,24 @@ let _ = Self._printChanges()
                         Button {
                             
                         } label: {
-                            CommandRowView(command: command.sendableModel, showMenu: false)
-                                .padding(.bottom, 10)
-                                .background {
-                                    if command != viewModel.getCommands(for: column, commands: commands).last {
-                                        VStack {
-                                            Spacer()
-                                            Rectangle()
-                                                .fill(Color.accent)
-                                                .frame(width: 1, height: 10, alignment: .center)
-                                        }
+                            Group {
+                                if command.name == "<wait>" {
+                                    waitStep
+                                } else {
+                                    CommandRowView(command: command.sendableModel, showMenu: false)
+                                }
+                            }
+                            .padding(.bottom, 10)
+                            .background {
+                                if command != viewModel.getCommands(for: column, commands: commands).last {
+                                    VStack {
+                                        Spacer()
+                                        Rectangle()
+                                            .fill(Color.accent)
+                                            .frame(width: 1, height: 10, alignment: .center)
                                     }
                                 }
+                            }
                         }
                     }
                 }
@@ -307,6 +315,34 @@ let _ = Self._printChanges()
                 }
             }
         }
+    }
+    
+    @ViewBuilder
+    private var waitStep: some View {
+        GroupBox {
+            VStack {
+                HStack {
+                    Image(systemName: "hourglass")
+                        .foregroundStyle(.accent)
+                    Text("<WAIT STEP>")
+                        .lineLimit(1)
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                Text("Waits for all tracks on this row to complete")
+                    .lineLimit(2)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .frame(height: 60, alignment: .leading)
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 8)
+                .strokeBorder(Color(UIColor.systemGray4), style: StrokeStyle(lineWidth: 1, dash: [5]))
+        }
+        .backgroundStyle(.ultraThinMaterial.opacity(0.5))
     }
 }
 

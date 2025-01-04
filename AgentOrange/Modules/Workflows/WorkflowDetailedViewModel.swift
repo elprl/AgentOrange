@@ -23,13 +23,12 @@ final class WorkflowDetailedViewModel {
     var selectedWorkflow: Workflow
     var isEditing: Bool = false
     var errorMessage: String?
-    var tracks: Int = 1 {
-        didSet {
-            selectedColumn = tracks - 1
-        }
-    }
-    var commandIds: [[String]] = []
+    var commandIds: [[String]] = [[]]
     var selectedColumn: Int = 0
+    
+    var tracks: Int {
+        return commandIds.count
+    }
     
     init(modelContext: ModelContext, workflow: Workflow) {
         editingWorkflow = workflow
@@ -49,6 +48,18 @@ final class WorkflowDetailedViewModel {
             }
         } else {
             errorMessage = "Name, short description and commands are required"
+        }
+    }
+    
+    func addTrack() {
+        if commandIds.count < 4 {            
+            commandIds.append([])
+        }
+    }
+    
+    func removeTrack() {
+        if commandIds.count > 1 {
+            commandIds.removeLast()
         }
     }
     
@@ -100,6 +111,7 @@ final class WorkflowDetailedViewModel {
             let data = Data(commandArrangementStr.utf8)
             let decoder = JSONDecoder()
             commandIds = try decoder.decode([[String]].self, from: data)
+            commandIds = commandIds.filter { !$0.isEmpty }
         } catch {
             Log.pres.error("Error decoding command arrangement: \(error)")
         }
@@ -111,7 +123,7 @@ final class WorkflowDetailedViewModel {
                 return nil
             }
             let encoder = JSONEncoder()
-            let data = try encoder.encode(commandIds)
+            let data = try encoder.encode(commandIds.filter { !$0.isEmpty })
             return String(data: data, encoding: .utf8)
         } catch {
             Log.pres.error("Error encoding command arrangement: \(error)")
