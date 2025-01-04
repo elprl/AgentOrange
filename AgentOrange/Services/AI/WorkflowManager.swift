@@ -44,23 +44,67 @@ actor WorkflowManager: WorkflowManagerProtocol {
         
         await addChatMessage(content: workflow.shortDescription, type: .workflow, tag: workflow.name, groupId: groupId)
         
-        guard let cmdNames: [String] = workflow.commandArrangement?.components(separatedBy: ",") else { return }
-        for cmdName in cmdNames {
-            if let command = await commandService.commands.first(where: { $0.name == cmdName }) {
-                commandStates[command] = .pending
+        if let arrangement = workflow.commandArrangement {
+            let (commandIds, commands) = await getCommands(for: arrangement)
+            let rowOrientedIds = process(commandIds: commandIds)
+            for (index, rowGroup) in rowOrientedIds.enumerated() {
+                // the commands in this loop must complete before moving to the next row
+                Log.agi.debug("Starting rowGroup: \(index)")
+                await withTaskGroup(of: Void.self) { taskGroup in
+                    for column in rowGroup {
+                        if let command = commands.first(where: { $0.name == column }) {
+                            let commandCopy = command
+                            let groupIdCopy = groupId
+                            let historyCopy = history
+                            taskGroup.addTask {
+                                Log.agi.debug("Starting command: \(commandCopy.name)")
+                                await self.run(command: commandCopy, groupId: groupIdCopy, history: historyCopy)
+                                Log.agi.debug("Finished command: \(commandCopy.name)")
+                            }
+                        }
+                    }
+                }
+                Log.agi.debug("Finished rowGroup: \(index)")
             }
         }
-        
-        let uniqueHosts = Set(commandStates.keys.compactMap { $0.host })
-        
-        // Process commands for each host
-        await withTaskGroup(of: Void.self) { group in
-            for host in uniqueHosts {
-                group.addTask {
-                    await self.processCommands(for: host, groupId: groupId, history: history)
+    }
+    
+    private func getCommands(for arrangement: String) async -> ([[String]], [ChatCommand]) {
+        do {
+            let data = Data(arrangement.utf8)
+            let decoder = JSONDecoder()
+            var commandIds = try decoder.decode([[String]].self, from: data)
+            commandIds = commandIds.filter { !$0.isEmpty }
+            
+            var commands: [ChatCommand] = []
+            let flatternedCommandIds = commandIds.reduce([], +)
+            for id in flatternedCommandIds {
+                if let command = await commandService.commands.first(where: { $0.name == id }) {
+                    if !commands.contains(command) {
+                        commands.append(command)
+                    }
+                }
+            }
+            return (commandIds, commands)
+        } catch {
+            Log.pres.error("Error decoding command arrangement: \(error)")
+            return ([], [])
+        }
+    }
+    
+    // process the commands into rows for execution. The commands in the same row will run in parallel
+    private func process(commandIds: [[String]]) -> [[String]] {
+        var newCommandIds : [[String]] = []
+        for column in commandIds {
+            for (index, row) in column.enumerated() {
+                if newCommandIds.indices.contains(index) {
+                    newCommandIds[index].append(row)
+                } else {
+                    newCommandIds.append([row])
                 }
             }
         }
+        return newCommandIds
     }
     
     private func processCommands(for host: String, groupId: String, history: [ChatMessage]) async {
