@@ -197,7 +197,7 @@ let _ = Self._printChanges()
     private var commandViewer: some View {
         Section("Commands") {
             ScrollView {
-                if (viewModel.selectedWorkflow.commandArrangement ?? "").isEmpty {
+                if viewModel.selectedWorkflow.commandNames.isEmpty {
                     Text("No commands selected")
                         .foregroundStyle(.secondary)
                         .padding()
