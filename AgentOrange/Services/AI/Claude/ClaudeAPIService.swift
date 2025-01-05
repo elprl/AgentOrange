@@ -92,7 +92,7 @@ extension ClaudeAPIService: TokenServiceProtocol {
 }
 
 extension ClaudeAPIService: AGIStreamingServiceProtocol {
-    func sendMessageStream(text: String, needsJSONResponse: Bool, host: String, model: String) async throws -> AsyncThrowingStream<String, Error> {
+    func sendMessageStream(text: String, needsJSONResponse: Bool, host: String, model: String, temperature: Double) async throws -> AsyncThrowingStream<String, Error> {
         return AsyncThrowingStream<String, Error> { continuation in
             Task(priority: .userInitiated) { [weak self] in
                 guard let self else { return }
@@ -100,7 +100,7 @@ extension ClaudeAPIService: AGIStreamingServiceProtocol {
                     let gptMessages = await generateMessages(from: text)
                     let messages = await processClaudeMessages(messages: gptMessages)
                     Log.agi.debug("Sending messages \(messages)")
-                    let parameters = MessageParameter(model: Model.other(model), messages: messages, maxTokens: 1024)
+                    let parameters = MessageParameter(model: Model.other(model), messages: messages, maxTokens: 1024, temperature: temperature)
                     guard let service = await self.service else { throw APIError.requestFailed(description: "Claude service has not been setup") }
                     let stream = try await service.streamMessage(parameters)
                         for try await result in stream {

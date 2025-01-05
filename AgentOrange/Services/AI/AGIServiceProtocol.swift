@@ -17,7 +17,7 @@ protocol TokenServiceProtocol: Actor {
 }
 
 protocol AGIStreamingServiceProtocol: Actor {
-    func sendMessageStream(text: String, needsJSONResponse: Bool, host: String, model: String) async throws -> AsyncThrowingStream<String, Error>
+    func sendMessageStream(text: String, needsJSONResponse: Bool, host: String, model: String, temperature: Double) async throws -> AsyncThrowingStream<String, Error>
     func cancelStream()
 }
 

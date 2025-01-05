@@ -112,7 +112,7 @@ extension GeminiAPIService: TokenServiceProtocol {
 }
 
 extension GeminiAPIService: AGIStreamingServiceProtocol {
-    func sendMessageStream(text: String, needsJSONResponse: Bool = false, host: String, model: String) async throws -> AsyncThrowingStream<String, Error> {
+    func sendMessageStream(text: String, needsJSONResponse: Bool = false, host: String, model: String, temperature: Double) async throws -> AsyncThrowingStream<String, Error> {
         return AsyncThrowingStream<String, Error> { continuation in
             Task(priority: .userInitiated) { [weak self] in
                 guard let self = self else { return }

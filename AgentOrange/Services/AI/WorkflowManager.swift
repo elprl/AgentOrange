@@ -19,7 +19,7 @@ enum ExecutionState {
 
 protocol WorkflowManagerProtocol: Actor {
     func run(workflow: Workflow, groupId: String, history: [ChatMessage]) async
-    func run(command: ChatCommand, groupId: String, history: [ChatMessage]) async -> ChatMessage?
+    func run(command: ChatCommand, groupId: String, history: [ChatMessage], timestamp: Date) async -> ChatMessage?
     func stop(chatId: String)
 }
 
@@ -40,8 +40,7 @@ actor WorkflowManager: WorkflowManagerProtocol {
     // in parallel the commands from different hosts. It will run serially if the commands on the same host.
     func run(workflow: Workflow, groupId: String, history: [ChatMessage]) async {
         commandStates = [:]
-        await commandService.loadCommands()
-        
+        await commandService.loadCommands()        
         await addChatMessage(content: workflow.shortDescription, type: .workflow, tag: workflow.name, groupId: groupId)
         
         if let arrangement = workflow.commandArrangement {
@@ -52,14 +51,17 @@ actor WorkflowManager: WorkflowManagerProtocol {
                 // the commands in this loop must complete before moving to the next row
                 Log.agi.debug("Starting rowGroup: \(index)")
                 await withTaskGroup(of: ChatMessage?.self) { taskGroup in
+                    var timestamp = Date.now
                     for column in rowGroup {
+                        let delay = Calendar.current.date(byAdding: .nanosecond, value: 1_000_000, to: timestamp) ?? Date.now
+                        timestamp = delay
                         if let command = commands.first(where: { $0.name == column }) {
                             let commandCopy = command
                             let groupIdCopy = groupId
                             let historyCopy = history + newChats
                             taskGroup.addTask {
                                 Log.agi.debug("Starting command: \(commandCopy.name)")
-                                let newChat = await self.run(command: commandCopy, groupId: groupIdCopy, history: historyCopy)
+                                let newChat = await self.run(command: commandCopy, groupId: groupIdCopy, history: historyCopy, timestamp: delay)
                                 Log.agi.debug("Finished command: \(commandCopy.name)")
                                 return newChat
                             }
@@ -153,16 +155,16 @@ actor WorkflowManager: WorkflowManagerProtocol {
         return commands
     }
     
-    @discardableResult func run(command: ChatCommand, groupId: String, history: [ChatMessage]) async -> ChatMessage? {
+    @discardableResult func run(command: ChatCommand, groupId: String, history: [ChatMessage], timestamp: Date = Date.now) async -> ChatMessage? {
         let chatId = UUID().uuidString
         start(chatId: chatId)
         
         let content = """
 **Host**: \(command.host) \n\n **Model**: \(command.model) \n\n **Prompt**: \n\n \(command.prompt)
 """
-        await addChatMessage(content: content, type: .command, tag: command.name, groupId: groupId)
+        await addChatMessage(timestamp: timestamp, content: content, type: .command, tag: command.name, groupId: groupId)
         
-        let responseMessage = await addChatMessage(id: chatId, role: .assistant, content: "", model: command.model, host: command.host, groupId: groupId)
+        let responseMessage = await addChatMessage(id: chatId, timestamp: timestamp, role: .assistant, content: "", model: command.model, host: command.host, groupId: groupId)
         
         do {
             let host = command.host
@@ -184,7 +186,7 @@ actor WorkflowManager: WorkflowManagerProtocol {
             }
             
             await agiService.setHistory(messages: history)
-            let stream = try await agiService.sendMessageStream(text: command.prompt, needsJSONResponse: false, host: host, model: model)
+            let stream = try await agiService.sendMessageStream(text: command.prompt, needsJSONResponse: false, host: host, model: model, temperature: 0.5)
             
             var tempOutput = ""
             for try await responseDelta in stream {
@@ -218,8 +220,8 @@ actor WorkflowManager: WorkflowManagerProtocol {
         return nil
     }
     
-    @discardableResult private func addChatMessage(id: String = UUID().uuidString, role: GPTRole = .user, content: String, type: MessageType = .message, tag: String? = nil, model: String? = nil, host: String? = nil, groupId: String) async -> ChatMessage {
-        let chatMessage = ChatMessage(id: id, role: role, type: type, content: content, tag: tag, groupId: groupId, model: model, host: host)
+    @discardableResult private func addChatMessage(id: String = UUID().uuidString, timestamp: Date = Date.now, role: GPTRole = .user, content: String, type: MessageType = .message, tag: String? = nil, model: String? = nil, host: String? = nil, groupId: String) async -> ChatMessage {
+        let chatMessage = ChatMessage(id: id, timestamp: timestamp, role: role, type: type, content: content, tag: tag, groupId: groupId, model: model, host: host)
         await persistChat(message: chatMessage)
         return chatMessage
     }

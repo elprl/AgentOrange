@@ -22,7 +22,7 @@ struct CommandDetailedView: View {
         ScrollView {
             if viewModel.isEditing {
                 editingView
-                dependencies
+//                dependencies
             } else {
                 readOnlyView
             }
@@ -102,14 +102,14 @@ struct CommandDetailedView: View {
         }
         .backgroundStyle(Color(UIColor.secondarySystemBackground))
         
-        Text("AI")
+        Text("AI CONFIGURATION")
             .textCase(.uppercase)
             .foregroundStyle(.secondary)
             .padding([.leading, .top])
             .frame(maxWidth: .infinity, alignment: .leading)
         GroupBox {
             HStack {
-                Text("Host")
+                Text("Host: ")
                 Spacer()
                 Picker("Host", selection: $vm.editableCommand.host) {
                     Text(AGIServiceChoice.openai.name).tag(AGIServiceChoice.openai.name)
@@ -143,7 +143,7 @@ struct CommandDetailedView: View {
                 Divider()
             } else {
                 HStack {
-                    Text("Model")
+                    Text("Model: ")
                     Spacer()
                     Picker("Model", selection: $vm.editableCommand.model) {
                         if viewModel.editableCommand.host == AGIServiceChoice.openai.name {
@@ -169,7 +169,7 @@ struct CommandDetailedView: View {
                 Divider()
             }
             HStack {
-                Text("Type")
+                Text("Type: ")
                 Spacer()
                 Picker("Type", selection: $vm.editableCommand.type) {
                     Text(AgentType.coder.rawValue).tag(AgentType.coder)
@@ -177,6 +177,17 @@ struct CommandDetailedView: View {
                 }
                 .tint(.secondary)
             }
+            .padding(.top, 8)
+            HStack {
+                Text("Temperature: ")
+                Spacer()
+                TextField("Enter Temperature", value: $vm.editableCommand.temperature, formatter: NumberFormatters.twoFractionDigits)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.trailing)
+                    .frame(alignment: .trailing)
+                .tint(.secondary)
+            }
+            .padding(.top, 8)
         }
         .backgroundStyle(Color(UIColor.secondarySystemBackground))
     }
@@ -278,7 +289,7 @@ struct CommandDetailedView: View {
         }
         .backgroundStyle(Color(UIColor.secondarySystemBackground))
         
-        Text("AI")
+        Text("AI CONFIGURATION")
             .textCase(.uppercase)
             .foregroundStyle(.secondary)
             .padding([.leading, .top])
@@ -306,29 +317,47 @@ struct CommandDetailedView: View {
                 Text(viewModel.selectedCommand.type.rawValue)
                     .foregroundStyle(.accent)
             }
+            .padding(.top, 8)
+            Divider()
+            HStack {
+                Text("Temperature: ").foregroundStyle(.primary)
+                Spacer()
+                Text("\(viewModel.selectedCommand.temperature, specifier: "%.2f")")
+                    .foregroundStyle(.accent)
+            }
+            .padding(.top, 8)
         }
         .backgroundStyle(Color(UIColor.secondarySystemBackground))
         
-        Text("Dependencies")
-            .textCase(.uppercase)
-            .foregroundStyle(.secondary)
-            .padding([.leading, .top])
-            .frame(maxWidth: .infinity, alignment: .leading)
-        GroupBox {
-            if viewModel.selectedCommand.dependencyIds.isEmpty {
-                Text("None")
-            }
-            ScrollView {
-                LazyVStack {
-                    ForEach(viewModel.selectedCommand.dependencyIds, id: \.self) { id in
-                        if let command = commands.first(where: { $0.name == id }) {
-                            CommandRowView(command: command.sendableModel, showMenu: false)
-                        }
-                    }
-                }
-            }
-        }
-        .backgroundStyle(Color(UIColor.secondarySystemBackground))
+//        Text("Dependencies")
+//            .textCase(.uppercase)
+//            .foregroundStyle(.secondary)
+//            .padding([.leading, .top])
+//            .frame(maxWidth: .infinity, alignment: .leading)
+//        GroupBox {
+//            if viewModel.selectedCommand.dependencyIds.isEmpty {
+//                Text("None")
+//            }
+//            ScrollView {
+//                LazyVStack {
+//                    ForEach(viewModel.selectedCommand.dependencyIds, id: \.self) { id in
+//                        if let command = commands.first(where: { $0.name == id }) {
+//                            CommandRowView(command: command.sendableModel, showMenu: false)
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        .backgroundStyle(Color(UIColor.secondarySystemBackground))
+    }
+}
+
+struct NumberFormatters {
+    static var twoFractionDigits: Formatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .none
+        formatter.maximumFractionDigits = 2
+        return formatter
     }
 }
 

@@ -62,8 +62,8 @@ actor ChatGPTAPIService {
         return messages
     }
     
-    private func jsonBody(text: String, stream: Bool = true, needsJSONResponse: Bool = false, model: String) throws -> Data {
-        let request = Request(model: model, temperature: 0.5,
+    private func jsonBody(text: String, stream: Bool = true, needsJSONResponse: Bool = false, model: String, temperature: Double = 0.5) throws -> Data {
+        let request = Request(model: model, temperature: temperature,
                               messages: generateMessages(from: text),
                               stream: stream,
                               responseFormat: needsJSONResponse ? ResponseFormat(type: "json_object") : nil)
@@ -87,10 +87,10 @@ extension ChatGPTAPIService: TokenServiceProtocol {
 
 extension ChatGPTAPIService: AGIStreamingServiceProtocol {
     
-    func sendMessageStream(text: String, needsJSONResponse: Bool, host: String, model: String) async throws -> AsyncThrowingStream<String, Error> {
+    func sendMessageStream(text: String, needsJSONResponse: Bool, host: String, model: String, temperature: Double) async throws -> AsyncThrowingStream<String, Error> {
         var urlRequest = self.urlRequest
         do {
-            let httpBody = try jsonBody(text: text, needsJSONResponse: needsJSONResponse, model: model)
+            let httpBody = try jsonBody(text: text, needsJSONResponse: needsJSONResponse, model: model, temperature: temperature)
             Log.api.debug("JSON Body: \(String(data: httpBody, encoding: .utf8) ?? "")")
             urlRequest.httpBody = httpBody
         } catch _ as EncodingError {

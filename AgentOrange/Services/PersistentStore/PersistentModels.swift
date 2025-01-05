@@ -71,6 +71,7 @@ final class CDChatCommand {
     var role: String
     var model: String
     var host: String
+    var temperature: Double
     var type: AgentType
     var inputCodeId: String?
     var dependencyIds: [String]
@@ -83,6 +84,7 @@ final class CDChatCommand {
          role: String = UserDefaults.standard.agiRole ?? "You are a helpful AI assistant.",
          model: String = UserDefaults.standard.agiModel ?? "qwen2.5-coder-32b-instruct",
          host: String = UserDefaults.standard.customAIHost ?? "http://localhost:1234",
+         temperature: Double = 0.5,
          type: AgentType = .reviewer,
          inputCodeId: String? = nil,
          dependencyIds: [String] = []) {
@@ -96,12 +98,13 @@ final class CDChatCommand {
         self.type = type
         self.inputCodeId = inputCodeId
         self.dependencyIds = dependencyIds
+        self.temperature = temperature
     }
 }
 
 extension CDChatCommand: PersistentModelProtocol {
     var sendableModel: ChatCommand {
-        return ChatCommand(name: name, timestamp: timestamp, prompt: prompt, shortDescription: shortDescription, role: role, model: model, host: host, type: type, inputCodeId: inputCodeId, dependencyIds: dependencyIds)
+        return ChatCommand(name: name, timestamp: timestamp, prompt: prompt, shortDescription: shortDescription, role: role, model: model, host: host, temperature: temperature, type: type, inputCodeId: inputCodeId, dependencyIds: dependencyIds)
     }
 }
 

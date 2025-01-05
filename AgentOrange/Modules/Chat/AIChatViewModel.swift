@@ -132,7 +132,7 @@ final class AIChatViewModel {
                 } else {
                     await agiService.setHistory(messages: generateHistory())
                 }
-                let stream = try await agiService.sendMessageStream(text: prompt, needsJSONResponse: false, host: host, model: model)
+                let stream = try await agiService.sendMessageStream(text: prompt, needsJSONResponse: false, host: host, model: model, temperature: 0.5)
                 for try await responseDelta in stream {
                     if await !self.isGenerating(chatId: responseMessage.id) {
                         break
@@ -200,7 +200,7 @@ final class AIChatViewModel {
         let groupId = selectedGroupId ?? "1"
         let history = generateHistory()
         Task { [weak self] in
-            await self?.workflowManager.run(command: command, groupId: groupId, history: history)
+            await self?.workflowManager.run(command: command, groupId: groupId, history: history, timestamp: Date.now)
         }
     }
     
