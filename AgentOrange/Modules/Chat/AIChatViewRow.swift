@@ -256,6 +256,7 @@ struct MessageContentView: View {
             }
             .markdownCodeSyntaxHighlighter(.splash(theme: self.theme))
             .frame(maxWidth: .infinity, alignment: .leading)
+            .tint(.black)
     }
     
     @ViewBuilder

@@ -166,6 +166,7 @@ actor WorkflowManager: WorkflowManagerProtocol {
         
         let responseMessage = await addChatMessage(id: chatId, timestamp: timestamp, role: .assistant, content: "", model: command.model, host: command.host, groupId: groupId)
         
+        var tempOutput = ""
         do {
             let host = command.host
             let model = command.model
@@ -188,7 +189,6 @@ actor WorkflowManager: WorkflowManagerProtocol {
             await agiService.setHistory(messages: history)
             let stream = try await agiService.sendMessageStream(text: command.prompt, needsJSONResponse: false, host: host, model: model, temperature: 0.5)
             
-            var tempOutput = ""
             for try await responseDelta in stream {
                 if !isGenerating(chatId: chatId) {
                     break
@@ -214,6 +214,9 @@ actor WorkflowManager: WorkflowManagerProtocol {
             return finalChat
         } catch {
             Log.pres.error("Error: \(error.localizedDescription)")
+            tempOutput += "\n\(error.localizedDescription)"
+            let readonlyOutput = tempOutput
+            await updateMessage(message: responseMessage, content: readonlyOutput)
         }
         
         stop(chatId: chatId)

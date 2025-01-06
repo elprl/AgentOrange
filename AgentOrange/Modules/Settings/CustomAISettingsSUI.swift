@@ -50,7 +50,7 @@ struct CustomAISettingsSUI: View {
    }
     
     @ViewBuilder
-    var inputRows: some View {
+    private var inputRows: some View {
         Section(header: SectionHeaderBlock(title: "Custom AI", description: "Setup integration with custom server that behaves like OpenAI's streaming API (/v1/chat/completions)")) {
             HStack {
                 Text("Server Host").lineLimit(1).foregroundColor(.primary)
@@ -97,7 +97,7 @@ struct CustomAISettingsSUI: View {
     }
     
     @ViewBuilder
-    var errorMessage: some View {
+    private var errorMessage: some View {
         if !viewModel.errorMessage.isEmpty {
             Text(verbatim: viewModel.errorMessage)
                 .foregroundStyle(.red)

@@ -20,7 +20,7 @@ final class CustomAISettingsViewModel: ObservableObject {
     @AppStorage(UserDefaults.Keys.customAIModel) var customAIModel: String = "qwen2.5-coder-32b-instruct"
     @AppStorage(UserDefaults.Keys.customAIHost) var customAIHost: String = "http://localhost:1234"
     @AppStorage(UserDefaults.Keys.hasCustomAIHost) var hasCustomAIHost: Bool = false
-    
+
     private var hostValidationIssues: String? {
         let string = newHostText.trimmingCharacters(in: .whitespacesAndNewlines)
         if string.isEmpty {

@@ -13,6 +13,7 @@ struct SettingsView: View {
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("darkLightAutoMode") private var darkLightAutoMode: UIUserInterfaceStyle = .unspecified
     @State private var showAlert: Bool = false
+    @StateObject private var viewModel = SettingsViewModel()
 
     private struct Constants {
         static let appId = "6511210635"
@@ -23,6 +24,7 @@ struct SettingsView: View {
             List {
                 appPreferences
                 aiSettings
+                aiKeys
                 data
                 miscellaneous
             }
@@ -111,6 +113,52 @@ struct SettingsView: View {
             }
             .foregroundStyle(.primary, .accent)
             version
+        }
+    }
+    
+    @ViewBuilder
+    private var aiKeys: some View {
+        Section(header: SectionHeaderBlock(title: "API Keys", description: "API keys for frontier models")) {
+            HStack {
+                Image("openai-lockup")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 200, height: 25, alignment: .leading)
+                Spacer()
+                TextField("Enter API Key", text: $viewModel.openAIAPIKey)
+                    .lineLimit(1...4)
+                    .multilineTextAlignment(.trailing)
+                    .textInputAutocapitalization(.none)
+                    .foregroundColor(.secondary)
+            }
+            HStack {
+                Image("claudeSpark")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 25, height: 25, alignment: .leading)
+                Image("claudeWordmark")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 200, height: 20, alignment: .leading)
+                Spacer()
+                TextField("Enter API Key", text: $viewModel.claudeAPIKey)
+                    .lineLimit(1...4)
+                    .multilineTextAlignment(.trailing)
+                    .textInputAutocapitalization(.none)
+                    .foregroundColor(.secondary)
+            }
+            HStack {
+                Image("geminiLogo")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 200, height: 25, alignment: .leading)
+                Spacer()
+                TextField("Enter API Key", text: $viewModel.geminiAPIKey)
+                    .lineLimit(1...4)
+                    .multilineTextAlignment(.trailing)
+                    .textInputAutocapitalization(.none)
+                    .foregroundColor(.secondary)
+            }
         }
     }
     
