@@ -1,5 +1,5 @@
 <p align="center" >
-  <img src="https://github.com/elprl/AgentOrange/blob/8dd2bd885fa40061886cf6213d15e13898c4037c/logo.png" title="Agent Orange logo" float=left>
+  <img src="https://github.com/elprl/AgentOrange/blob/811f14842c3dee98876d82847515ab4a187677f0/logo.png" title="Agent Orange logo" float=left>
 </p>
 
 [![Platform](https://img.shields.io/badge/Platform-macOS_(catalyst)_%7C_iOS_%7C_iPadOS-orange)](https://github.com/elprl/AgentOrange)
@@ -10,7 +10,7 @@
 This application is an AI Agent used internally by [Tapdigital Ltd](https://www.tapdigital.com) and now released for the benefit of the community. It explores workflows for enhancing the productivity of coders. The app utilises local LLMs or frontier models from OpenAI, Claude and Gemini (via APIs). You setup commands (AI prompts you use regularly) then configure the running of those commands into a workflow of your chosing.
 
 <p align="center" >
-  <img src="https://github.com/elprl/AgentOrange/blob/8dd2bd885fa40061886cf6213d15e13898c4037c/screenshot.jpg" title="Agent Orange screenshot" float=left>
+  <img src="https://github.com/elprl/AgentOrange/blob/811f14842c3dee98876d82847515ab4a187677f0/screenshot.jpg" title="Agent Orange screenshot" float=left>
 </p>
 
 ### Installing & Running
