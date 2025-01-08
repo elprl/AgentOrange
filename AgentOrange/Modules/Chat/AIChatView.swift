@@ -137,6 +137,7 @@ let _ = Self._printChanges()
                     }
                     .padding(.horizontal)
                     .padding(.vertical, 6)
+                    .frame(maxHeight: 600)
                 }
                 .transition(.slide)
                 .animation(.default, value: chatVM.chats.count)

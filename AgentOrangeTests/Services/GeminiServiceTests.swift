@@ -78,7 +78,7 @@ class GeminiAPIServiceSpec: AsyncSpec {
                     do {
                         var receivedMessages: [String] = []
                         
-                        let stream = try await service.sendMessageStream(text: "Hello, how are you?", host: "", model: "gemini-2.0-flash-exp")
+                        let stream = try await service.sendMessageStream(text: "Hello, how are you?", host: "", model: "gemini-2.0-flash-exp", temperature: 0.5)
                         for try await message in stream {
                             receivedMessages.append(message)
                         }

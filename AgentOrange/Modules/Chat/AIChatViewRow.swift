@@ -26,12 +26,14 @@ struct AIChatViewRow: View {
 
     var body: some View {
         GroupBox {
-            if chat.role == .user {
-                userMessage
-            } else if (chat.tag?.isEmpty ?? true)  {
-                botSimpleMessage
-            } else {
-                botCodeMessage
+            ScrollView(showsIndicators: false) {
+                if chat.role == .user {
+                    userMessage
+                } else if (chat.tag?.isEmpty ?? true)  {
+                    botSimpleMessage
+                } else {
+                    botCodeMessage
+                }
             }
         }
         .backgroundStyle(chat.role == .assistant ? Color.accent : Color.messageBlue)
@@ -60,7 +62,6 @@ struct AIChatViewRow: View {
                     UserMenuButton(chat: chat) {
                         action($0)
                     }
-                    .offset(x: 4)
                 }
                 MessageContentView(content: chat.content)
             }
@@ -76,7 +77,6 @@ struct AIChatViewRow: View {
                     UserMenuButton(chat: chat) {
                         action($0)
                     }
-                    .offset(x: 4)
                 }
                 MessageContentView(content: chat.content)
             }
@@ -87,7 +87,6 @@ struct AIChatViewRow: View {
                 UserMenuButton(chat: chat) {
                     action($0)
                 }
-                .offset(x: 4)
             }
         }
     }
@@ -201,7 +200,6 @@ struct BotHeader: View {
             BotMenuButton(content: content, isAssistant: isAssistant) {
                 action($0)
             }
-            .offset(x: 4)
         }
     }
 }
