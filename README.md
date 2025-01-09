@@ -8,7 +8,7 @@
 [![Version](https://img.shields.io/badge/Version-1.3.0-orange)](https://github.com/elprl/AgentOrange)
 
 
-This application is an AI Agent used internally by [Tapdigital](https://www.tapdigital.com) and now released for the benefit of the community. It explores workflows for enhancing the productivity of coders. The app utilises local LLMs or frontier models from OpenAI, Claude and Gemini (via APIs). You setup commands (AI prompts you use regularly) then configure the running of those commands into a workflow of your chosing.
+This application is a rapid prototype AI Agent used internally by [Tapdigital](https://www.tapdigital.com) and now released for the benefit of the community. It explores workflows for enhancing the productivity of coders. The app utilises local LLMs or frontier models from OpenAI, Claude and Gemini (via APIs). You setup commands (AI prompts you use regularly) then configure the running of those commands into a workflow of your chosing.
 
 (If you would like to hire tapdigital, contact us [here](https://tapdigital.com/contact.html)).
 
