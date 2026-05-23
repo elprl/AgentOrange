@@ -81,6 +81,7 @@ iOSInjectionProject/
 
 ## User settings
 # *.xcconfig
+AgentOrange/Config.xcconfig
 
 ## Xcode Patch
 !*.xcodeproj/project.pbxproj
