@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import os
 
 struct CustomAISettingsSUI: View {
     @StateObject private var viewModel = CustomAISettingsViewModel()

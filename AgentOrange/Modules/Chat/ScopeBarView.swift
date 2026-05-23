@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ScopeBarView: View {
     @Environment(FileViewerViewModel.self) private var codeVM: FileViewerViewModel

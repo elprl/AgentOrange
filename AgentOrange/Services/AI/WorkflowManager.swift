@@ -9,6 +9,7 @@ import Foundation
 import Combine
 import Factory
 import SwiftData
+import os
 
 enum ExecutionState {
     case pending
@@ -24,8 +25,8 @@ protocol WorkflowManagerProtocol: Actor {
 }
 
 actor WorkflowManager: WorkflowManagerProtocol {
-    /* @Injected(\.commandService) */ @ObservationIgnored private var commandService: CommandServiceProtocol
-    /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: PersistentDataManagerProtocol
+    /* @Injected(\.commandService) */ @ObservationIgnored private var commandService: any CommandServiceProtocol
+    /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: any PersistentDataManagerProtocol
     @Injected(\.keychainService) @ObservationIgnored private var keychainService
     var isGenerating: [String: Bool] = [:]
     var commandStates: [ChatCommand: ExecutionState] = [:]
@@ -171,7 +172,7 @@ actor WorkflowManager: WorkflowManagerProtocol {
             let host = command.host
             let model = command.model
             
-            var agiService: AGIStreamingServiceProtocol & AGIHistoryServiceProtocol
+            var agiService: any AGIStreamingServiceProtocol & AGIHistoryServiceProtocol
             switch host.lowercased() {
             case AGIServiceChoice.gemini.name.lowercased():
                 let key = await getGeminiAPIKey()

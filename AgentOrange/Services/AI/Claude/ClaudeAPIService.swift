@@ -8,10 +8,11 @@
 
 import Foundation
 import Factory
-@preconcurrency import SwiftAnthropic
+@unsafe @preconcurrency import SwiftAnthropic
+import os
 
 actor ClaudeAPIService {
-    private var service: AnthropicService?
+    private var service: (any AnthropicService)?
     private var apiKey: String?
     internal var historyList = [GPTMessage]()
     private var hasCancelledStream: Bool = false
@@ -50,7 +51,7 @@ actor ClaudeAPIService {
     }
     
     /// claude messages must alternate between roles
-    private func processClaudeMessages(messages: [GPTMessage]) -> [MessageParameter.Message] {
+    nonisolated private func processClaudeMessages(messages: [GPTMessage]) -> [MessageParameter.Message] {
         var orderedMessages = [GPTMessage]()
         messages.forEach {
             if !$0.content.isEmpty {
@@ -92,13 +93,13 @@ extension ClaudeAPIService: TokenServiceProtocol {
 }
 
 extension ClaudeAPIService: AGIStreamingServiceProtocol {
-    func sendMessageStream(text: String, needsJSONResponse: Bool, host: String, model: String, temperature: Double) async throws -> AsyncThrowingStream<String, Error> {
-        return AsyncThrowingStream<String, Error> { continuation in
+    func sendMessageStream(text: String, needsJSONResponse: Bool, host: String, model: String, temperature: Double) async throws -> AsyncThrowingStream<String, any Error> {
+        return AsyncThrowingStream<String, any Error> { continuation in
             Task(priority: .userInitiated) { [weak self] in
                 guard let self else { return }
                 do {
                     let gptMessages = await generateMessages(from: text)
-                    let messages = await processClaudeMessages(messages: gptMessages)
+                    let messages = processClaudeMessages(messages: gptMessages)
                     Log.agi.debug("Sending messages \(messages)")
                     let parameters = MessageParameter(model: Model.other(model), messages: messages, maxTokens: 1024, temperature: temperature)
                     guard let service = await self.service else { throw APIError.requestFailed(description: "Claude service has not been setup") }
@@ -123,3 +124,4 @@ extension ClaudeAPIService: AGIStreamingServiceProtocol {
 }
 
 extension ClaudeAPIService: AGIHistoryServiceProtocol { }
+

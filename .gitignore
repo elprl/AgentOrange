@@ -70,6 +70,7 @@ Dependencies/
 fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
+fastlane/screenshots/**/*.html
 fastlane/test_output
 
 # Code Injection
@@ -79,16 +80,12 @@ fastlane/test_output
 iOSInjectionProject/
 
 ## User settings
-Config.xcconfig
+# *.xcconfig
 
 ## Xcode Patch
-*.xcodeproj/*
 !*.xcodeproj/project.pbxproj
-!*.xcodeproj/xcshareddata/
+*.xcbkptlist
 /*.gcno
-
-### Xcode Patch ###
-**/xcshareddata/WorkspaceSettings.xcsettings
 
 # End of https://www.gitignore.io/api/xcode,swift,cocoapods
 
@@ -99,5 +96,12 @@ reports/
 # Firebase
 *-debug.log
 
-# LLM Models
-*.gguf
+# Ignore all env files
+.env*
+*.p8
+
+# But allow the example file
+!.env.example
+
+.xcodebuildmcp/
+.derived*

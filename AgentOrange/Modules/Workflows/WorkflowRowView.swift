@@ -72,8 +72,12 @@ struct WorkflowRowView: View {
     }
 }
 
+#if DEBUG
+
 #Preview {
     WorkflowRowView(workflow: Workflow.mock()) { _ in
         
     }
 }
+
+#endif

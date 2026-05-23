@@ -217,9 +217,12 @@ let _ = Self._printChanges()
     }
 }
 
+#if DEBUG
+
 #Preview("Empty") {
     AIChatView(groupId: "1")
         .environment(AIChatViewModel.mock())
         .environment(FileViewerViewModel(modelContext: PreviewController.chatsPreviewContainer.mainContext))
 }
 
+#endif

@@ -49,6 +49,11 @@ struct CommandDetailedView: View {
                             .foregroundStyle(.white)
                     })
                 }
+                Button {
+                    viewModel.copyToClipboard(command: viewModel.selectedCommand)
+                } label: {
+                    Label("Copy Prompt", systemImage: "clipboard")
+                }
             }
         }
         .navigationBarTitle("Command Details")
@@ -361,8 +366,12 @@ struct NumberFormatters {
     }
 }
 
+#if DEBUG
+
 #Preview {
     NavigationStack {
         CommandDetailedView(command: ChatCommand.mock(), modelContext: PreviewController.commandsPreviewContainer.mainContext)
     }
 }
+
+#endif

@@ -8,11 +8,12 @@
 import Foundation
 import Factory
 import SwiftData
+import SwiftUI
 
 @Observable
 @MainActor
 final class CommandDetailedViewModel {
-    /* @Injected(\.commandService) */ @ObservationIgnored private var commandService: CommandServiceProtocol
+    /* @Injected(\.commandService) */ @ObservationIgnored private var commandService: any CommandServiceProtocol
     var isEditing: Bool = false
     var editableCommand: ChatCommand
     var selectedCommand: ChatCommand
@@ -72,7 +73,14 @@ final class CommandDetailedViewModel {
         editableCommand.dependencyIds.removeAll { $0 == id }
         save()
     }
+    
+    func copyToClipboard(command: ChatCommand) {
+        let copyString = command.role + "\n" + command.prompt
+        UIPasteboard.general.string = copyString
+    }
 }
+
+#if DEBUG
 
 extension CommandDetailedViewModel {
     static func mock() -> CommandDetailedViewModel {
@@ -80,3 +88,5 @@ extension CommandDetailedViewModel {
         return viewModel
     }
 }
+
+#endif

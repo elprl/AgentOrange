@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 import Factory
+import os
 
 struct CommandArrangement: Codable {
     var column: Int
@@ -18,7 +19,7 @@ struct CommandArrangement: Codable {
 @Observable
 @MainActor
 final class WorkflowDetailedViewModel {
-    /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: PersistentWorkflowDataManagerProtocol & PersistentCommandDataManagerProtocol
+    /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: any PersistentWorkflowDataManagerProtocol & PersistentCommandDataManagerProtocol
     var editingWorkflow: Workflow
     var selectedWorkflow: Workflow
     var isEditing: Bool = false

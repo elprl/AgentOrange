@@ -1,0 +1,55 @@
+# Runner labels expected on the Mac mini: self-hosted, macOS, AgentOrange
+# Required repository secrets:
+# - APP_STORE_CONNECT_KEY_ID
+# - APP_STORE_CONNECT_ISSUER_ID
+# - APP_STORE_CONNECT_API_KEY_P8
+name: Staging TestFlight
+
+on:
+  push:
+    branches:
+      - staging
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-testflight-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  internal-testflight:
+    name: Internal TestFlight
+    runs-on: [self-hosted, macOS, AgentOrange]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Ruby gems
+        run: bundle install
+
+      - name: Upload internal build to TestFlight
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
+        run: |
+          set -euo pipefail
+          if [ -z "${APP_STORE_CONNECT_API_KEY_P8:-}" ]; then
+            echo "::error::APP_STORE_CONNECT_API_KEY_P8 secret is required"
+            exit 1
+          fi
+
+          KEY_PATH="${RUNNER_TEMP}/app-store-connect/AuthKey.p8"
+          mkdir -p "$(dirname "$KEY_PATH")"
+          printf '%s' "$APP_STORE_CONNECT_API_KEY_P8" > "$KEY_PATH"
+          chmod 600 "$KEY_PATH"
+          export APP_STORE_CONNECT_KEY_FILEPATH="$KEY_PATH"
+
+          cleanup_key() {
+            rm -f "$KEY_PATH"
+          }
+          trap cleanup_key EXIT
+
+          bundle exec fastlane ios testflight_alpha

@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import os
 
 actor ChatGPTAPIService {
     internal var historyList = [GPTMessage]()
@@ -87,7 +88,7 @@ extension ChatGPTAPIService: TokenServiceProtocol {
 
 extension ChatGPTAPIService: AGIStreamingServiceProtocol {
     
-    func sendMessageStream(text: String, needsJSONResponse: Bool, host: String, model: String, temperature: Double) async throws -> AsyncThrowingStream<String, Error> {
+    func sendMessageStream(text: String, needsJSONResponse: Bool, host: String, model: String, temperature: Double) async throws -> AsyncThrowingStream<String, any Error> {
         var urlRequest = self.urlRequest
         do {
             let httpBody = try jsonBody(text: text, needsJSONResponse: needsJSONResponse, model: model, temperature: temperature)
@@ -121,7 +122,7 @@ extension ChatGPTAPIService: AGIStreamingServiceProtocol {
                 throw TDAPIError.badResponse(httpResponse.statusCode, errorText)
             }
             
-            return AsyncThrowingStream<String, Error> { continuation in
+            return AsyncThrowingStream<String, any Error> { continuation in
                 Task(priority: .userInitiated) { [weak self] in
                     guard let self else { return }
                     do {

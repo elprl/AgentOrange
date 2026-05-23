@@ -8,6 +8,7 @@
 import Foundation
 import Splash
 import SwiftUI
+import Combine
 
 protocol CodeParserServiceProtocol {
     var cachedCode: String? { get }

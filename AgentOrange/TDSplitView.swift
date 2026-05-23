@@ -6,6 +6,7 @@
 //  Copyright © 2024 tapdigital Ltd. All rights reserved.
 
 import SwiftUI
+import SwiftData
 
 struct TDSplitView: View {
     @Environment(\.modelContext) private var modelContext
@@ -77,6 +78,8 @@ struct TDSplitView: View {
     }
 }
 
+#if DEBUG
+
 #Preview {
     TDSplitView()
         .environment(NavigationViewModel.mock())
@@ -84,3 +87,5 @@ struct TDSplitView: View {
         .environment(FileViewerViewModel.mock())
         .modelContainer(PreviewController.workflowsPreviewContainer)
 }
+
+#endif

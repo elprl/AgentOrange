@@ -30,9 +30,14 @@ struct CommandRowView: View {
                                 Label("Delete", systemImage: "trash")
                             }
                             Button {
-                                action?(.duplicate)
+                                action?(.clipboard)
                             } label: {
                                 Label("Duplicate", systemImage: "plus.rectangle.on.rectangle")
+                            }
+                            Button {
+                                action?(.clipboard)
+                            } label: {
+                                Label("Copy Prompt", systemImage: "clipboard")
                             }
                         } label: {
                             Image(systemName: "ellipsis.circle")
@@ -70,6 +75,8 @@ struct CommandRowView: View {
     }
 }
 
+#if DEBUG
+
 #Preview {
     NavigationStack {
         ScrollView {
@@ -96,3 +103,5 @@ struct CommandRowView: View {
     }
     .tint(.accent)
 }
+
+#endif

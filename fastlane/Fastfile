@@ -1,0 +1,335 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+update_fastlane
+
+default_platform(:ios)
+
+platform :ios do
+
+  private_lane :asc_api_key do
+    %w[APP_STORE_CONNECT_KEY_ID APP_STORE_CONNECT_ISSUER_ID APP_STORE_CONNECT_KEY_FILEPATH].each do |k|
+      UI.user_error!("Missing required env var: #{k}") unless ENV[k]
+    end
+    app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+      key_filepath: ENV["APP_STORE_CONNECT_KEY_FILEPATH"]
+    )
+  end
+
+  desc "Compile the app without building or packaging"
+  lane :compile_check do
+    sh <<~CMD
+      set -o pipefail && \
+      cd .. && \
+      xcodebuild \
+        -project AgentOrange.xcodeproj \
+        -scheme 'AgentOrange' \
+        -configuration Debug \
+        -derivedDataPath ./build \
+        -destination 'platform=iOS Simulator,name=iPhone 17' \
+        build 2>&1 | tail -40
+    CMD
+  end
+
+  desc "Compile the app without building or packaging"
+  lane :compile do
+    build_app(
+      project: "AgentOrange.xcodeproj",
+      scheme: "AgentOrange",
+      derived_data_path: "./build",
+      skip_archive: true,
+      skip_package_ipa: true,
+      skip_codesigning: true,
+      clean: false
+    )
+  end
+
+  desc "Generate new localized screenshots"
+  lane :screenshots do
+    capture_screenshots(scheme: "AgentOrangeFastlaneUITests")
+  end
+
+  desc "Build the app for App Store submission"
+  lane :build do
+    build_app(
+      scheme: "AgentOrange",
+      export_method: "app-store",
+      output_directory: "./build",
+      output_name: "AgentOrange.ipa",
+      xcargs: "-allowProvisioningUpdates",
+      include_bitcode: true,
+      clean: true,
+      export_options: {
+        signingStyle: "automatic",
+        teamID: ENV["APPLE_TEAM_ID"]
+      }
+    )
+  end
+
+  desc "Build the staging app for App Store submission"
+  lane :build_staging do
+    build_app(
+      scheme: "AgentOrange",
+      export_method: "app-store",
+      output_directory: "./build",
+      output_name: "AgentOrange.ipa",
+      xcargs: "-allowProvisioningUpdates",
+      export_options: {
+        signingStyle: "automatic",
+        teamID: ENV["APPLE_TEAM_ID"]
+      }
+    )
+  end
+
+  desc "Run tests"
+  lane :tests do
+    run_tests(
+      project: "AgentOrange.xcodeproj",
+      scheme: "AgentOrange",
+      device: "iPhone 17",
+      derived_data_path: "./build",
+      test_without_building: true,
+      output_directory: "./fastlane/test_output",
+      output_types: "html,junit",
+      xcodebuild_formatter: "xcpretty",
+      skip_slack: true,
+      clean: false
+    )
+    slack_notify(message: "AgentOrange v#{get_version_number(xcodeproj: "AgentOrange.xcodeproj")} (#{get_build_number(xcodeproj: "AgentOrange.xcodeproj")}) Tests*: All tests successfully passed.", success: true)
+  end
+
+  desc "Upload Staging Build to TestFlight for internal testing"
+  lane :testflight_alpha do
+    api_key = asc_api_key
+    marketing_version = get_version_number(
+      xcodeproj: "AgentOrange.xcodeproj",
+      target: "AgentOrange"
+    )
+    release_tag = "v#{marketing_version}"
+    badge(
+      path: ".",
+      glob: "/AgentOrange/Assets.xcassets/AppIcon.appiconset/*.{png,PNG}",
+      shield: "#{marketing_version}-STAGING-blue",
+      shield_gravity: "South",
+      dark: true,
+      alpha: true,
+    )
+    bump
+    build_staging
+    changelog_content = File.exist?("../CHANGELOG.md") ? File.read("../CHANGELOG.md").slice(0, 4000) : ""
+    upload_to_testflight(
+      api_key: api_key,
+      changelog: changelog_content,
+      groups: "Internal",
+      skip_waiting_for_build_processing: true
+    )
+    slack_notify(message: "AgentOrange v#{get_version_number(xcodeproj: "AgentOrange.xcodeproj")} (#{get_build_number(xcodeproj: "AgentOrange.xcodeproj")}) was uploaded to Internal TestFlight.", success: true)
+  end
+
+  desc "Create and push tag v.<marketing_version> from Xcode target AgentOrange at current commit. FASTLANE_FORCE_PUBLIC_BETA_TAG=true replaces existing local tag (--force)."
+  lane :tag_github do
+    marketing_version = get_version_number(
+      xcodeproj: "AgentOrange.xcodeproj",
+      target: "AgentOrange"
+    )
+    release_tag = "v#{marketing_version}"
+
+    UI.message("Tagging current commit #{release_tag} (marketing version from Xcode)")
+    add_git_tag(
+      tag: release_tag,
+      force: ENV["FASTLANE_FORCE_PUBLIC_BETA_TAG"] == "true"
+    )
+    sh("git push origin refs/tags/#{release_tag}")
+  end
+
+  desc "Upload to TestFlight for public beta testing"
+  lane :public_beta do
+    api_key = asc_api_key
+    changelog_content = File.exist?("../CHANGELOG.md") ? File.read("../CHANGELOG.md").slice(0, 4000) : ""
+    marketing_version = get_version_number(
+      xcodeproj: "AgentOrange.xcodeproj",
+      target: "AgentOrange"
+    )
+    release_tag = "v#{marketing_version}"
+    badge(
+      path: ".",
+      glob: "/AgentOrange/Assets.xcassets/AppIcon.appiconset/*.{png,PNG}",
+      dark: true,
+    )
+    bump
+    build
+    upload_to_testflight(
+      api_key: api_key,
+      changelog: changelog_content
+    )
+    tag_github
+    slack_notify(message: "AgentOrange v#{get_version_number(xcodeproj: "AgentOrange.xcodeproj")} (#{get_build_number(xcodeproj: "AgentOrange.xcodeproj")}) was uploaded to Public beta TestFlight.", success: true)
+  end
+
+  desc "Increment build number"
+  lane :bump do
+    api_key = asc_api_key
+    app_id = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)
+    latest_tf_build = latest_testflight_build_number(
+      api_key: api_key,
+      app_identifier: app_id
+    )
+    increment_build_number(
+      xcodeproj: "AgentOrange.xcodeproj",
+      build_number: latest_tf_build + 1
+    )
+  end
+
+  desc "Lint code"
+  lane :lint do
+    swiftlint_path = [
+      "/opt/homebrew/bin/swiftlint",
+      "/usr/local/bin/swiftlint"
+    ].find { |p| File.executable?(p) }
+    swiftlint_path ||= `which swiftlint 2>/dev/null`.strip
+    swiftlint_path = nil if swiftlint_path.nil? || swiftlint_path.empty?
+
+    if swiftlint_path.nil?
+      UI.user_error!(
+        "SwiftLint is not installed. Install it with: brew install swiftlint"
+      )
+    end
+
+    swiftlint(
+      mode: :lint,
+      config_file: ".swiftlint.yml",
+      executable: swiftlint_path
+    )
+  end
+
+  desc "Distribute the app to Firebase App Distribution"
+  lane :distribute_alpha do
+    bump
+    build_app(
+      scheme: "AgentOrange",
+      export_method: "ad-hoc",
+      output_directory: "./build",
+      output_name: "AgentOrange.ipa",
+      xcargs: "-allowProvisioningUpdates",
+      export_options: {
+        signingStyle: "automatic",
+        teamID: ENV["APPLE_TEAM_ID"]
+      }
+    )
+    marketing_version = get_version_number(
+      xcodeproj: "AgentOrange.xcodeproj",
+      target: "AgentOrange"
+    )
+    release_tag = "v#{marketing_version}"
+    badge(
+      path: ".", 
+      glob: "/AgentOrange/Assets.xcassets/AppIcon.appiconset/*.{png,PNG}",
+      dark: true,
+      alpha: true,
+    )
+    firebase_app_distribution(
+      app: "1:733849235403:ios:8f436cfb70dc60e1fd504e",
+      firebase_cli_token: ENV["FIREBASE_CLI_TOKEN"],
+      groups: "Internal",
+      release_notes_file: "CHANGELOG.md",
+      debug: false
+    )
+    slack_notify(message: "AgentOrange v#{get_version_number(xcodeproj: "AgentOrange.xcodeproj")} (#{get_build_number(xcodeproj: "AgentOrange.xcodeproj")}) was uploaded to Firebase App Distribution.", success: true)
+  end
+
+  desc "Message to slack"
+  lane :slack_notify do |options|
+    message = options[:message] || "AgentOrange v#{get_version_number(xcodeproj: "AgentOrange.xcodeproj")} (#{get_build_number(xcodeproj: "AgentOrange.xcodeproj")}) was uploaded to TestFlight."
+    success = options.fetch(:success, true)
+    if ENV["SLACK_URL"]
+      slack(
+        message: message,
+        success: success
+      )
+    end
+  end
+end
+
+desc "Upload to TestFlight for Live Release"
+lane :public_beta do
+  api_key = asc_api_key
+  changelog_content = File.exist?("../CHANGELOG.md") ? File.read("../CHANGELOG.md").slice(0, 4000) : ""
+  marketing_version = get_version_number(
+    xcodeproj: "AgentOrange.xcodeproj",
+    target: "AgentOrange"
+  )
+  release_tag = "v#{marketing_version}"
+  badge(
+    path: ".",
+    glob: "/AgentOrange/Assets.xcassets/AppIcon.appiconset/*.{png,PNG}",
+    dark: true,
+  )
+  bump
+  build
+  upload_to_testflight(
+    api_key: api_key,
+    changelog: changelog_content
+  )
+  make_github_release
+  slack_notify(message: "AgentOrange v#{marketing_version} (#{get_build_number(xcodeproj: "AgentOrange.xcodeproj")}) was uploaded to Public release TestFlight.", success: true)
+end
+
+desc "Make github release"
+lane :make_github_release do
+  %w[GITHUB_TOKEN].each do |k|
+    UI.user_error!("Missing required env var: #{k}") unless ENV[k]
+  end
+  marketing_version = get_version_number(
+    xcodeproj: "AgentOrange.xcodeproj",
+    target: "AgentOrange"
+  )
+  release_tag = "v#{marketing_version}"
+  changelog_content = File.exist?("../CHANGELOG.md") ? File.read("../CHANGELOG.md").slice(0, 4000) : ""
+  set_github_release(
+    repository_name: "Hypercare-Systems/AgentOrange-iOS",
+    api_token: ENV["GITHUB_TOKEN"],
+    tag_name: release_tag,
+    name: "AgentOrange Release v#{marketing_version}",
+    description: changelog_content,
+    commitish: "master",
+    upload_assets: [
+      "./build/AgentOrange.ipa"
+    ]
+  )
+end
+
+desc "Get git change log"
+lane :get_git_change_log do
+  marketing_version = get_version_number(
+    xcodeproj: "AgentOrange.xcodeproj",
+    target: "AgentOrange"
+  )
+  release_tag = "v#{marketing_version}"
+  changelog = changelog_from_git_commits(
+    between: ["#{release_tag}", "HEAD"],
+    pretty: "- (%ae) %s",
+    date_format: "short"
+  )
+  File.write("../CHANGELOG.md", changelog)
+end
+
+desc "Error handling"
+error do |_lane, exception|
+  if $AgentOrange_skip_next_slack_error
+    $AgentOrange_skip_next_slack_error = false
+  else
+    slack_notify(message: exception.message, success: false)
+  end
+end
