@@ -9,6 +9,7 @@
 import SwiftUI
 import SwiftData
 import Foundation
+import os
 
 struct SideBarSUI: View {
     @Environment(\.colorScheme) private var colorScheme

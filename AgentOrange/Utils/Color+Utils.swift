@@ -9,7 +9,7 @@
 import Foundation
 import SwiftUI
 
-extension Color: Codable {
+extension Color {
     init(hexColor: String) {
         let rgba = hexColor.toRGBA()
         
@@ -20,14 +20,14 @@ extension Color: Codable {
                   opacity: Double(rgba.alpha))
     }
     
-    public init(from decoder: Decoder) throws {
+    init(from decoder: any Decoder) throws {
         let container = try decoder.singleValueContainer()
         let hex = try container.decode(String.self)
         
         self.init(hexColor: hex)
     }
     
-    public func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.singleValueContainer()
         try container.encode(toHex)
     }
@@ -51,13 +51,13 @@ extension Color: Codable {
         }
         
         if alpha {
-            return String(format: "%02lX%02lX%02lX%02lX",
+            return unsafe String(format: "%02lX%02lX%02lX%02lX",
                           lroundf(red * 255),
                           lroundf(green * 255),
                           lroundf(blue * 255),
                           lroundf(alphaV * 255))
         } else {
-            return String(format: "%02lX%02lX%02lX",
+            return unsafe String(format: "%02lX%02lX%02lX",
                           lroundf(red * 255),
                           lroundf(green * 255),
                           lroundf(blue * 255))
@@ -129,7 +129,7 @@ extension String {
         
         let length = hexSanitized.count
         
-        Scanner(string: hexSanitized).scanHexInt64(&rgb)
+        unsafe Scanner(string: hexSanitized).scanHexInt64(&rgb)
         
         if length == 6 {
             red = CGFloat((rgb & 0xFF0000) >> 16) / 255.0
@@ -147,7 +147,7 @@ extension String {
     
     /// generate a color from a username for example
     var color: Color {
-        let hash = self.hashValue
+        let hash = self.hash
         let red = Double((hash & 0xFF0000) >> 16) / 255.0
         let green = Double((hash & 0x00FF00) >> 8) / 255.0
         let blue = Double(hash & 0x0000FF) / 255.0
@@ -155,7 +155,7 @@ extension String {
     }
     
     func color(isDarkMode: Bool) -> Color {
-        let hash = self.hashValue
+        let hash = self.hash
         let red = Double((hash & 0xFF0000) >> 16) / 255.0
         let green = Double((hash & 0x00FF00) >> 8) / 255.0
         let blue = Double(hash & 0x0000FF) / 255.0
@@ -177,3 +177,4 @@ extension String {
         return contrastColor
     }
 }
+

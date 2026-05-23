@@ -8,13 +8,14 @@
 
 import SwiftUI
 import Combine
+import os
 
 @available(*, deprecated, message: "Removed due to file system events not always firing")
 final class FileWatcherService: ObservableObject {
     @Published var fileContent: String = ""
     
     private var fileHandle: FileHandle?
-    private var source: DispatchSourceFileSystemObject?
+    private var source: (any DispatchSourceFileSystemObject)?
     private var fileURL: URL
     
     init(fileURL: URL) {

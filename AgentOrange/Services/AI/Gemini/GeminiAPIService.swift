@@ -8,7 +8,8 @@
 
 import Foundation
 import Factory
-@preconcurrency import GoogleGenerativeAI
+@unsafe @preconcurrency import GoogleGenerativeAI
+import os
 
 actor GeminiAPIService {
     internal var apiKey: String?
@@ -46,18 +47,16 @@ actor GeminiAPIService {
         return messages
     }
     
-    /// Annoyingly Google requires awkward consolidation of messages and only allows alternating between roles
-    private func generateGeminiMessages(text: String) -> [ModelContent] {
+    nonisolated private func buildGeminiMessages(from history: [GPTMessage], text: String) -> [ModelContent] {
         var prevMessage: ModelContent = ModelContent(role: GeminiRole.model.rawValue, parts: "Hi, behaving as a software engineer, how can I help?")
         // gemini only seems to allow a starting with a user message and must include a model message
         var modelContents: [ModelContent] = [
             ModelContent(role: GeminiRole.user.rawValue, parts: "Hi, I'm a software engineer."),
             prevMessage
         ]
-        
         do {
             // gemini annoyingly only allows alternating between model and user
-            for message in generateMessages() {
+            for message in history {
                 var content = try ModelContent(role: GeminiRole.convertRole(message.role), message.content)
                 if prevMessage.role == content.role {
                     content = try ModelContent(role: GeminiRole.convertRole(message.role), prevMessage.parts + [message.content])
@@ -69,7 +68,6 @@ actor GeminiAPIService {
                 }
                 prevMessage = content
             }
-            
             // add the prompt
             var content = try ModelContent(role: GeminiRole.user.rawValue, text)
             if prevMessage.role == GeminiRole.user.rawValue {
@@ -83,7 +81,6 @@ actor GeminiAPIService {
         } catch {
             print("Error generating messages: \(error)")
         }
-
         return modelContents
     }
 }
@@ -112,8 +109,8 @@ extension GeminiAPIService: TokenServiceProtocol {
 }
 
 extension GeminiAPIService: AGIStreamingServiceProtocol {
-    func sendMessageStream(text: String, needsJSONResponse: Bool = false, host: String, model: String, temperature: Double) async throws -> AsyncThrowingStream<String, Error> {
-        return AsyncThrowingStream<String, Error> { continuation in
+    func sendMessageStream(text: String, needsJSONResponse: Bool = false, host: String, model: String, temperature: Double) async throws -> AsyncThrowingStream<String, any Error> {
+        return AsyncThrowingStream<String, any Error> { continuation in
             Task(priority: .userInitiated) { [weak self] in
                 guard let self = self else { return }
                 do {
@@ -122,7 +119,8 @@ extension GeminiAPIService: AGIStreamingServiceProtocol {
                         return
                     }
                     let client = GenerativeModel(name: model, apiKey: key)
-                    let messages: [ModelContent] = await generateGeminiMessages(text: text)
+                    let historySnapshot = await self.generateMessages()
+                    let messages: [ModelContent] = buildGeminiMessages(from: historySnapshot, text: text)
                     let outputContentStream = client.generateContentStream(messages)
                     var outputText: String = ""
                     
@@ -187,8 +185,9 @@ extension GeminiAPIService {
     }
     
     public func testGenerateGeminiMessages(text: String) -> [ModelContent] {
-        generateGeminiMessages(text: text)
+        buildGeminiMessages(from: [], text: text)
     }
 }
 
 #endif
+

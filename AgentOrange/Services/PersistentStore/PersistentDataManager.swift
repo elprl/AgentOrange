@@ -7,6 +7,7 @@
 
 import SwiftData
 import SwiftUI
+import os
 
 protocol PersistentGroupDataManagerProtocol: Actor {
     func add(group: MessageGroupSendable) async

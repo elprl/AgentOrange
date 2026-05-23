@@ -9,6 +9,8 @@ import SwiftUI
 import SwiftData
 import MarkdownUI
 import Splash
+import os
+import UniformTypeIdentifiers
 
 struct FileViewerSUI: View {
     @Environment(\.colorScheme) private var colorScheme

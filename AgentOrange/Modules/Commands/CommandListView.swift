@@ -38,6 +38,8 @@ struct CommandListView: View {
                                 viewModel.delete(command: command.sendableModel)
                             case .duplicate:
                                 viewModel.duplicate(command: command.sendableModel)
+                            case .clipboard:
+                                viewModel.copyToClipboard(command: command.sendableModel)
                             default: break
                             }
                         }

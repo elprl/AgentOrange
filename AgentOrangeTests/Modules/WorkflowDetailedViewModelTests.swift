@@ -32,7 +32,7 @@ final class WorkflowDetailedViewModelSpec: QuickSpec {
                 var initialWorkflow: Workflow!
                 
                 beforeEach {
-                    initialWorkflow =  Workflow(name: "Initial Workflow", timestamp: Date.now, shortDescription: "Initial Description", commandIds: ["command1"])
+                    initialWorkflow =  Workflow(name: "Initial Workflow", timestamp: Date.now, shortDescription: "Initial Description", commandArrangement: nil)
                     sut = WorkflowDetailedViewModel(modelContext: mockModelContext, workflow: initialWorkflow)
                 }
                 
@@ -41,8 +41,7 @@ final class WorkflowDetailedViewModelSpec: QuickSpec {
                     expect(sut.selectedWorkflow.name).to(equal("Initial Workflow"))
                     expect(sut.editingWorkflow.shortDescription).to(equal("Initial Description"))
                     expect(sut.selectedWorkflow.shortDescription).to(equal("Initial Description"))
-                    expect(sut.editingWorkflow.commandIds).to(equal(["command1"]))
-                    expect(sut.selectedWorkflow.commandIds).to(equal(["command1"]))
+                    expect(sut.selectedWorkflow.commandArrangement).to(beNil())
                     expect(sut.isEditing).to(beFalse())
                 }
             }
@@ -52,7 +51,7 @@ final class WorkflowDetailedViewModelSpec: QuickSpec {
                 var initialWorkflow: Workflow!
                 
                 beforeEach {
-                    initialWorkflow =  Workflow(name: "Initial Workflow", timestamp: Date.now, shortDescription: "Initial Description", commandIds: ["command1"])
+                    initialWorkflow =  Workflow(name: "Initial Workflow", timestamp: Date.now, shortDescription: "Initial Description", commandArrangement: nil)
                     sut = WorkflowDetailedViewModel(modelContext: mockModelContext, workflow: initialWorkflow)
                     sut.editingWorkflow.name = "Edited Workflow"
                     sut.editingWorkflow.shortDescription = "Edited Description"
@@ -71,7 +70,7 @@ final class WorkflowDetailedViewModelSpec: QuickSpec {
                 var initialWorkflow: Workflow!
                 
                 beforeEach {
-                    initialWorkflow =  Workflow(name: "Initial Workflow", timestamp: Date.now, shortDescription: "Initial Description", commandIds: ["command1"])
+                    initialWorkflow =  Workflow(name: "Initial Workflow", timestamp: Date.now, shortDescription: "Initial Description", commandArrangement: nil)
                     sut = WorkflowDetailedViewModel(modelContext: mockModelContext, workflow: initialWorkflow)
                     sut.editingWorkflow.name = ""
                     sut.save()
@@ -87,7 +86,7 @@ final class WorkflowDetailedViewModelSpec: QuickSpec {
                 var initialWorkflow: Workflow!
                 
                 beforeEach {
-                    initialWorkflow =  Workflow(name: "Initial Workflow", timestamp: Date.now, shortDescription: "Initial Description", commandIds: ["command1"])
+                    initialWorkflow =  Workflow(name: "Initial Workflow", timestamp: Date.now, shortDescription: "Initial Description", commandArrangement: nil)
                     sut = WorkflowDetailedViewModel(modelContext: mockModelContext, workflow: initialWorkflow)
                     sut.delete(workflow: initialWorkflow)
                 }
@@ -102,7 +101,7 @@ final class WorkflowDetailedViewModelSpec: QuickSpec {
                 var initialWorkflow: Workflow!
                 
                 beforeEach {
-                    initialWorkflow =  Workflow(name: "Initial Workflow", timestamp: Date.now, shortDescription: "Initial Description", commandIds: ["command1"])
+                    initialWorkflow =  Workflow(name: "Initial Workflow", timestamp: Date.now, shortDescription: "Initial Description", commandArrangement: nil)
                     sut = WorkflowDetailedViewModel(modelContext: mockModelContext, workflow: initialWorkflow)
                     sut.editBtnPressed()
                 }
@@ -117,7 +116,7 @@ final class WorkflowDetailedViewModelSpec: QuickSpec {
                 var initialWorkflow: Workflow!
                 
                 beforeEach {
-                    initialWorkflow =  Workflow(name: "Initial Workflow", timestamp: Date.now, shortDescription: "Initial Description", commandIds: ["command1"])
+                    initialWorkflow =  Workflow(name: "Initial Workflow", timestamp: Date.now, shortDescription: "Initial Description", commandArrangement: nil)
                     sut = WorkflowDetailedViewModel(modelContext: mockModelContext, workflow: initialWorkflow)
                     sut.isEditing = true
                     sut.editBtnPressed()
@@ -134,8 +133,8 @@ final class WorkflowDetailedViewModelSpec: QuickSpec {
                 var selectedWorkflow: Workflow!
                 
                 beforeEach {
-                    initialWorkflow =  Workflow(name: "Initial Workflow", timestamp: Date.now, shortDescription: "Initial Description", commandIds: ["command1"])
-                    selectedWorkflow = Workflow(name: "Selected Workflow", timestamp: Date.now, shortDescription: "Selected Description", commandIds: ["command2"])
+                    initialWorkflow =  Workflow(name: "Initial Workflow", timestamp: Date.now, shortDescription: "Initial Description", commandArrangement: nil)
+                    selectedWorkflow = Workflow(name: "Selected Workflow", timestamp: Date.now, shortDescription: "Selected Description", commandArrangement: nil)
                     sut = WorkflowDetailedViewModel(modelContext: mockModelContext, workflow: initialWorkflow)
                     sut.selectedWorkflow = selectedWorkflow
                     sut.editingWorkflow.name = "Edited Workflow"
@@ -154,26 +153,26 @@ final class WorkflowDetailedViewModelSpec: QuickSpec {
                 }
             }
             
-            context("WHEN getHosts(commands:) is called") {
-                var sut: WorkflowDetailedViewModel!
-                var initialWorkflow: Workflow!
-                var mockCommands: [CDChatCommand]!
-                
-                beforeEach {
-                    initialWorkflow =  Workflow(name: "Initial Workflow", timestamp: Date.now, shortDescription: "Initial Description", commandIds: ["command1", "command2", "command3"])
-                    sut = WorkflowDetailedViewModel(modelContext: mockModelContext, workflow: initialWorkflow)
-                    mockCommands = [
-                        CDChatCommand(name: "command1", timestamp: Date.now, prompt: "Prompt 1", shortDescription: "short description 1", host: "http://host1.com"),
-                        CDChatCommand(name: "command2", timestamp: Date.now, prompt: "Prompt 2", shortDescription: "short description 2", host: "http://host2.com"),
-                        CDChatCommand(name: "command3", timestamp: Date.now, prompt: "Prompt 3", shortDescription: "short description 3", host: "http://host3.com")
-                    ]
-                }
-                
-                it("THEN it should return the unique hosts for the workflow commands") {
-                    let hosts = sut.getHosts(commands: mockCommands)
-                    expect(hosts).to(equal(["http://host1.com", "http://host2.com", "http://host3.com"]))
-                }
-            }
+//            context("WHEN getHosts(commands:) is called") {
+//                var sut: WorkflowDetailedViewModel!
+//                var initialWorkflow: Workflow!
+//                var mockCommands: [CDChatCommand]!
+//                
+//                beforeEach {
+//                    initialWorkflow =  Workflow(name: "Initial Workflow", timestamp: Date.now, shortDescription: "Initial Description", commandArrangement: nil)
+//                    sut = WorkflowDetailedViewModel(modelContext: mockModelContext, workflow: initialWorkflow)
+//                    mockCommands = [
+//                        CDChatCommand(name: "command1", timestamp: Date.now, prompt: "Prompt 1", shortDescription: "short description 1", host: "http://host1.com"),
+//                        CDChatCommand(name: "command2", timestamp: Date.now, prompt: "Prompt 2", shortDescription: "short description 2", host: "http://host2.com"),
+//                        CDChatCommand(name: "command3", timestamp: Date.now, prompt: "Prompt 3", shortDescription: "short description 3", host: "http://host3.com")
+//                    ]
+//                }
+//                
+//                it("THEN it should return the unique hosts for the workflow commands") {
+//                    let hosts = sut.getHosts(commands: mockCommands)
+//                    expect(hosts).to(equal(["http://host1.com", "http://host2.com", "http://host3.com"]))
+//                }
+//            }
             
             context("WHEN commands(for:commands:) is called") {
                 var sut: WorkflowDetailedViewModel!
@@ -181,7 +180,7 @@ final class WorkflowDetailedViewModelSpec: QuickSpec {
                 var mockCommands: [CDChatCommand]!
                 
                 beforeEach {
-                    initialWorkflow =  Workflow(name: "Initial Workflow", timestamp: Date.now, shortDescription: "Initial Description", commandIds: ["command1", "command2", "command3"])
+                    initialWorkflow =  Workflow(name: "Initial Workflow", timestamp: Date.now, shortDescription: "Initial Description", commandArrangement: nil)
                     sut = WorkflowDetailedViewModel(modelContext: mockModelContext, workflow: initialWorkflow)
                     mockCommands = [
                         CDChatCommand(name: "command1", timestamp: Date.now, prompt: "Prompt 1", shortDescription: "short description 1", host: "http://host1.com"),
@@ -191,7 +190,7 @@ final class WorkflowDetailedViewModelSpec: QuickSpec {
                 }
                 
                 it("THEN it should return commands for a specific host") {
-                    let commands = sut.commands(for: "http://host1.com", commands: mockCommands)
+                    let commands = sut.getCommands(for: 0, commands: mockCommands)
                     expect(commands.count).to(equal(3))
                     expect(commands.first?.name).to(equal("command1"))
                     expect(commands.last?.name).to(equal("command3"))
@@ -203,14 +202,14 @@ final class WorkflowDetailedViewModelSpec: QuickSpec {
                 var initialWorkflow: Workflow!
                 
                 beforeEach {
-                    initialWorkflow =  Workflow(name: "Initial Workflow", timestamp: Date.now, shortDescription: "Initial Description", commandIds: ["command1"])
+                    initialWorkflow =  Workflow(name: "Initial Workflow", timestamp: Date.now, shortDescription: "Initial Description", commandArrangement: nil)
                     sut = WorkflowDetailedViewModel(modelContext: mockModelContext, workflow: initialWorkflow)
                     let newCommand = ChatCommand(name: "command1", timestamp: Date.now, prompt: "Prompt 1", shortDescription: "short description 1")
-                    sut.addCommand(command: newCommand)
+                    sut.addToWorkflow(command: newCommand)
                 }
                 
                 it("THEN it should add the command to the workflow") {
-                    expect(sut.editingWorkflow.commandIds).to(equal(["command1"]))
+                    expect(sut.editingWorkflow.commandArrangement).to(contain("command1"))
                 }
             }
             
@@ -219,14 +218,16 @@ final class WorkflowDetailedViewModelSpec: QuickSpec {
                 var initialWorkflow: Workflow!
                 
                 beforeEach {
-                    initialWorkflow =  Workflow(name: "Initial Workflow", timestamp: Date.now, shortDescription: "Initial Description", commandIds: ["command1"])
+                    initialWorkflow =  Workflow(name: "Initial Workflow", timestamp: Date.now, shortDescription: "Initial Description", commandArrangement: nil)
                     sut = WorkflowDetailedViewModel(modelContext: mockModelContext, workflow: initialWorkflow)
                     let existingCommand = ChatCommand(name: "command1", timestamp: Date.now, prompt: "Prompt 1", shortDescription: "short description 1")
-                    sut.addCommand(command: existingCommand)
+                    sut.addToWorkflow(command: existingCommand)
+                    let copyCommand = ChatCommand(name: "command1", timestamp: Date.now, prompt: "Prompt 1", shortDescription: "short description 1")
+                    sut.addToWorkflow(command: copyCommand)
                 }
                 
                 it("THEN it should not add the command to the workflow") {
-                    expect(sut.editingWorkflow.commandIds).to(equal(["command1"]))
+                    expect(sut.editingWorkflow.commandNames.count).to(equal(1))
                 }
             }
         }

@@ -9,14 +9,15 @@ import SwiftUI
 import Factory
 import SwiftData
 import Combine
+import os
 
 @Observable
 @MainActor
 final class AIChatViewModel {
     @Injected(\.parserService) @ObservationIgnored private var parserService
-    /* @Injected(\.commandService) */ @ObservationIgnored private var commandService: CommandServiceProtocol
-    /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: PersistentDataManagerProtocol
-    /* @Injected(\.workflowManager) */ @ObservationIgnored private var workflowManager: WorkflowManagerProtocol
+    /* @Injected(\.commandService) */ @ObservationIgnored private var commandService: any CommandServiceProtocol
+    /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: any PersistentDataManagerProtocol
+    /* @Injected(\.workflowManager) */ @ObservationIgnored private var workflowManager: any WorkflowManagerProtocol
     @Injected(\.keychainService) @ObservationIgnored private var keychainService
     @ObservationIgnored private var sessionIndex: Int = 0
     var isPresented = false
@@ -112,7 +113,7 @@ final class AIChatViewModel {
         await Task.detached { [weak self] in
             do {
                 guard let self else { return }
-                var agiService: AGIStreamingServiceProtocol & AGIHistoryServiceProtocol
+                var agiService: any AGIStreamingServiceProtocol & AGIHistoryServiceProtocol
                 switch host.lowercased() {
                 case AGIServiceChoice.gemini.name.lowercased():
                     let key = await self.geminiAPIKey

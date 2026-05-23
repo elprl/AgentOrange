@@ -73,14 +73,3 @@ extension ClaudeModel: Hashable, Identifiable, Codable {
         }
     }
 }
-
-extension SwiftAnthropic.APIError: @retroactive LocalizedError, @retroactive CustomStringConvertible {
-    public var description: String {
-        return displayDescription
-    }
-    
-    /// A localized message describing what error occurred.
-    public var errorDescription: String? {
-        return displayDescription
-    }
-}

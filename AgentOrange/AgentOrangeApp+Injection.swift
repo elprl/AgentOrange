@@ -12,16 +12,16 @@ import SwiftData
 // MARK: Services
 
 extension Container {
-    var parserService: Factory<CodeParserServiceProtocol> { self { CodeParserService() }.shared }
-    var agiService: Factory<AGIStreamingServiceProtocol & AGIHistoryServiceProtocol> { self { LMStudioAPIService() }.shared }
-    var dataService: ParameterFactory<ModelContainer, PersistentDataManagerProtocol> {
+    var parserService: Factory<any CodeParserServiceProtocol> { self { CodeParserService() }.shared }
+    var agiService: Factory<any AGIStreamingServiceProtocol & AGIHistoryServiceProtocol> { self { LMStudioAPIService() }.shared }
+    var dataService: ParameterFactory<ModelContainer, any PersistentDataManagerProtocol> {
         self { PersistentDataManager(container: $0) }.shared
     }
-    var commandService: ParameterFactory<ModelContainer, CommandServiceProtocol> {
+    var commandService: ParameterFactory<ModelContainer, any CommandServiceProtocol> {
         self { CommandService(container: $0) }.shared
     }
-    var keychainService: Factory<KeychainProtocol> { self { KeychainService() }.shared }
-    var workflowManager: ParameterFactory<ModelContainer, WorkflowManagerProtocol> {
+    var keychainService: Factory<any KeychainProtocol> { self { KeychainService() }.shared }
+    var workflowManager: ParameterFactory<ModelContainer, any WorkflowManagerProtocol> {
         self { WorkflowManager(container: $0) }.shared
     }
 }

@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import os
+import SwiftData
 
 struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext

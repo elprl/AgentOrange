@@ -12,7 +12,7 @@ import Factory
 @Observable
 @MainActor
 final class WorkflowListViewModel {
-    /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: PersistentWorkflowDataManagerProtocol
+    /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: any PersistentWorkflowDataManagerProtocol
     var errorMessage: String?
     var showAlert: Bool = false
     

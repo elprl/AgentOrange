@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import os
 
 actor LMStudioAPIService {
     var historyList = [GPTMessage]()
@@ -55,7 +56,7 @@ actor LMStudioAPIService {
 
 extension LMStudioAPIService: AGIStreamingServiceProtocol {
     
-    func sendMessageStream(text: String, needsJSONResponse: Bool, host: String, model: String, temperature: Double) async throws -> AsyncThrowingStream<String, Error> {
+    func sendMessageStream(text: String, needsJSONResponse: Bool, host: String, model: String, temperature: Double) async throws -> AsyncThrowingStream<String, any Error> {
         self.hasCancelledStream = false
         var urlRequest = urlRequest(for: host)
         do {
@@ -90,7 +91,7 @@ extension LMStudioAPIService: AGIStreamingServiceProtocol {
                 throw TDAPIError.badResponse(httpResponse.statusCode, errorText)
             }
             
-            return AsyncThrowingStream<String, Error> { continuation in
+            return AsyncThrowingStream<String, any Error> { continuation in
                 Task(priority: .userInitiated) { [weak self] in
                     guard let self else { return }
                     do {

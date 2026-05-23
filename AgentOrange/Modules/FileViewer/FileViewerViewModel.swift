@@ -13,7 +13,7 @@ import SwiftData
 @Observable
 final class FileViewerViewModel {
     @Injected(\.parserService) @ObservationIgnored private var parserService
-    /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: PersistentCodeDataManagerProtocol
+    /* @Injected(\.dataService) */ @ObservationIgnored private var dataService: any PersistentCodeDataManagerProtocol
     var selectedGroupId: String?
     var selectedRows: [AttributedString] = []
     var selectedSnippet: CodeSnippetSendable?

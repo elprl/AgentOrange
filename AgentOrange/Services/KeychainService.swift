@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import os
 
 protocol KeychainProtocol {
     subscript(key: String) -> String? { get set }
@@ -51,7 +52,7 @@ extension KeychainProtocol {
         query.setValue(kCFBooleanTrue, forKey: kSecReturnAttributes as String)
         
         var result: CFTypeRef?
-        let status = SecItemCopyMatching(query, &result)
+        let status = unsafe SecItemCopyMatching(query, &result)
         
         guard
             let resultsDict = result as? NSDictionary,

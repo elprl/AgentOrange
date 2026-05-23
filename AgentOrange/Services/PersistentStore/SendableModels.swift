@@ -95,6 +95,8 @@ extension Workflow: SendableModelProtocol {
     }
 }
 
+#if DEBUG
+
 extension Workflow {
     static func mock() -> Workflow {
         var mock1 = ChatCommand.mock()
@@ -104,3 +106,5 @@ extension Workflow {
         return Workflow(name: UUID().uuidString, timestamp: Date.now, shortDescription: UUID().uuidString, commandArrangement: "\(mock1.name), \(mock2.name)")
     }
 }
+
+#endif

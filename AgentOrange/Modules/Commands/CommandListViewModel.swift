@@ -8,11 +8,12 @@
 import Foundation
 import Factory
 import SwiftData
+import SwiftUI
 
 @Observable
 @MainActor
 final class CommandListViewModel {
-    /* @Injected(\.commandService) */ @ObservationIgnored private var commandService: CommandServiceProtocol
+    /* @Injected(\.commandService) */ @ObservationIgnored private var commandService: any CommandServiceProtocol
     var selectedCommand: ChatCommand?
     var errorMessage: String?
     var showAlert: Bool = false
@@ -49,6 +50,11 @@ final class CommandListViewModel {
         Task {
             await commandService.delete(command: command)
         }
+    }
+    
+    func copyToClipboard(command: ChatCommand) {
+        let copyString = command.role + "\n" + command.prompt
+        UIPasteboard.general.string = copyString
     }
 }
 

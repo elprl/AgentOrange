@@ -1,0 +1,6 @@
+app_identifier("com.tapdigital.AgentOrange") # The bundle identifier of your app
+apple_id("paul.r.leo@gmail.com") # Your Apple Developer Portal username
+team_id(ENV["APPLE_TEAM_ID"]) # Your Apple Developer Team ID
+
+# For more information about the Appfile, see:
+#     https://docs.fastlane.tools/advanced/#appfile

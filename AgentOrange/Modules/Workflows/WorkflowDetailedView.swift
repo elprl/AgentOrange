@@ -346,9 +346,13 @@ let _ = Self._printChanges()
     }
 }
 
+#if DEBUG
+
 #Preview {
     NavigationStack {
         WorkflowDetailedView(workflow: Workflow.mock(), modelContext: PreviewController.commandsPreviewContainer.mainContext)
             .modelContext(PreviewController.commandsPreviewContainer.mainContext)
     }
 }
+
+#endif

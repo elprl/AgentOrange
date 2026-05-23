@@ -8,6 +8,7 @@
 import SwiftUI
 import MarkdownUI
 import Splash
+import SwiftData
 
 enum RowEvent {
     case delete
@@ -16,6 +17,7 @@ enum RowEvent {
     case fullscreen
     case duplicate
     case removeCommands
+    case clipboard
 }
 
 struct AIChatViewRow: View {
